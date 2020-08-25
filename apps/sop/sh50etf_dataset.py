@@ -5,6 +5,7 @@ import torch
 import torch.utils.data.dataset as Dataset
 #
 from apps.sop.sh50etf_option_data_source import Sh50etfOptionDataSource
+from apps.sop.ds.sh50etf_index_data_source import Sh50etfIndexDataSource
 
 class Sh50etfDataset(Dataset.Dataset):
     def __init__(self):
@@ -29,6 +30,9 @@ class Sh50etfDataset(Dataset.Dataset):
         self.dates = list(date_set)
         list.sort(self.dates, reverse=False)
         list.sort(self.key_list, reverse=False)
+        # 获取50ETF指数日行情数据
+        index_ds = Sh50etfIndexDataSource()
+        index_df = index_ds.get_daily_data(self.dates[0], self.dates[-1])
         raw_X = []
         for idx in range(len(self.dates)):
             date_row = []
@@ -41,6 +45,12 @@ class Sh50etfDataset(Dataset.Dataset):
                                 float(oc[idx][6]), float(oc[idx][7])]
                 else:
                     date_row += [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            index_rec = index_df.loc[self.dates[idx]]
+            date_row += [
+                float(index_rec['open']), float(index_rec['high']), 
+                float(index_rec['low']), float(index_rec['close']), 
+                float(index_rec['volume'])
+            ]
             raw_X.append(date_row)
         X = np.array(raw_X, dtype=np.float32)
         y = np.zeros((len(self.dates),))

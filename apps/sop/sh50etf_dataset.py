@@ -28,14 +28,18 @@ class Sh50etfDataset(Dataset.Dataset):
             self.key_list.append(key)
             for oc in option_dict[key]:
                 date_set.add(oc[0])
-        self.dates = list(date_set)
-        list.sort(self.dates, reverse=False)
+        raw_dates = list(date_set)
+        list.sort(raw_dates, reverse=False)
         list.sort(self.key_list, reverse=False)
+        # 求出系统日历
+        self.dates = []
+        for idx in range(SopConfig.lookback_num - 1, len(raw_dates)):
+            self.dates.append(raw_dates[idx])
         # 获取50ETF指数日行情数据
         index_ds = Sh50etfIndexDataSource()
-        index_df = index_ds.get_daily_data(self.dates[0], self.dates[-1])
+        index_df = index_ds.get_daily_data(raw_dates[0], raw_dates[-1])
         raw_X = [] # 一天一行形式
-        for idx in range(len(self.dates)):
+        for idx in range(len(raw_dates)):
             date_row = []
             for key in self.key_list:
                 oc = option_dict[key]
@@ -47,7 +51,7 @@ class Sh50etfDataset(Dataset.Dataset):
                 else:
                     date_row += [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
             try:
-                index_rec = index_df.loc[self.dates[idx]]
+                index_rec = index_df.loc[raw_dates[idx]]
                 date_row += [
                     float(index_rec['open']), float(index_rec['high']), 
                     float(index_rec['low']), float(index_rec['close']), 

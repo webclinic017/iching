@@ -13,4 +13,5 @@ class TSh50etfIndexDataSource(unittest.TestCase):
 
     def test_get_daily_data(self):
         ds = Sh50etfIndexDataSource()
-        ds.get_daily_data('2020-06-01', '2020-06-23')
+        df = ds.get_daily_data('2020-06-01', '2020-06-23')
+        print('\nsh50etf index quotation:\n{0};'.format(df))

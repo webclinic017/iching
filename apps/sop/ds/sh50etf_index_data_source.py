@@ -11,18 +11,8 @@ class Sh50etfIndexDataSource(object):
         df1 = df.loc[start_date: end_date]
         print('')
         print(df1)
-        #dates = df['date']
         open1 = df1['open'][start_date]
-        print('open1: {0};'.format(open1))
-        print('df1[2020-06-01]: {0};'.format(df1.loc[start_date]))
-        '''
-        opens = df['open']
-        highs = df['high']
-        lows = df['low']
-        closes = df['close']
-        volumes = df['volume']
-        X = []
-        for idx in range(len(dates)):
-            if dates[idx] >= start_date and dates[idx] <= end_date:
-                print(dates[idx])
-        '''
+        print('open1: {0};'.format(type(open1), open1))
+        val1 = df1.loc[start_date]
+        print('df1[2020-06-01]: {0}; {1};'.format(type(val1), val1))
+        print('open: {0}; high: {1};  type:{2}'.format(val1['open'], val1['high'], type(val1['open'])))

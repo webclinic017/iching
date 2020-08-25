@@ -5,7 +5,7 @@ import torch
 import torch.utils.data.dataset as Dataset
 #
 from apps.sop.sop_config import SopConfig
-from apps.sop.sh50etf_option_data_source import Sh50etfOptionDataSource
+from apps.sop.ds.sh50etf_option_data_source import Sh50etfOptionDataSource
 from apps.sop.ds.sh50etf_index_data_source import Sh50etfIndexDataSource
 
 class Sh50etfDataset(Dataset.Dataset):

@@ -3,7 +3,7 @@ import numpy as np
 import gym
 from gym import spaces
 # 
-from apps.sop.sh50etf_dataset import Sh50etfDataset
+from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
 
 class SopEnv(gym.Env):
     def __init__(self):

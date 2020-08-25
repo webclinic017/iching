@@ -1,6 +1,6 @@
 # 50ETF期权日行情数据数据源类
 import unittest
-from apps.sop.sh50etf_option_data_source import Sh50etfOptionDataSource
+from apps.sop.ds.sh50etf_option_data_source import Sh50etfOptionDataSource
 
 class TSh50etfOptionDataSource(unittest.TestCase):
     @classmethod

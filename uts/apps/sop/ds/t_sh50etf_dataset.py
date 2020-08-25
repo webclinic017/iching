@@ -1,7 +1,7 @@
 # D50etfDataset测试类
 import unittest
 import torch.utils.data.dataloader as DataLoader
-from apps.sop.sh50etf_dataset import Sh50etfDataset
+from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
 
 class TSh50etfDataset(unittest.TestCase):
     @classmethod

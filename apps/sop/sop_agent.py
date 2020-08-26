@@ -23,7 +23,10 @@ class SopAgent(object):
         根据环境当前状态选择本时间点的行动，将上一时间点行动的奖励信号
         用于策略学习
         '''
-        self.action[self.action > 0] = 0
+        print('看到：{0};\n奖励：{1};'.format(obs, reward))
+        self.action[SopAgent.IDX_OPTION][self.action[SopAgent.IDX_OPTION] > 0] = 0
+        self.action[SopAgent.IDX_ACTION][self.action[SopAgent.IDX_ACTION] > 0] = 0
+        self.action[SopAgent.IDX_PERCENT][self.action[SopAgent.IDX_PERCENT] > 0] = 0
         option_idx = 2
         action_idx = 1
         percent_idx = 2

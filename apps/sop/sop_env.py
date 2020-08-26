@@ -12,7 +12,7 @@ class SopEnv(gym.Env):
         self.tick = 0
         # action为3维数组：1维-是期权合约编号；2维-买入持有卖出；
         # 3维-百分比，缺省为100%
-        self.agent = None
+        self.agent = SopAgent()
 
     def startup(self, args={}):
         self.ds = Sh50etfDataset()
@@ -29,7 +29,6 @@ class SopEnv(gym.Env):
 
     def reset(self):
         print('重置环境到初始状态')
-        self.agent = SopAgent(self)
         self.agent.reset(self)
         self.tick = 0
 

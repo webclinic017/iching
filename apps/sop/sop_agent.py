@@ -7,9 +7,9 @@ class SopAgent(object):
     IDX_ACTION = 1
     IDX_PERCENT = 2
 
-    def __init__(self, env):
+    def __init__(self):
         self.refl = 'apps.sop.Agent'
-        self.reset(env)
+        #self.reset(env)
 
     def reset(self, env):
         self.action = [

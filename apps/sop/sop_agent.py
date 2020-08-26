@@ -10,23 +10,33 @@ class SopAgent(object):
     def __init__(self):
         self.refl = 'apps.sop.Agent'
         #self.reset(env)
+        self.action = None
 
     def reset(self, env):
-        self.action = [
-            np.zeros((len(env.ds.key_list),)),
-            np.zeros((3,)),
-            np.zeros((10,))
-        ]
+        if self.action is None:
+            self.action = [
+                np.zeros((len(env.ds.key_list),)),
+                np.zeros((3,)),
+                np.zeros((10,))
+            ]
+        self._reset_action()
+
+    def _reset_action(self):
+        self.action[SopAgent.IDX_OPTION][self.action\
+                    [SopAgent.IDX_OPTION] > 0] = 0
+        self.action[SopAgent.IDX_ACTION][self.action\
+                    [SopAgent.IDX_ACTION] > 0] = 0
+        self.action[SopAgent.IDX_PERCENT][self.action\
+                    [SopAgent.IDX_PERCENT] > 0] = 0
+
 
     def choose_action(self, obs, reward):
         '''
         根据环境当前状态选择本时间点的行动，将上一时间点行动的奖励信号
         用于策略学习
         '''
+        self._reset_action()
         print('看到：{0};\n奖励：{1};'.format(obs, reward))
-        self.action[SopAgent.IDX_OPTION][self.action[SopAgent.IDX_OPTION] > 0] = 0
-        self.action[SopAgent.IDX_ACTION][self.action[SopAgent.IDX_ACTION] > 0] = 0
-        self.action[SopAgent.IDX_PERCENT][self.action[SopAgent.IDX_PERCENT] > 0] = 0
         option_idx = 2
         action_idx = 1
         percent_idx = 2

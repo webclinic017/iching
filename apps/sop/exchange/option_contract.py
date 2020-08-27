@@ -41,6 +41,8 @@ class OptionContract(object):
     def calculate_security_deposit(self, price):
         '''
         计算并返回本期权合约的保证金金额
+        参数：
+            price 标的价格
         '''
         if OptionContract.OCT_CALL == self.option_contract_type \
                     and OptionContract.SIDE_SHORT == self.side:

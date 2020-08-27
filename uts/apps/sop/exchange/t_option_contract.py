@@ -1,7 +1,7 @@
 # 期权合约类单元测试类
 import unittest
 from apps.sop.sop_config import SopConfig
-from apps.sop.option_contract import OptionContract
+from apps.sop.exchange.option_contract import OptionContract
 
 class TOptionContract(unittest.TestCase):
     @classmethod

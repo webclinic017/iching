@@ -6,6 +6,7 @@ from gym import spaces
 from apps.sop.sop_agent import SopAgent
 from apps.sop.sop_action import SopAction
 from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
+from apps.sop.exchange.order import Order
 
 class SopEnv(gym.Env):
     def __init__(self):
@@ -48,4 +49,5 @@ class SopEnv(gym.Env):
         return obs, reward, done, {}
 
     def _execute_action(self, action):
-        pass
+        order = Order(action)
+        print('执行订单：{0};'.format(order))

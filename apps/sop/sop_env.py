@@ -41,11 +41,11 @@ class SopEnv(gym.Env):
         return {'X': X, 'y': y, 'r': r}
 
     def step(self, action):
-        self._take_action(action)
+        self._execute_action(action)
         obs = self._next_observation()
         reward = 0.0
         done = False
         return obs, reward, done, {}
 
-    def _take_action(self, action):
+    def _execute_action(self, action):
         pass

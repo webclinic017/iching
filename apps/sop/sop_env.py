@@ -3,9 +3,11 @@ import numpy as np
 import gym
 from gym import spaces
 # 
+from apps.sop.sop_registry import SopRegistry
 from apps.sop.sop_agent import SopAgent
 from apps.sop.sop_action import SopAction
 from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
+from apps.sop.exchange.position import Position
 from apps.sop.exchange.order import Order
 from apps.sop.exchange.broker import Broker
 
@@ -38,6 +40,9 @@ class SopEnv(gym.Env):
         self.action = SopAction(self)
         self.agent = SopAgent(self.action)
         self.agent.reset(self)
+        position = Position(100000.0) # 初始资金为10万元
+        SopRegistry.put(SopRegistry.K_POSITION, position)
+        print('注册：{0};'.format(position))
 
     def _next_observation(self):
         X, y, r = self.ds.__getitem__(self.tick)

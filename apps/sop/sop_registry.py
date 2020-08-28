@@ -13,3 +13,5 @@ class SopRegistry(object):
             return SopRegistry.PARAMS[key]
         else:
             return None
+
+    K_POSITION = 'position'

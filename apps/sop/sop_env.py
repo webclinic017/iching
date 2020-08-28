@@ -4,6 +4,7 @@ import gym
 from gym import spaces
 # 
 from apps.sop.sop_agent import SopAgent
+from apps.sop.sop_action import SopAction
 from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
 
 class SopEnv(gym.Env):
@@ -12,7 +13,8 @@ class SopEnv(gym.Env):
         self.tick = 0
         # action为3维数组：1维-是期权合约编号；2维-买入持有卖出；
         # 3维-百分比，缺省为100%
-        self.agent = SopAgent()
+        self.agent = None
+        self.action = None
 
     def startup(self, args={}):
         self.ds = Sh50etfDataset()
@@ -29,8 +31,10 @@ class SopEnv(gym.Env):
 
     def reset(self):
         print('重置环境到初始状态')
-        self.agent.reset(self)
         self.tick = 0
+        self.action = SopAction(self)
+        self.agent = SopAgent(self.action)
+        self.agent.reset(self)
 
     def _next_observation(self):
         X, y, r = self.ds.__getitem__(self.tick)

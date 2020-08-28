@@ -1,46 +1,23 @@
 # 强化学习中的Agent，负责与环境的交互，同时调用对应的策略，生成适合的
 # 行动
 import numpy as np
+#
+from apps.sop.snp.base_strategy import BaseStrategy
 
 class SopAgent(object):
-    IDX_OPTION = 0
-    IDX_ACTION = 1
-    IDX_PERCENT = 2
 
-    def __init__(self):
+    def __init__(self, action):
         self.refl = 'apps.sop.Agent'
         #self.reset(env)
-        self.action = None
+        self.strategy = BaseStrategy(action)
 
     def reset(self, env):
-        if self.action is None:
-            self.action = [
-                np.zeros((len(env.ds.key_list),)),
-                np.zeros((3,)),
-                np.zeros((10,))
-            ]
-        self._reset_action()
-
-    def _reset_action(self):
-        self.action[SopAgent.IDX_OPTION][self.action\
-                    [SopAgent.IDX_OPTION] > 0] = 0
-        self.action[SopAgent.IDX_ACTION][self.action\
-                    [SopAgent.IDX_ACTION] > 0] = 0
-        self.action[SopAgent.IDX_PERCENT][self.action\
-                    [SopAgent.IDX_PERCENT] > 0] = 0
-
+        self.strategy.reset()
 
     def choose_action(self, obs, reward):
         '''
         根据环境当前状态选择本时间点的行动，将上一时间点行动的奖励信号
         用于策略学习
         '''
-        self._reset_action()
         print('看到：{0};\n奖励：{1};'.format(obs, reward))
-        option_idx = 2
-        action_idx = 1
-        percent_idx = 2
-        self.action[SopAgent.IDX_OPTION][option_idx] = 1
-        self.action[SopAgent.IDX_ACTION][action_idx] = 1
-        self.action[SopAgent.IDX_PERCENT][percent_idx] = 1
-        return self.action
+        return self.strategy.run(obs, reward)

@@ -14,10 +14,9 @@ class Sh50etfOptionDataSource(object):
         self.underlying = '510050'
 
     def get_data(self):
-        print('获取50ETF期权日行情数据')
         option_dict = {}
         expire_months = self.get_expire_months()
-        option_codes = self.get_option_codes(expire_months[1])
+        option_codes = self.get_option_codes(expire_months[0])
         dates_set = set()
         for option_code in option_codes[Sh50etfOptionDataSource.\
                         CALL_OPTION_IDX]:

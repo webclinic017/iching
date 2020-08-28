@@ -1,5 +1,4 @@
 #
-from apps.sop.option_contract import OptionContract
 from apps.sop.sop_env import SopEnv
 # 仅用于开发测试
 

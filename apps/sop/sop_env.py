@@ -7,6 +7,7 @@ from apps.sop.sop_agent import SopAgent
 from apps.sop.sop_action import SopAction
 from apps.sop.ds.sh50etf_dataset import Sh50etfDataset
 from apps.sop.exchange.order import Order
+from apps.sop.exchange.broker import Broker
 
 class SopEnv(gym.Env):
     def __init__(self):
@@ -16,6 +17,7 @@ class SopEnv(gym.Env):
         # 3维-百分比，缺省为100%
         self.agent = None
         self.action = None
+        self.broker = Broker()
 
     def startup(self, args={}):
         self.ds = Sh50etfDataset()
@@ -50,4 +52,4 @@ class SopEnv(gym.Env):
 
     def _execute_action(self, action):
         order = Order(action)
-        print('执行订单：{0};'.format(order))
+        self.broker.execute_order(order)

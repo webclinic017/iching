@@ -3,6 +3,7 @@
 import numpy as np
 #
 from apps.sop.snp.base_strategy import BaseStrategy
+from apps.sop.snp.risk_controller import RiskController
 
 class SopAgent(object):
 
@@ -10,6 +11,7 @@ class SopAgent(object):
         self.refl = 'apps.sop.Agent'
         #self.reset(env)
         self.strategy = BaseStrategy(action)
+        self.risk_controller = RiskController()
 
     def reset(self, env):
         self.strategy.reset()
@@ -20,4 +22,7 @@ class SopAgent(object):
         用于策略学习
         '''
         print('看到：{0};\n奖励：{1};'.format(obs, reward))
-        return self.strategy.run(obs, reward)
+        action = self.strategy.run(obs, reward)
+        if not self.risk_controller.review_action(obs, reward, action):
+            action.reset()
+        return action

@@ -16,3 +16,4 @@ class SopRegistry(object):
 
     K_POSITION = 'position'
     K_OPTION_CODES = 'option_codes'
+    K_OC_TO_IDX = 'oc_to_idx'

@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.utils.data.dataset as Dataset
 #
+from apps.sop.sop_registry import SopRegistry
 from apps.sop.sop_config import SopConfig
 from apps.sop.ds.sh50etf_option_data_source import Sh50etfOptionDataSource
 from apps.sop.ds.sh50etf_index_data_source import Sh50etfIndexDataSource
@@ -31,6 +32,10 @@ class Sh50etfDataset(Dataset.Dataset):
         raw_dates = list(date_set)
         list.sort(raw_dates, reverse=False)
         list.sort(self.key_list, reverse=False)
+        oc_to_idx = {}
+        for idx, key in enumerate(self.key_list):
+            oc_to_idx[key] = idx
+        SopRegistry.put(SopRegistry.K_OC_TO_IDX, oc_to_idx)
         # 求出系统日历
         self.dates = []
         for idx in range(SopConfig.lookback_num - 1, len(raw_dates)):

@@ -23,6 +23,7 @@ class SopEnv(gym.Env):
 
     def startup(self, args={}):
         self.ds = Sh50etfDataset()
+        SopRegistry.put(SopRegistry.K_OPTION_CODES, self.ds.key_list)
         self.reset()
         obs, reward, done, info = self._next_observation(), 0, False, {}
         for dt in self.ds.dates:

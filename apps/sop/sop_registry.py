@@ -15,3 +15,4 @@ class SopRegistry(object):
             return None
 
     K_POSITION = 'position'
+    K_OPTION_CODES = 'option_codes'

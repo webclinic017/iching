@@ -13,19 +13,28 @@ class MarketEnvironment(object):
         self.consts[key] = val
 
     def get_const(self, key):
-        return self.consts[key]
+        if key in self.consts:
+            return self.consts[key]
+        else:
+            return None
 
     def add_list(self, key, list_object):
         self.lists[key] = list_object
 
     def get_list(self, key):
-        return self.lists[key]
+        if key in self.lists:
+            return self.lists[key]
+        else:
+            return None
 
     def add_curve(self, key, curve):
         self.curves[key] = curve
 
     def get_curve(self, key):
-        return self.curves[key]
+        if key in self.curves:
+            return self.curves[key]
+        else:
+            return None
 
     def add_environment(self, env):
         ''' 若某个值已经存在则进行覆盖 '''

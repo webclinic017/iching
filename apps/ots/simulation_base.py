@@ -13,7 +13,9 @@ class SimulationBase(object):
         self.currency = mkt_env.get_const('currency')
         self.frequency = mkt_env.get_const('frequency')
         self.paths = mkt_env.get_const('paths')
+        print('step 1')
         self.discount_curve = mkt_env.get_curve('discount_curve') # 贴现因子
+        print('step 2 {0};'.format(self.discount_curve))
         self.time_grid = mkt_env.get_list('time_grid')
         self.special_dates = mkt_env.get_list('special_dates')
         self.instrument_values = None
@@ -26,13 +28,13 @@ class SimulationBase(object):
     def generate_time_grid(self):
         start = self.pricing_date
         end = self.final_date
-        time_grid = pd.date_rand(start=start, end=end, freq=self.frequency).to_pydatetime()
+        time_grid = pd.date_range(start=start, end=end, freq=self.frequency).to_pydatetime()
         time_grid = list(time_grid)
         if start not in time_grid:
             time_grid.insert(0, start)
         if end not in time_grid:
             time_grid.append(end)
-        if len(self.special_dates)>0:
+        if self.special_dates is not None and len(self.special_dates)>0:
             time_grid.extend(self.special_dates)
             time_grid = list(set(time_grid))
             time_grid.sort()

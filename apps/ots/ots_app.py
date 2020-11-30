@@ -9,6 +9,8 @@ from apps.ots.simulation_base import SimulationBase
 from apps.ots.geometric_browning_motion import GeometricBrowningMotion
 from apps.ots.jump_diffusion import JumpDiffusion
 from apps.ots.square_root_diffusion import SquareRootDiffusion
+#from apps.ots.valuation.evaluation_mcs_eu import EvaluationMcsEu
+from apps.ots.exp.volatility_arbitrage import VolatilityArbitrage
 
 class OtsApp(object):
     def __init__(self):
@@ -133,10 +135,19 @@ class OtsApp(object):
         plt.xticks(rotation=30)
         plt.show()
 
+    def exp007(self):
+        me_gbm = MarketEnvironment('gbm', dt.datetime(2019, 1, 1))
+        me_gbm.add_const('initial_value', 36.0) # 初始标的价格
+        me_gbm.add_const('volatility', 0.2)
+        me_gbm.add_const('final_date', dt.datetime(2019, 12, 31))
+
     def startup(self, args={}):
         #self.exp001()
         #self.exp002()
         #self.exp003()
         #self.exp004()
         #self.exp005()
-        self.exp006()
+        #self.exp006()
+        #self.exp007()
+        va = VolatilityArbitrage()
+        va.startup()

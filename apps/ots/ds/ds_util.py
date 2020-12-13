@@ -2,7 +2,8 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
-from pandas.io.data import DataReader
+#from pandas.io.data import DataReader
+from pandas_datareader.data import DataReader
 
 class DsUtil(object):
     @staticmethod
@@ -16,7 +17,7 @@ class DsUtil(object):
         tslag['Today'] = ts['Adj Close']
         tslag['Volume'] = ts['Volume']
         for i in range(0, lags):
-            tslag['Lag{0}'.format(str(i+1))] = ts['Adj Close'].shift(i+1)
+            tslag['lag{0}'.format(str(i+1))] = ts['Adj Close'].shift(i+1)
         tsret = pd.DataFrame(index = ts.index)
         tsret['Volume'] = tslag['Volume']
         tsret['Today'] = tslag['Today'].pct_change()*100.0

@@ -17,6 +17,6 @@ class StrategyBase(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def calculate_signals(self):
+    def calculate_signals(self, event):
         ''' 计算信号的机制 '''
         raise NotImplementedError('必须实现calculate_signals方法')

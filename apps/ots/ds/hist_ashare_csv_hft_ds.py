@@ -2,10 +2,11 @@
 import os
 import numpy as np
 import pandas as pd
+import akshare as ak
 from apps.ots.ds.base_ds import BaseDs
 from apps.ots.event.market_event import MarketEvent
 
-class HistAsharCsvDs(BaseDs):
+class HistAshareCsvHftDs(BaseDs):
     ''' 读取A股行情CSV文件，模拟现实情况 '''
     def __init__(self, events, csv_dir, symbol_list):
         self.events = events
@@ -24,9 +25,9 @@ class HistAsharCsvDs(BaseDs):
             print('csv_dir: {0}; file: {1};'.format(self.csv_dir, s))
             self.symbol_data[s] = pd.io.parsers.read_csv(
                 '{0}/{1}.csv'.format(self.csv_dir, s),
-                header=0, index_col=0, parse_dates=True,
-                names = ['datetime', 'open', 'high', 'low', 'close', 'adj_close', 'volume', 'returns']
-            ).sort_values(by='datetime')
+                header=0, index_col=1, parse_dates=True,
+                names = ['day', 'open', 'high', 'low', 'close', 'volume']
+            ).sort_values(by='day')
 
             if comb_index is None:
                 comb_index = self.symbol_data[s].index
@@ -35,7 +36,7 @@ class HistAsharCsvDs(BaseDs):
             self.latest_symbol_data[s] = []
         for s in self.symbol_list:
             self.symbol_data[s] = self.symbol_data[s].reindex(index = comb_index, method='pad')
-            self.symbol_data[s]['return'] = self.symbol_data[s]['adj_close'] / self.symbol_data[s]['adj_close'].shift(1) - 1
+            self.symbol_data[s]['return'] = self.symbol_data[s]['close'] / self.symbol_data[s]['close'].shift(1) - 1
             self.symbol_data[s] = self.symbol_data[s].iterrows()
 
     def _get_new_bar(self, symbol):
@@ -106,3 +107,9 @@ class HistAsharCsvDs(BaseDs):
                 if bar is not None:
                     self.latest_symbol_data[s].append(bar)
         self.events.put(MarketEvent())
+
+    @staticmethod
+    def download_ashare_minute_data(symbol):
+        stock_zh_a_minute_df = ak.stock_zh_a_minute(symbol=symbol, period='1', adjust="hfq")
+        print('type: {0}; data: {1};'.format(type(stock_zh_a_minute_df), stock_zh_a_minute_df))
+        stock_zh_a_minute_df.to_csv('./data/{0}.csv'.format(symbol))

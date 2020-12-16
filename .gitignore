@@ -30,6 +30,16 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# igore the temp files of latex
+doc/iching/*.aux
+doc/iching/*.bbl
+doc/iching/*.blg
+doc/iching/iching.fdb_latexmk
+doc/iching/iching.fls
+doc/iching/*.log
+doc/iching/*.out
+doc/iching/*synctex.gz
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.

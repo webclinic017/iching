@@ -210,4 +210,13 @@ P(S_{t+1} | S_{t}, A_{t}) = P(S_{t+1} | S_{t}, A_{t}, S_{t-1}, A_{t-1}, ...)
         \item 33.3\%（向右）：进入状态14，获得奖励0.0，不是终止状态，用(0.333, 14, 0.0, False)表示；
     \end{itemize}
 \end{itemize}
+环境的转移函数如下所示：
+\begin{equation}
+\begin{aligned}
+p(s' | s, a) = P(S_{t}=s' | S_{t-1}=s, A_{t-1}=a) \\
+\sum_{s' \in S} p(s' | s, a) = 1
+\end{aligned}
+\label{markov-property-def}
+\end{equation}
+上面公式表示在状态$S_{t-1}=s$采取行动$A_{t-1}=a$时，环境转移到$S_{t}=s'$的概率，同时将所有环境可能转移到的状态相加，其和为1。
 

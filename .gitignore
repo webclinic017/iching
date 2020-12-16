@@ -34,6 +34,7 @@ MANIFEST
 doc/iching/*.aux
 doc/iching/*.bbl
 doc/iching/*.blg
+doc/iching/*.pdf
 doc/iching/iching.fdb_latexmk
 doc/iching/iching.fls
 doc/iching/*.log

@@ -210,13 +210,59 @@ P(S_{t+1} | S_{t}, A_{t}) = P(S_{t+1} | S_{t}, A_{t}, S_{t-1}, A_{t-1}, ...)
         \item 33.3\%（向右）：进入状态14，获得奖励0.0，不是终止状态，用(0.333, 14, 0.0, False)表示；
     \end{itemize}
 \end{itemize}
-环境的转移函数如下所示：
+我们这里仅举了两个例子，其余内容读者可以自己补全。
+环境的状态转移函数如下所示：
 \begin{equation}
 \begin{aligned}
 p(s' | s, a) = P(S_{t}=s' | S_{t-1}=s, A_{t-1}=a) \\
-\sum_{s' \in S} p(s' | s, a) = 1
+\sum_{s' \in S} p(s' | s, a) = 1, \forall s \in S, \forall a \in A(s)
 \end{aligned}
-\label{markov-property-def}
+\label{env-state-transition-function}
 \end{equation}
-上面公式表示在状态$S_{t-1}=s$采取行动$A_{t-1}=a$时，环境转移到$S_{t}=s'$的概率，同时将所有环境可能转移到的状态相加，其和为1。
+上式表明在任意时刻，环境状态为$S_{t-1}=s$，Agnet采取行动为$A_{t-1}=a$时，环境由于具有随机性，以一个确定的概率分布进入新状态$S_{t}=s'$，并且
+如果我们将所有可能到达的新状态的概率相加，其值为1。
+当Agent根据自己的策略，在任意时刻采取行动后，系统会给Agent一个奖励Reward，其是一个标量，越大代表该行动决策越好，越小代表越差，甚至可以为负值，代表需要尽力避免
+的情况。需要注意的是，Agent不仅要关注当前获得的奖励，还要关注最终获得的累积的奖励，Agent的目标就是使最终获得的累积奖励最大。
+环境的奖励函数如下表示：
+\begin{equation}
+\begin{aligned}
+r(s, a) = E\bigg( R_{t} | S_{t-1}=s, A_{t-1}=a \bigg)
+\end{aligned}
+\label{env-reward-function}
+\end{equation}
+上式表明在$t-1$时刻，环境状态为$S_{t-1}=s$，Agent采取行动$A_{t-1}=a$，环境在$t$时刻给出奖励$R_{t}$，由于环境具有随机性，环境可能进入不同的状态，从而获得不同的奖励，
+而且即使是进入同一个状态，获得的奖励也有可能不同，因此在这种情况，下的奖励就是所有这种情况下获得奖励的期望值。
+在$t-1$时刻，环境状态为$S_{t-1}=s$，Agent采取行动$A_{t-1}=a$，环境进入$S_{t}=s'$时，获得的奖励为：
+\begin{equation}
+\begin{aligned}
+r(s, a, s') = E\bigg( R_{t} | S_{t-1}=s, A_{t-1}=a, S_{t}=s' \bigg)
+\end{aligned}
+\label{env-reward-function-sas}
+\end{equation}
+从上式就可以看出，即使是转移到同一个状态，也可能获得不同的奖励，所以我们将奖励定义所有这些值的期望。
+在上面我们定义在任意时刻，Agent通过与环境交互，获得的奖励为$R_{t}$，同时我们知道，Agent的目标是使整个过程，所有时刻所获得奖励的累加值最大，我们将其定义为回报$G_{t}$。但是由于未来具有更大的不确定性，
+因此距离当前时间点越近，获得的奖励就越有价值，越远则价值越小，因此我们引入折扣的概念，如下所示：
+\begin{equation}
+\begin{aligned}
+G_{t} = R_{t+1} + \gamma R_{t+2} + \gamma ^{2} R_{t+3} + ... + \gamma ^{k-1} R_{t+k} + ... + R_{T} \\
+= \sum_{k=0}^{\infty} \gamma ^{k} R_{t+k+1} \\
+=R_{t+1} + \gamma G_{t+1}
+\end{aligned}
+\label{env-reward-function-sas}
+\end{equation}
 
+\subsection{状态值函数}
+我们假定Agent的策略为$\pi$，我们定义当Agent在某个状态可以获得的累积奖励的期望值为该状态的值函数，如下所示：
+\begin{equation}
+\begin{aligned}
+v_{\pi}(s) = E_{\pi}(G_{t} | S_{t}=s) = E_{\pi} (R_{t+1} + \gamma G_{t+1} | S_{t}=s)
+\end{aligned}
+\label{state-value-function-definition}
+\end{equation}
+由于上式是求期望值，根据期望值定义，可以得到：
+\begin{equation}
+\begin{aligned}
+v_{\pi}(s) = \sum_{a} \pi (a|s) \sum_{s', r} p(s', r | s, a) (r + \gamma v_{\pi}(s'))
+\end{aligned}
+\label{state-value-function-definition}
+\end{equation}

@@ -251,7 +251,7 @@ G_{t} = R_{t+1} + \gamma R_{t+2} + \gamma ^{2} R_{t+3} + ... + \gamma ^{k-1} R_{
 \label{env-reward-function-sas}
 \end{equation}
 
-\subsection{状态值函数}
+\subsection{状态价值函数}
 我们假定Agent的策略为$\pi$，我们定义当Agent在某个状态可以获得的累积奖励的期望值为该状态的值函数，如下所示：
 \begin{equation}
 \begin{aligned}
@@ -264,5 +264,97 @@ v_{\pi}(s) = E_{\pi}(G_{t} | S_{t}=s) = E_{\pi} (R_{t+1} + \gamma G_{t+1} | S_{t
 \begin{aligned}
 v_{\pi}(s) = \sum_{a} \pi (a|s) \sum_{s', r} p(s', r | s, a) (r + \gamma v_{\pi}(s'))
 \end{aligned}
-\label{state-value-function-definition}
+\label{state-value-function-definition-detail}
 \end{equation}
+这个公式在本质上是一个递归形式的公式，我们将用递归的方法来求解。
+
+\subsection{行动价值函数}
+我们还需要知道在某个状态下，采取某个行动到底有多好，这就是行动价值函数：
+\begin{equation}
+\begin{aligned}
+q_{\pi}(s, a) = E_{\pi}(G_{t} | S_{t}=s, A_{t}=a) = E_{\pi} (R_{t+1} + \gamma G_{t+1} | S_{t}=s, A_{t}=a)
+\end{aligned}
+\label{action-value-function-definition}
+\end{equation}
+根据期望的定义可得：
+\begin{equation}
+\begin{aligned}
+q_{\pi}(s, a) = \sum_{s', r} p(s', r | s, a) (r + \gamma v_{\pi}(s'))
+\end{aligned}
+\label{action-value-function-definition-detail}
+\end{equation}
+这就是所谓的Q函数，需要注意的是这个公式的含义，这个公式表示在状态$S_{t}=s$时Agent不按照策略$\pi$情况下采取$A_{t}=a$，然后Agent会一直采用策略$\pi$，这种情况下所取得的累积奖励的期望值。
+
+\subsection{优势函数}
+当在状态$S_{t}=s$时Agent不按照策略$\pi$情况下采取$A_{t}=a$，与在状态$S_{t}=s$时Agent按照策略$\pi$相比，所取得的累积奖励的期望值的变化量定义为优势函数（Advantage Function）：
+\begin{equation}
+\begin{aligned}
+a_{\pi}(s, a) = q_{\pi}(s, a) - v_{\pi}(s)
+\end{aligned}
+\label{action-value-function-definition-detail}
+\end{equation}
+
+\subsection{优化}
+我们的目的是要找到最优策略，使得在每个状态下的状态价值函数可以最大，每个行动价值函数也达到最大，需要注意的是，最优策略可能不止一种，但是对于每个状态的状态价值函数值却是唯一的，同时每个状态采取行动的行动价值函数值也是唯一的。我们用$\pi^{*}"$来表示最优策略，定义如下所示：
+\begin{equation}
+\begin{aligned}
+v_{*}(s)=\max_{\pi} v_{\pi}(s), \forall s \in S
+\end{aligned}
+\label{state-value-function-optimal-policy-def1}
+\end{equation}
+我们可以将$v_{\pi}$的计算公式代入可得：
+\begin{equation}
+\begin{aligned}
+v_{*}(s)=\max_{a} \sum_{s', r} p(s', r | s, a)\bigg( r + \gamma v_{*}(s') \bigg)
+\end{aligned}
+\label{state-value-function-optimal-policy-def2}
+\end{equation}
+同样对于行动价值函数来说，最优策略可以定义为：
+\begin{equation}
+\begin{aligned}
+q_{*}(s, a)=\max_{\pi} q_{\pi}(s, a), \forall s \in S, \forall a \in A
+\end{aligned}
+\label{action-value-function-optimal-policy-def1}
+\end{equation}
+代入具体的计算公式可行：
+\begin{equation}
+\begin{aligned}
+q_{*}(s, a)=、sum_{s', r} p(s', r | s, a) \bigg( r + \gamma \max_{a'} q_{*}(s', a') \bigg)
+\end{aligned}
+\label{action-value-function-optimal-policy-def2}
+\end{equation}
+在有了最佳策略定义之后，我们就需要来评估策略，我们首先用状态价值函数来评估策略，我们称之为预测问题：
+\begin{equation}
+\begin{aligned}
+v_{k+1}(s) = \sum_{a} \pi (a | s) \sum_{s', r} p(s', r | s, a) \bigg( r + \gamma v{k}(s') \bigg)
+\end{aligned}
+\label{a-v-f-policy-evaluation}
+\end{equation}
+在上式中，下标$k$代表是第几次迭代，通过迭代，我们可以求出每个状态的状态价值函数的值。
+我们以Slippery Wall Floor为例，来看上面公式的具体使用：
+\begin{figure}[H]
+	\caption{Slippery Walk Floor环境示意图}
+	\label{p000009}
+	\centering
+	\includegraphics[width=15cm]{images/p000009}
+\end{figure}
+如上图所示，我们的策略是在每个状态均采取向左的行动，我们假设现在我们在状态5处，根据当前策略，我们只有一个行动既向左行动，同时由于环境具有随机性，使我们可能进入到
+状态4（50\%概率）、状态5（33.3\%概率）和状态6（16.6\%概率），初始时，我们设所有状态的状态价值函数的值为0，如下所示：
+\begin{equation}
+\begin{aligned}
+& v_{1}^{\pi}(5) = \sum_{a} \pi (a | s) \sum_{s', r} p(s', r | s, a) \bigg( r + \gamma v_{0}^{\pi}(s') \bigg) \\
+& =\sum_{s', r} p(s', r | s, a) \bigg( r + \gamma v_{0}^{\pi}(s') \bigg) & 1  \\
+& = p(s'=4, r=0 | s=5, a=Left) (r=0 + 1.0 * v_{0}^{\pi}(4)) & 2 \\
+& + p(s'=5, r=0 | s=5, a=Left)(r=0 + 1.0*v_{0}^{\pi}(5)) & 3\\
+& + p(s'=6, r=1)(r=1 + 1.0*v_{0}^{\pi}(6)) & 4 \\
+& = 0.5*(0 + 0) + 0.33*(0+0) + 0.16*(1+0) = 0.16
+\end{aligned}
+\label{a-v-f-p-e-swf-demo}
+\end{equation}
+公式解读如下所示：
+\begin{itemize}
+    \item 第1行：由于本策略只采取向左行动，因此前面的$\sum_{a}\pi(a | s)$的概率值为1，所以可以去掉；
+    \item 第2行：转移到状态4时的情况；
+    \item 第3行：转移到状态5时的情况；
+    \item 第4行：转移到状态6时的情况；
+\end{itemize}

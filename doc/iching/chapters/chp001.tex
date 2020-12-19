@@ -358,3 +358,142 @@ v_{k+1}(s) = \sum_{a} \pi (a | s) \sum_{s', r} p(s', r | s, a) \bigg( r + \gamma
     \item 第3行：转移到状态5时的情况；
     \item 第4行：转移到状态6时的情况；
 \end{itemize}
+通过上面的计算过程可以看出，我们将初始状态时所有状态的状态价值函数值设置为0，然后通过上面的迭代算法，就可以算出各个状态的状态价值函数的真实值，并且收敛的速度还是
+比较快的。
+我们首先初始化强化学习环境，我们先安装所需的库：
+\lstset{language=BASH, caption={安装依赖库}, label={install-dependency-libs-of-swf}}
+\begin{lstlisting}
+    cd /e/awork/ext
+    git clone https://github.com/mimoralea/gym-walk.git
+    cd gym-walk
+    pip install .
+\end{lstlisting}
+环境初始化代码如下所示：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init}}
+\begin{lstlisting}
+    def startup(self):
+        env = gym.make('SlipperyWalkFive-v0')
+        P = env.env.P
+        init_state = env.reset()
+        goal_state = 6
+        LEFT, RIGHT = range(2)
+        pi = lambda s: {
+            0:LEFT, 1:LEFT, 2:LEFT, 3:LEFT, 4:LEFT, 5:LEFT, 6:LEFT
+        }[s]
+        self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
+
+    def print_policy(self, pi, P, action_symbols=('<', 'v', '>', '^'), 
+                n_cols=4, title='Policy:'):
+        print(title)
+        arrs = {k:v for k,v in enumerate(action_symbols)}
+        for s in range(len(P)):
+            a = pi(s)
+            print("| ", end="")
+            if np.all([done for action in P[s].values() 
+                        for _, _, _, done in action]):
+                print("".rjust(9), end=" ")
+            else:
+                print(str(s).zfill(2), arrs[a].rjust(6), end=" ")
+            if (s + 1) % n_cols == 0: print("|")
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第2行：生成强化学习环境，使用的是gmy\_walk包中定义的环境；
+    \item 第3行：P为我们在前面讨论的结构：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init}}
+\begin{lstlisting}
+{
+    si:{
+        ai: [(p, s', r, False)]
+    }
+}
+\end{lstlisting}
+
+第一层为以状态为键的字典，每个状态是以行动为键的字典，值为一个列表，代表在当前状态下采取行动后，环境会以多大的概
+率，转移动新状态，获得的奖励以及新状态是否为终止状态；
+\item 第4行：重置环境状态，并获取初始状态；
+\item 第5行：将状态6设置为目标状态；
+\item 第6行：设置行动LEFT为0，RIGHT为1；
+\item 第7$\sim$9行：定义策略，其为lambda表达式，参数为s，定义了一个字典，策略为取出该字典中以参数s为键的元素，其中s代表状态编号，策略的类型为函数；
+\item 第10行：打印策略；
+\item 第12、13行：定义打印策略函数：，
+\begin{itemize}
+    \item pi为策略类型为函数，参数为状态编号，返回值为所采取的行动；
+    \item P为状态、行动的转移矩阵，即环境的MDP特性；
+    \item action\_symbols 行动的符号表示；
+    \item n\_cols 共有几个状态，这里有7个状态，0和6代表终止状态；
+    \item title 标题；
+\end{itemize}
+\item 第15行：arrs的形式为：{0: '<', 1: '>'}；
+\item 第16行：循环处理每个状态，s为状态编号；
+\item 第27行：以状态编号为参数，调用策略函数，求出该状态下采取的行动编号（在其他复杂问题中，可能是采取一系列行动的概率分布）；
+\item 第19、20行：
+通过如下代表：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init-test001}}
+\begin{lstlisting}
+def test001(self, P, state):
+    v1 = [action for action in P[state].values()]
+    print('v1: {0};'.format(v1))
+    v2 = [done for action in P[state].values() for _, _, _, done in action]
+    print('v2: {0};'.format(v2))
+    v3 = np.all(v2)
+    print('v3: {0};'.format(v3))
+\end{lstlisting}    
+状态0时：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init-test001-1}}
+\begin{lstlisting}
+    v1: [
+            [
+                (0.5000000000000001, 0, 0.0, True), 
+                (0.3333333333333333, 0, 0.0, True), 
+                (0.16666666666666666, 0, 0.0, True)
+            ], 
+            [
+                (0.5000000000000001, 0, 0.0, True), 
+                (0.3333333333333333, 0, 0.0, True), 
+                (0.16666666666666666, 0, 0.0, True)
+            ]
+        ];
+    v2: [True, True, True, True, True, True];
+    v3: True;
+\end{lstlisting}
+状态1时：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init-test001-2}}
+\begin{lstlisting}
+    v1: [
+            [
+                (0.5000000000000001, 0, 0.0, True), 
+                (0.3333333333333333, 1, 0.0, False), 
+                (0.16666666666666666, 2, 0.0, False)
+            ], 
+            [
+                (0.5000000000000001, 2, 0.0, False), 
+                (0.3333333333333333, 1, 0.0, False), 
+                (0.16666666666666666, 0, 0.0, True)
+            ]
+        ];
+    v2: [True, False, False, False, False, True];
+    v3: False;
+\end{lstlisting}
+状态2时：
+\lstset{language=PYTHON, caption={SWF环境初始化(chp001/exp001\_002.py)}, label={chp001-swf-env-init-test001-3}}
+\begin{lstlisting}
+    v1: [
+            [
+                (0.5000000000000001, 1, 0.0, False), 
+                (0.3333333333333333, 2, 0.0, False), 
+                (0.16666666666666666, 3, 0.0, False)
+            ], 
+            [
+                (0.5000000000000001, 3, 0.0, False), 
+                (0.3333333333333333, 2, 0.0, False), 
+                (0.16666666666666666, 1, 0.0, False)
+            ]
+        ];
+    v2: [False, False, False, False, False, False];
+    v3: False;
+\end{lstlisting}
+上面的代码就是确定某个状态是否是终止状态；
+\item 第21行：当为终止状态时打印空；
+\item 第23行：当不为终止状态时，打印状态编号和行动的符号；
+\end{itemize}

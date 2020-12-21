@@ -23,9 +23,13 @@ class Exp001002(object):
         pi = lambda s: {
             0:LEFT, 1:LEFT, 2:LEFT, 3:LEFT, 4:LEFT, 5:LEFT, 6:LEFT
         }[s]
-        #self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
-        state = 2
-        self.test001(P, state)
+        self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
+        prob = self.probability_success(env, pi, goal_state)
+        print('获胜概率：{0};'.format(prob))
+        g_mean = self.mean_return(env, pi)
+        print('平均回报：{0};'.format(g_mean))
+        V = self.policy_evaluation(pi, P)
+        self.print_state_value_function(V, P, n_cols=7, prec=5)
 
     def print_policy(self, pi, P, action_symbols=('<', 'v', '>', '^'), 
                 n_cols=4, title='Policy:'):
@@ -40,6 +44,65 @@ class Exp001002(object):
             else:
                 print(str(s).zfill(2), arrs[a].rjust(6), end=" ")
             if (s + 1) % n_cols == 0: print("|")
+
+    def probability_success(self, env, pi, goal_state, n_episodes=100, max_steps=200):
+        '''
+        '''
+        random.seed(123); np.random.seed(123) ; env.seed(123)
+        results = []
+        for epoch in range(n_episodes):
+            state, done, steps = env.reset(), False, 0
+            while not done and steps < max_steps:
+                state, _, done, h = env.step(pi(state))
+                steps += 1
+            results.append(state == goal_state)
+        return np.sum(results)/len(results)
+
+    def mean_return(self, env, pi, n_episodes=100, max_steps=200):
+        random.seed(123); np.random.seed(123) ; env.seed(123)
+        results = []
+        for _ in range(n_episodes):
+            state, done, steps = env.reset(), False, 0
+            results.append(0.0)
+            while not done and steps < max_steps:
+                state, reward, done, _ = env.step(pi(state))
+                results[-1] += reward
+                steps += 1
+        return np.mean(results)
+
+    def policy_evaluation(self, pi, P, gamma=1.0, theta=1e-10):
+        prev_V = np.zeros(len(P), dtype=np.float64)
+        while True:
+            V = np.zeros(len(P), dtype=np.float64)
+            for s in range(len(P)):
+                for prob, next_state, reward, done in P[s][pi(s)]:
+                    V[s] += prob * (reward + gamma * prev_V[next_state] * (not done))
+            if np.max(np.abs(prev_V - V)) < theta:
+                break
+            prev_V = V.copy()
+        return V
+
+    def print_state_value_function(self, V, P, n_cols=4, prec=3, title='State-value function:'):
+        print(title)
+        for s in range(len(P)):
+            v = V[s]
+            print("| ", end="")
+            if np.all([done for action in P[s].values() for _, _, _, done in action]):
+                print("".rjust(9), end=" ")
+            else:
+                print(str(s).zfill(2), '{}'.format(np.round(v, prec)).rjust(6), end=" ")
+            if (s + 1) % n_cols == 0: print("|")
+
+
+
+
+
+
+
+
+
+
+
 
     def test001(self, P, state):
         v1 = [action for action in P[state].values()]

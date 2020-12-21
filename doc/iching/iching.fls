@@ -1480,9 +1480,11 @@ INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
+INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
+INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
 INPUT d:/software/texlive/2020/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb

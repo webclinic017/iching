@@ -497,3 +497,132 @@ def test001(self, P, state):
 \item 第21行：当为终止状态时打印空；
 \item 第23行：当不为终止状态时，打印状态编号和行动的符号；
 \end{itemize}
+下面我们来看我们取得胜利的概率，如下所示：
+\lstset{language=PYTHON, caption={求获得胜利既到达状态6的概率(chp001/exp001\_002.py)}, label={chp001-swf-win-prob}}
+\begin{lstlisting}
+    def probability_success(self, env, pi, goal_state, n_episodes=100, max_steps=200):
+        random.seed(123); np.random.seed(123) ; env.seed(123)
+        results = []
+        for epoch in range(n_episodes):
+            state, done, steps = env.reset(), False, 0
+            while not done and steps < max_steps:
+                state, _, done, h = env.step(pi(state))
+                steps += 1
+            results.append(state == goal_state)
+        return np.sum(results)/len(results)
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第4行：循环指定epoch数；
+    \item 第5行：初始化环境，我们假定开始时Agent在状态3；
+    \item 第6行：完整执行一个epoch，并且如果超过指定步数后，强制终止此epoch；
+    \item 第7行：在当前状态state下，根据策略pi，采取一个行协pi(state)，调用环境的evn.step方法，转移到下一个状态，其返回值为：下一状态、奖励、是否完结、附加信息，其中新状态和奖励是根据我们状态转移P来决定的；
+    \item 第8行：统计当前epoch中的步数；
+    \item 第9行：当完成一个epoch后，如果终止状态为Goal状态，则将1加入到results列表中，否则将0加入到results列表中；
+    \item 第10行：results列表中为1的项数除以总项数即为获胜的概率；
+\end{itemize}
+接下来我们看一下在该策略下，我们可以获取平均回报：
+\lstset{language=PYTHON, caption={求平均回报(chp001/exp001\_002.py)}, label={chp001-swf-mean-return}}
+\begin{lstlisting}
+    def mean_return(self, env, pi, n_episodes=100, max_steps=200):
+        random.seed(123); np.random.seed(123) ; env.seed(123)
+        results = []
+        for _ in range(n_episodes):
+            state, done, steps = env.reset(), False, 0
+            results.append(0.0)
+            while not done and steps < max_steps:
+                state, reward, done, _ = env.step(pi(state))
+                results[-1] += reward
+                steps += 1
+        return np.mean(results)
+\end{lstlisting}
+这段代码的逻辑与\ref{chp001-swf-win-prob}类似，只不过是每个epoch开始前，向results列表中加入一个0.0元素，在该epock中的每一步，都会将所获得奖励reward叠加到该值上，这样可以求出每个epoch的
+累积奖励，最后我们返回这些累积奖励值的平均值。
+接下来我们对当前策略进行评估，利用迭代法求出所状态价值函数的值：
+\lstset{language=PYTHON, caption={策略评估(chp001/exp001\_002.py)}, label={chp001-policy-evaluation}}
+\begin{lstlisting}
+    def policy_evaluation(self, pi, P, gamma=1.0, theta=1e-10):
+        prev_V = np.zeros(len(P), dtype=np.float64)
+        while True:
+            V = np.zeros(len(P), dtype=np.float64)
+            for s in range(len(P)):
+                for prob, next_state, reward, done in P[s][pi(s)]:
+                    V[s] += prob * (reward + gamma * prev_V[next_state] * (not done))
+            if np.max(np.abs(prev_V - V)) < theta:
+                break
+            prev_V = V.copy()
+        return V
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第2行：初始时将所有状态的状态价值函数的值设置为0，将其作为上一迭代的值；
+    \item 第4行：进行无限次迭代循环；
+    \item 第5行：当前状态的状态价值函烽的初始值置为0；
+    \item 第6行：对每个状态进行循环；
+    \item 第7行：对每个状态，在当前策略下采取的行动，根据转移函数P，得到概率prob，下一个状态next\_state和奖励reward，以及是否结束标志done；
+    \item 第8行：利用公式$v_{k+1}=\sum_{a} \pi(a|s) \sum_{s',r} (r + \gamma v_{k})$求出新的状态价值函数的值；
+    \item 第8、9行：当求完所有状态的状态价值函数值时，看两次迭代之间状态价值函数的差值是否小于阈值，如果小于则退出最外层的无限循环；
+    \item 第10行：如果二者的差值大于阈值，则将当前值设置为上一次迭代值，重复进行循环；
+\end{itemize}
+上面程序的最终结果就是求出所有状态的真实的状态价值函数的值，接下来我们打印状态价值函数的值：
+\lstset{language=PYTHON, caption={打印状态价值函数的值(chp001/exp001\_002.py)}, label={chp001-print-state-value-function}}
+\begin{lstlisting}
+    def print_state_value_function(self, V, P, n_cols=4, prec=3, title='State-value function:'):
+        print(title)
+        for s in range(len(P)):
+            v = V[s]
+            print("| ", end="")
+            if np.all([done for action in P[s].values() for _, _, _, done in action]):
+                print("".rjust(9), end=" ")
+            else:
+                print(str(s).zfill(2), '{}'.format(np.round(v, prec)).rjust(6), end=" ")
+            if (s + 1) % n_cols == 0: print("|")
+\end{lstlisting}
+这个函数比较简单，我们就不做介绍了。
+通过对策略的评价，我们得到了每个状态的状态价值函数的值，接下来我们讨论怎样根据这些内容来优化我们的策略。这里我们需要用到行动函数，即在每个状态，我们从所有行动中，找出可以使我们转到的新状态，
+可以获得最高的状态价值函数，并以此为新的策略：
+\begin{equation}
+\begin{aligned}
+& \pi ' (s) = \arg \max_{a} \sum_{s',r} p(s', r | s, a)(r + \gamma v_{\pi}(s'))
+\end{aligned}
+\label{a-v-f-p-e-swf-demo}
+\end{equation}
+上式中的$\pi '(s)$就是改进后的策略。策略改进代码如下所示：
+\lstset{language=PYTHON, caption={策略改进(chp001/exp001\_002.py)}, label={chp001-policy-improvement}}
+\begin{lstlisting}
+    def policy_improvement(V, P, gamma=1.0):
+        Q = np.zeros((len(P), len(P[0])), dtype=np.float64)
+        for s in range(len(P)):
+            for a in range(len(P[s])):
+                for prob, next_state, reward, done in P[s][a]:
+                    Q[s][a] += prob * (reward + 
+                            gamma * V[next_state] * (not done))
+        new_pi = lambda s: {s:a for s, a 
+            in enumerate(np.argmax(Q, axis=1))
+        }[s]
+        return new_pi
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第2行：Q为一个二维数组，第一维是所有的状态，第二维是在某个状态下所有的行动选项，其值为该行动的行动价值函数，初始时设置为0；
+    \item 第3行：循环处理所有状态：
+    \item 第4行：循环处理每个状态下可以采取的所有行动：
+    \item 第5行：根据环境的状态转移函数，在该状态下采取该行动，可以得到：转移到新状态的概率、新状态、奖励、是否为终止状态；
+    \item 第6、7行行：根据公式$q_{\pi}(s, a)=\sum_{s',r} p(s', r|s, a)(r+\gamma v_{\pi}(s'))$；
+    \item 第8$\sim$10行：求出新的优化过的策略：
+\begin{equation}
+\begin{aligned}
+    \begin{bmatrix}
+        q(s_{0}, a_{0}) & q(s_{0}, a_{1}) & ... & q(s_{0}, a_{k_{0}}) \\
+        q(s_{1}, a_{0}) & q(s_{1}, a_{1}) & ... & q(s_{1}, a_{k_{1}}) \\
+        ... & ... & ... & ... \\
+        q(s_{l}, a_{0}) & q(s_{l}, a_{1}) & ... & q(s_{l}, a_{k_{l}}) \\
+    \end{bmatrix}
+\end{aligned}
+\label{chp001-policy-improvement1}
+\end{equation}
+上式中每一行代表一个状态，每一列代表在该状态下采取某个行动可以获取到的累积回报，注意每行的数量可能并不相同。np.argmax(,axis=1)代表把第2维去掉，即求每一行
+的最大值，也就是求出某个状态采取什么行动可以获得最大的回报。最终形厉每个状态应该采取的行动编号，利用lambda表达式形成策略函数。
+    ；
+    \item 第11行：返回这个新生成的策略函数；
+\end{itemize}

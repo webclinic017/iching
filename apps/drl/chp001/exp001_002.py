@@ -30,6 +30,8 @@ class Exp001002(object):
         print('平均回报：{0};'.format(g_mean))
         V = self.policy_evaluation(pi, P)
         self.print_state_value_function(V, P, n_cols=7, prec=5)
+        improved_pi = self.policy_improvement(V, P)
+        self.print_policy(improved_pi, P, action_symbols=('<', '>'), n_cols=7)
 
     def print_policy(self, pi, P, action_symbols=('<', 'v', '>', '^'), 
                 n_cols=4, title='Policy:'):
@@ -92,6 +94,18 @@ class Exp001002(object):
             else:
                 print(str(s).zfill(2), '{}'.format(np.round(v, prec)).rjust(6), end=" ")
             if (s + 1) % n_cols == 0: print("|")
+    
+    def policy_improvement(self, V, P, gamma=1.0):
+        Q = np.zeros((len(P), len(P[0])), dtype=np.float64)
+        for s in range(len(P)):
+            for a in range(len(P[s])):
+                for prob, next_state, reward, done in P[s][a]:
+                    Q[s][a] += prob * (reward + 
+                            gamma * V[next_state] * (not done))
+        new_pi = lambda s: {s:a for s, a 
+            in enumerate(np.argmax(Q, axis=1))
+        }[s]
+        return new_pi
 
 
 

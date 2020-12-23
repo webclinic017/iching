@@ -577,6 +577,25 @@ def test001(self, P, state):
             else:
                 print(str(s).zfill(2), '{}'.format(np.round(v, prec)).rjust(6), end=" ")
             if (s + 1) % n_cols == 0: print("|")
+
+    def startup(self):
+        env = gym.make('SlipperyWalkFive-v0')
+        P = env.env.P
+        init_state = env.reset()
+        goal_state = 6
+        LEFT, RIGHT = range(2)
+        pi = lambda s: {
+            0:LEFT, 1:LEFT, 2:LEFT, 3:LEFT, 4:LEFT, 5:LEFT, 6:LEFT
+        }[s]
+        self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
+        prob = self.probability_success(env, pi, goal_state)
+        print('win prob:{0};'.format(prob))
+        g_mean = self.mean_return(env, pi)
+        print('mean return:{0};'.format(g_mean))
+        V = self.policy_evaluation(pi, P)
+        self.print_state_value_function(V, P, n_cols=7, prec=5)
+        improved_pi = self.policy_improvement(V, P)
+        self.print_policy(improved_pi, P, action_symbols=('<', '>'), n_cols=7)
 \end{lstlisting}
 这个函数比较简单，我们就不做介绍了。
 通过对策略的评价，我们得到了每个状态的状态价值函数的值，接下来我们讨论怎样根据这些内容来优化我们的策略。这里我们需要用到行动函数，即在每个状态，我们从所有行动中，找出可以使我们转到的新状态，
@@ -625,4 +644,133 @@ def test001(self, P, state):
 的最大值，也就是求出某个状态采取什么行动可以获得最大的回报。最终形厉每个状态应该采取的行动编号，利用lambda表达式形成策略函数。
     ；
     \item 第11行：返回这个新生成的策略函数；
+\end{itemize}
+运行结果如下所示：
+\begin{figure}[H]
+	\caption{Slippery Walk Floor策略优化一次结果}
+	\label{p000010}
+	\centering
+	\includegraphics[width=15cm]{images/p000010}
+\end{figure}
+如上图可以看出，仅经过一次策略优化，我们就可以得到正确的策略。
+实际上我们对策略优化之后，我们可以重新进行策略评估，然后再进行优化，形成所谓的策略迭代，程序如下所示：
+\lstset{language=PYTHON, caption={策略迭代(chp001/exp001\_002.py)}, label={chp001-policy-iteration}}
+\begin{lstlisting}
+    def policy_iteration(self, P, gamma=1.0, theta=1e-10):
+        random_actions = np.random.choice(tuple(P[0].keys()), len(P))
+        pi = lambda s: {s:a for s, a in enumerate(random_actions)}[s]
+        while True:
+            old_pi = {s:pi(s) for s in range(len(P))}
+            V = self.policy_evaluation(pi, P, gamma, theta)
+            pi = self.policy_improvement(V, P, gamma)
+            if old_pi == {s:pi(s) for s in range(len(P))}:
+                break
+        return V, pi
+
+    def startup(self):
+        env = gym.make('SlipperyWalkFive-v0')
+        P = env.env.P
+        init_state = env.reset()
+        goal_state = 6
+        LEFT, RIGHT = range(2)
+        pi = lambda s: {
+            0:LEFT, 1:LEFT, 2:LEFT, 3:LEFT, 4:LEFT, 5:LEFT, 6:LEFT
+        }[s]
+        self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
+        prob = self.probability_success(env, pi, goal_state)
+        print('win prob:{0};'.format(prob))
+        g_mean = self.mean_return(env, pi)
+        print('mean return:{0};'.format(g_mean))
+        V = self.policy_evaluation(pi, P)
+        self.print_state_value_function(V, P, n_cols=7, prec=5)
+        improved_pi = self.policy_improvement(V, P)
+        self.print_policy(improved_pi, P, action_symbols=('<', '>'), n_cols=7)
+        # policy iteration
+        optimal_V, optimal_pi = self.policy_iteration(P)
+        self.print_policy(optimal_pi, P, action_symbols=('<', '>'), n_cols=7)
+        self.print_state_value_function(optimal_V, P, n_cols=7, prec=5)
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第2行：其中P[0]={0:[(0.5, 0, 0.0, True), ...], 1:[...]}，所以tuple(P[0].keys())为(0, 1)，因此np.random.choice为生成长度为len(P)既所有状态数的数组，数组的每一位由(0,1)中随机抽取；
+    \item 第3行：生成策略的lambda表达式，参数为状态编号；
+    \item 第4行：进入无限循环：
+    \item 第5行：将当前策略保存为原始策略，类型为字典，格式为：{状态: 行动}；
+    \item 第6行：求出在当前策略下的状态价值函数；
+    \item 第7行：根据状态价值函数得到优化后的策略；
+    \item 第8、9行：将优化后策略也转为格式为{状态: 行动}的字典，与原来的策略形成的字典进行比较，如果相等则意味着找到了最佳策略，则退出无限循环，否则继续循环优化；
+\end{itemize}
+运行结果如下所示：
+\begin{figure}[H]
+	\caption{Slippery Walk Floor策略迭代结果}
+	\label{p000011}
+	\centering
+	\includegraphics[width=15cm]{images/p000011}
+\end{figure}
+上面讲的是策略迭代算法（PI：Policy Iteration），其核心思想是先根据策略求出状态价值函数，然后根据状态价值函数，在每个状态下选择能够达到最大状态价值函数状态的行动，形成优化后的策略，
+然后循环执行上述过程。但是这种方法通常收敛速度较慢，我们接下来介绍值迭代算法（VI：Value Iteration）。
+\subsection{值迭代（VI）}
+值迭代（VI： Value Iteration）的核心思想是先令所有状态的状态价值函数值为0.0，在每个状态下求出所采取的行动的回报，找到得到最大回报的行动，根据下面的公式确定新的状态价值函数值：
+\begin{equation}
+\begin{aligned}
+    v_{k+1}=\max_{a} \sum_{s',r} p(s', r | s, a)\bigg( r + \gamma v_{k}(s') \bigg)
+\end{aligned}
+\label{chp001-value-iteration-formula}
+\end{equation}
+代码实现如下所示：
+\lstset{language=PYTHON, caption={策略迭代(chp001/exp001\_002.py)}, label={chp001-value-iteration}}
+\begin{lstlisting}
+    def value_iteration(self, P, gamma=1.0, theta=1e-10):
+        V = np.zeros(len(P), dtype=np.float64)
+        while True:
+            Q = np.zeros((len(P), len(P[0])), dtype=np.float64)
+            for s in range(len(P)):
+                for a in range(len(P[s])):
+                    for prob, next_state, reward, done in P[s][a]:
+                        Q[s][a] += prob * (reward + gamma * V[next_state] * (not done))
+            if np.max(np.abs(V - np.max(Q, axis=1))) < theta:
+                break
+            V = np.max(Q, axis=1)
+        pi = lambda s: {s:a for s, a in enumerate(np.argmax(Q, axis=1))}[s]
+        return V, pi
+
+    def startup(self):
+        env = gym.make('SlipperyWalkFive-v0')
+        P = env.env.P
+        init_state = env.reset()
+        goal_state = 6
+        LEFT, RIGHT = range(2)
+        pi = lambda s: {
+            0:LEFT, 1:LEFT, 2:LEFT, 3:LEFT, 4:LEFT, 5:LEFT, 6:LEFT
+        }[s]
+        self.print_policy(pi, P, action_symbols=('<', '>'), n_cols=7)
+        prob = self.probability_success(env, pi, goal_state)
+        print('win prob: {0};'.format(prob))
+        g_mean = self.mean_return(env, pi)
+        print('mean return: {0};'.format(g_mean))
+        V = self.policy_evaluation(pi, P)
+        self.print_state_value_function(V, P, n_cols=7, prec=5)
+        improved_pi = self.policy_improvement(V, P)
+        self.print_policy(improved_pi, P, action_symbols=('<', '>'), n_cols=7)
+        # policy iteration
+        print('PI: Policy Iteration')
+        optimal_V, optimal_pi = self.policy_iteration(P)
+        self.print_policy(optimal_pi, P, action_symbols=('<', '>'), n_cols=7)
+        self.print_state_value_function(optimal_V, P, n_cols=7, prec=5)
+        print('VI: Value Iteration')
+        V2, pi2 = self.value_iteration(P)
+        self.print_policy(optimal_pi, P, action_symbols=('<', '>'), n_cols=7)
+        self.print_state_value_function(optimal_V, P, n_cols=7, prec=5)
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
 \end{itemize}

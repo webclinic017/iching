@@ -32,6 +32,16 @@ class Exp001002(object):
         self.print_state_value_function(V, P, n_cols=7, prec=5)
         improved_pi = self.policy_improvement(V, P)
         self.print_policy(improved_pi, P, action_symbols=('<', '>'), n_cols=7)
+        # policy iteration
+        print('PI: Policy Iteration')
+        optimal_V, optimal_pi = self.policy_iteration(P)
+        self.print_policy(optimal_pi, P, action_symbols=('<', '>'), n_cols=7)
+        self.print_state_value_function(optimal_V, P, n_cols=7, prec=5)
+        print('VI: Value Iteration')
+        V2, pi2 = self.value_iteration(P)
+        self.print_policy(optimal_pi, P, action_symbols=('<', '>'), n_cols=7)
+        self.print_state_value_function(optimal_V, P, n_cols=7, prec=5)
+        
 
     def print_policy(self, pi, P, action_symbols=('<', 'v', '>', '^'), 
                 n_cols=4, title='Policy:'):
@@ -106,6 +116,31 @@ class Exp001002(object):
             in enumerate(np.argmax(Q, axis=1))
         }[s]
         return new_pi
+
+    def policy_iteration(self, P, gamma=1.0, theta=1e-10):
+        random_actions = np.random.choice(tuple(P[0].keys()), len(P))
+        pi = lambda s: {s:a for s, a in enumerate(random_actions)}[s]
+        while True:
+            old_pi = {s:pi(s) for s in range(len(P))}
+            V = self.policy_evaluation(pi, P, gamma, theta)
+            pi = self.policy_improvement(V, P, gamma)
+            if old_pi == {s:pi(s) for s in range(len(P))}:
+                break
+        return V, pi
+
+    def value_iteration(self, P, gamma=1.0, theta=1e-10):
+        V = np.zeros(len(P), dtype=np.float64)
+        while True:
+            Q = np.zeros((len(P), len(P[0])), dtype=np.float64)
+            for s in range(len(P)):
+                for a in range(len(P[s])):
+                    for prob, next_state, reward, done in P[s][a]:
+                        Q[s][a] += prob * (reward + gamma * V[next_state] * (not done))
+            if np.max(np.abs(V - np.max(Q, axis=1))) < theta:
+                break
+            V = np.max(Q, axis=1)
+        pi = lambda s: {s:a for s, a in enumerate(np.argmax(Q, axis=1))}[s]
+        return V, pi
 
 
 

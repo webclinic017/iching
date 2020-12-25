@@ -11,8 +11,8 @@ class Exp002001(object):
         SEEDS = (12, 34, 56, 78, 90)
         b2_Vs = []
         for seed in SEEDS:
-            # env_name = 'BanditTwoArmedUniform-v0'
-            env_name = 'BanditTwoArmedDeterministicFixed-v0'
+            env_name = 'BanditTwoArmedUniform-v0'
+            #env_name = 'BanditTwoArmedDeterministicFixed-v0'
             env = gym.make(env_name, seed=seed) ; env.reset()
             b2_Q = np.array(env.env.p_dist * env.env.r_dist)
             print('Two-Armed Bandit environment with seed', seed)

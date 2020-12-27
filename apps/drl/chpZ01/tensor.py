@@ -42,6 +42,16 @@ class Tensor(object):
                     self.creators[1].backward(self.grad, self)
                 elif self.creation_op == 'neg':
                     self.creators[0].backward(self.grad.__neg__())
+                elif self.creation_op == 'sub':
+                    org = Tensor(self.grad.data)
+                    self.creators[0].backward(org, self)
+                    org = Tensor(self.grad.__neg__().data)
+                    self.creators[1].backward(org, self)
+                elif self.creation_op == 'mul':
+                    rst = self.grad * self.creators[1]
+                    self.creators[0].backward(rst, self)
+                    rst = self.grad * self.creators[0]
+                    self.creators[1].backward(rst, self)
 
     def __add__(self, other):
         if self.autograd and other.autograd:
@@ -52,6 +62,16 @@ class Tensor(object):
         if self.autograd:
             return Tensor(self.data * -1, autograd=True, creators=[self], creation_op='neg')
         return Tensor(self.data * -1)
+
+    def __sub__(self, other):
+        if self.autograd:
+            return Tensor(self.data - other.data, autograd=True, creators=[self, other], creation_op='sub')
+        return Tensor(self.data - other.data)
+
+    def __mul__(self, other):
+        if self.autograd and other.autograd:
+            return Tensor(self.data * other.data, autograd=True, creators=[self, other], creation_op='mul')
+        return Tensor(self.data * other.data)
 
     def __repr__(self):
         return str(self.data.__repr__())

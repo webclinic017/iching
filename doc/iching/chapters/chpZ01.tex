@@ -112,14 +112,14 @@ class TTensor(unittest.TestCase):
 python -m unittest uts.apps.drl.chpZ01.t_tensor.TTensor.test_init_001
 \end{lstlisting}
 运行结果如下所示：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{向量前向传播执行结果}
 	\label{p000015}
 	\centering
 	\includegraphics[height=10cm]{images/p000015}
 \end{figure}
 其将形成如下所示的动态图：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{向量加法动态图示例}
 	\label{p000016}
 	\centering
@@ -160,7 +160,7 @@ class TTensor(unittest.TestCase):
 \end{equation}
 其实际执行为$R^{1 \times n} \cdot R^{n \times n}=R^{1 \times n}$，以上为理论分析，下面我来看程序上面的代码实现。
 对于向量$\boldsymbol{f}$，我们直接指定$\frac{\partial j}{\partial \boldsymbol{f}}=[1, 1, 1, 1, 1]$，向量$\boldsymbol{f}$当前状态为：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{向量f原始状态}
 	\label{p000017}
 	\centering
@@ -194,7 +194,7 @@ class TTensor(unittest.TestCase):
 	\item 第13$\sim$15行：由于是add运算，以自己的grad和自身为参数，分别调用d和e的后向传播算法；
 \end{itemize}
 执行完上述代码后，系统状态如下所示：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{反向传播从f到d和e}
 	\label{p000018}
 	\centering
@@ -202,14 +202,14 @@ class TTensor(unittest.TestCase):
 \end{figure}
 我们先来看传到d节点，这时grad\_origin为f，此时d的children只有一个节点f，初始时children[f.cid]=1，运行后children[f.cid]=0，因为self.grad为空，
 所以self.grad=[1, 1, 1, 1, 1]，因为self.creators=[a, b]，又为add操作，所以会调用a和b的反向传播算法。
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{反向传播从d到a和b}
 	\label{p000019}
 	\centering
 	\includegraphics[width=10cm]{images/p000019}
 \end{figure}
 经过a和b的反向传播算法处理后，结果如下所示：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{反向传播从d到a和b后的处理结果}
 	\label{p000020}
 	\centering
@@ -217,17 +217,24 @@ class TTensor(unittest.TestCase):
 \end{figure}
 我们再来看传到e节点，这时grad\_origin为f，此时d的children只有一个节点f，初始时children[f.cid]=1，运行后children[f.cid]=0，因为self.grad为空，
 所以self.grad=[1, 1, 1, 1, 1]，因为self.creators=[a, b]，又为add操作，所以会调用b和c的反向传播算法。
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{反向传播从e到b和c}
 	\label{p000021}
 	\centering
 	\includegraphics[width=10cm]{images/p000021}
 \end{figure}
 经过b和c的反向传播算法处理后，结果如下所示：
-\begin{figure}[H]
+\begin{figure}[h]
 	\caption{反向传播从e到b和c后的处理结果}
 	\label{p000022}
 	\centering
 	\includegraphics[width=10cm]{images/p000022}
 \end{figure}
 
+\subsubsection{负号}
+我们首先定义负号方法：
+
+
+\subsubsection{减法}
+
+\subsubsection{乘法}

@@ -73,6 +73,26 @@ class Tensor(object):
             return Tensor(self.data * other.data, autograd=True, creators=[self, other], creation_op='mul')
         return Tensor(self.data * other.data)
 
+    def sum(self, dim):
+        if self.autograd:
+            return Tensor(self.data.sum(dim), autograd=True, creators=[self], creation_op='sum_' + str(dim))
+        return Tensor(self.data.sum(dim))
+
+    def expand(self, dim, copies):
+        trans_cmd = list(range(0, len(self.data.shape)))
+        print('trans_cmd1: {0};'.format(trans_cmd))
+        trans_cmd.insert(dim, len(self.data.shape))
+        print('trans_cmd2: {0};'.format(trans_cmd))
+        new_shape = list(self.data.shape) + [copies]
+        print('new_shape: {0};'.format(new_shape))
+        new_data = self.data.repeat(copies).reshape(new_shape)
+        print('1 new_data: {0}; {1};'.format(new_data.shape, new_data))
+        new_data = new_data.transpose(trans_cmd)
+        print('2 new_data: {0}; {1};'.format(new_data.shape, new_data))
+        if self.autograd:
+            return Tensor(new_data, autograd=True, creators=[self], creation_op='expand_'+str(dim))
+        return Tensor(new_data)
+
     def __repr__(self):
         return str(self.data.__repr__())
 

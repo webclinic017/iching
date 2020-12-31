@@ -233,8 +233,322 @@ class TTensor(unittest.TestCase):
 
 \subsubsection{负号}
 我们首先定义负号方法：
-
+\lstset{language=PYTHON, caption={张量负号方法(chpZ01/tensor.py)}, label={chpZ01-tensor-neg-def}}
+\begin{lstlisting}
+    def __neg__(self):
+        if self.autograd:
+            return Tensor(self.data * -1, autograd=True, creators=[self], creation_op='neg')
+        return Tensor(self.data * -1)
+\end{lstlisting}
+其后向传播定义为：
+\lstset{language=PYTHON, caption={张量负号反向传播(chpZ01/tensor.py)}, label={chpZ01-tensor-neg-backward}}
+\begin{lstlisting}
+    def backward(self, grad=None, grad_origin=None):
+        if self.autograd:
+            if grad_origin is not None:
+                if self.children[grad_origin.cid] == 0:
+                    raise Exception('cannot backprop more than once')
+                else:
+                    self.children[grad_origin.cid] -= 1
+            if self.grad is None:
+                self.grad = grad
+            else:
+                self.grad += grad
+            if self.creators is not None and (self.all_children_grads_accounted_for() or grad_origin is None):
+                if self.creation_op == 'add':
+                    self.creators[0].backward(self.grad, self)
+                    self.creators[1].backward(self.grad, self)
+                elif self.creation_op == 'neg':
+                    self.creators[0].backward(self.grad.__neg__())
+\end{lstlisting}
 
 \subsubsection{减法}
+我们首先定义减法：
+\lstset{language=PYTHON, caption={张量减法(chpZ01/tensor.py)}, label={chpZ01-tensor-sub-def}}
+\begin{lstlisting}
+    def __sub__(self, other):
+        if self.autograd:
+            return Tensor(self.data - other.data, autograd=True, creators=[self, other], creation_op='sub')
+        return Tensor(self.data - other.data)
+\end{lstlisting}
+减法的后向传播定义为：
+\lstset{language=PYTHON, caption={张量减法后台传播(chpZ01/tensor.py)}, label={chpZ01-tensor-sub-backward}}
+\begin{lstlisting}
+    def backward(self, grad=None, grad_origin=None):
+        if self.autograd:
+            if grad_origin is not None:
+                if self.children[grad_origin.cid] == 0:
+                    raise Exception('cannot backprop more than once')
+                else:
+                    self.children[grad_origin.cid] -= 1
+            if self.grad is None:
+                self.grad = grad
+            else:
+                self.grad += grad
+            if self.creators is not None and (self.all_children_grads_accounted_for() or grad_origin is None):
+                if self.creation_op == 'add':
+                    self.creators[0].backward(self.grad, self)
+					self.creators[1].backward(self.grad, self)
+				......
+                elif self.creation_op == 'sub':
+                    org = Tensor(self.grad.data)
+                    self.creators[0].backward(org, self)
+                    org = Tensor(self.grad.__neg__().data)
+                    self.creators[1].backward(org, self)
+\end{lstlisting}
+
 
 \subsubsection{乘法}
+我们首先定义乘法，这里的乘法是指对*运算符的重载，就是两个数组对应元素相乘（Elementwise Multiplication），不是我们将在后面介绍的
+矩阵和向量的乘法：
+\lstset{language=PYTHON, caption={张量乘法(chpZ01/tensor.py)}, label={chpZ01-tensor-mul-def}}
+\begin{lstlisting}
+    def __mul__(self, other):
+        if self.autograd and other.autograd:
+            return Tensor(self.data * other.data, autograd=True, creators=[self, other], creation_op='mul')
+        return Tensor(self.data * other.data)
+\end{lstlisting}
+乘法反向传播算法：
+\lstset{language=PYTHON, caption={张量乘法反向传播(chpZ01/tensor.py)}, label={chpZ01-tensor-mul-backward}}
+\begin{lstlisting}
+    def backward(self, grad=None, grad_origin=None):
+        if self.autograd:
+            if grad_origin is not None:
+                if self.children[grad_origin.cid] == 0:
+                    raise Exception('cannot backprop more than once')
+                else:
+                    self.children[grad_origin.cid] -= 1
+            if self.grad is None:
+                self.grad = grad
+            else:
+                self.grad += grad
+            if self.creators is not None and (self.all_children_grads_accounted_for() or grad_origin is None):
+                if self.creation_op == 'add':
+                    self.creators[0].backward(self.grad, self)
+					self.creators[1].backward(self.grad, self)
+				......
+                elif self.creation_op == 'mul':
+                    rst = self.grad * self.creators[1]
+                    self.creators[0].backward(rst, self)
+                    rst = self.grad * self.creators[0]
+                    self.creators[1].backward(rst, self)
+\end{lstlisting}
+从数学概念上来看，两个向量Elementwise相乘之后，得到的是同维度的向量，再求出的微分是一个矩阵，如下所示：
+\begin{equation}
+\begin{aligned}
+\boldsymbol{c} = \boldsymbol{a} * \boldsymbol{b} = \begin{bmatrix}
+	c_{1} & c{2} & ... & c_{n}
+\end{bmatrix} = \begin{bmatrix}
+	a_{1}*b_{1} & a_{2}*b_{2} & ... & a{n}*b{n}
+\end{bmatrix} \in R^{n}
+\end{aligned}
+\label{chpZ01-vector-elementwise-mul}
+\end{equation}
+我们要求的$\frac{\partial \boldsymbol{c}}{\partial \boldsymbol{a}}$是一个向量对向量的微分，其为一个$R^{n \times n}$的矩阵，如下所示：
+\begin{equation}
+\begin{aligned}
+\frac{\partial \boldsymbol{c}}{\partial \boldsymbol{a}} = \begin{bmatrix}
+	\frac{\partial c_{1}}{\partial a_{1}} & \frac{\partial c_{1}}{\partial a_{2}} & ... & \frac{\partial c_{1}}{\partial a_{n}} \\
+	\frac{\partial c_{2}}{\partial a_{1}} & \frac{\partial c_{2}}{\partial a_{2}} & ... & \frac{\partial c_{2}}{\partial a_{n}} \\
+	... & ... & ... & ... \\
+	\frac{\partial c_{n}}{\partial a_{1}} & \frac{\partial c_{n}}{\partial a_{2}} & ... & \frac{\partial c_{n}}{\partial a_{n}}
+\end{bmatrix}  = \begin{bmatrix}
+	b_{1} & 0 & ... & 0 \\
+	0 & b_{2} & ... & 0 \\
+	... & ... & ... & ... \\
+	0 & 0 & ... & b_{n}
+\end{bmatrix} \in R^{n \times n}
+\end{aligned}
+\label{chpZ01-vector-elementwise-mul}
+\end{equation}
+我们上面的结果就是这个矩阵对角线的值。
+
+\subsubsection{sum运算}
+我们首先来看sum运算，其有一个参数dim，表明要对哪维操作（即消除哪维），例如v.sum(0)，就是消除行，如下所示：
+\begin{equation}
+\begin{aligned}
+sum(v, 0)=sum(\begin{bmatrix}
+	1 & 2 & 3 & 4 & 5 \\
+	2 & 3 & 4 & 5 & 6 \\
+	6 & 7 & 9 & 10 & 11 
+\end{bmatrix}, 0)=\begin{bmatrix}
+	9 & 12 & 16 & 19 & 22
+\end{bmatrix}
+\end{aligned}
+\label{chpZ01-sum-dim-0-demo}
+\end{equation}
+同理sum(1)如下所示：
+\begin{equation}
+\begin{aligned}
+sum(v, 0)=sum(\begin{bmatrix}
+	1 & 2 & 3 & 4 & 5 \\
+	2 & 3 & 4 & 5 & 6 \\
+	6 & 7 & 8 & 9 & 10 
+\end{bmatrix}, 0)=\begin{bmatrix}
+	15 \\
+	20 \\
+	40
+\end{bmatrix}
+\end{aligned}
+\label{chpZ01-sum-dim-1-demo}
+\end{equation}
+接下来我们来看expand操作，其有两个操作，第1个参数是扩展哪维，第2个参数是重复几份，如下所示：
+\lstset{language=PYTHON, caption={张量expand示例(chpZ01/tensor.py)}, label={chpZ01-tensor-expand-demo-1}}
+\begin{lstlisting}
+org: [
+	[1, 2, 3],
+	[4, 5, 6]
+]
+expand(0, 4):
+[
+	[
+		[1, 2, 3],
+		[4, 5, 6]
+	],
+	[
+		[1, 2, 3],
+		[4, 5, 6]
+	],
+	[
+		[1, 2, 3],
+		[4, 5, 6]
+	],
+	[
+		[1, 2, 3],
+		[4, 5, 6]
+	]
+]
+expand(1, 4):
+[
+	[
+		[1, 1, 1, 1],
+		[2, 2, 2, 2],
+		[3, 3, 3, 3]
+	],
+	[
+		[4, 4, 4, 4],
+		[5, 5, 5, 5],
+		[6, 6, 6, 6]
+	]
+]
+\end{lstlisting}
+下面我们来看具体的代码实现：
+\lstset{language=PYTHON, caption={张量expand示例(chpZ01/tensor.py)}, label={chpZ01-tensor-sum-expand-code}}
+\begin{lstlisting}
+    def sum(self, dim):
+        if self.autograd:
+            return Tensor(self.data.sum(dim), autograd=True, creators=[self], creation_op='sum_' + str(dim))
+        return Tensor(self.data.sum(dim))
+
+    def expand(self, dim, copies):
+        trans_cmd = list(range(0, len(self.data.shape)))
+        trans_cmd.insert(dim, len(self.data.shape))
+        new_shape = list(self.data.shape) + [copies]
+        new_data = self.data.repeat(copies).reshape(new_shape)
+        new_data = new_data.transpose(trans_cmd)
+        if self.autograd:
+            return Tensor(new_data, autograd=True, creators=[self], creation_op='expand_'+str(dim))
+        return Tensor(new_data)
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+	\item 第1$\sim$4行：定义sum运算，其直接调用numpy的sum函数，比较简单；
+	\item 第6行：定义expand运算，我们以上例中$v=[[1, 2, 3],[4, 5, 6]] \in R^{2 \times 3}$为例进行讲解，我们先来看$dim=0, copies=4$的情况；
+	\item 第7行：$trans_cmd$为$[0, 1]$；
+	\item 第8行：$trans_cmd$为$[2, 0, 1]$，因为$len(self.data.shape)$的值为2，当$dim=0$时，在列表最前面插入；
+	\item 第9行：$new_shape$为$[2, 3, 4]$；
+	\item 第10行：$self.data.repeat(4)$后为$R^{24}$的数组$[1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4 5 5 5 5 6 6 6 6]$，将其重新定义为$R^{2 \times 3 \times 4}$，其值如下所
+	示：
+	\lstset{language=PYTHON, caption={张量expand代码解读1(chpZ01/tensor.py)}, label={chpZ01-tensor-expand-code-1}}
+	\begin{lstlisting}
+	[
+		[
+			[1 1 1 1]
+			[2 2 2 2]
+			[3 3 3 3]
+		]
+		[
+			[4 4 4 4]
+			[5 5 5 5]
+			[6 6 6 6]
+		]
+	]
+	\end{lstlisting}
+	\item 第11行：将最后1维放到前面，如下所示：
+	\lstset{language=PYTHON, caption={张量expand代码解读1(chpZ01/tensor.py)}, label={chpZ01-tensor-expand-code-2}}
+	\begin{lstlisting}
+	[
+		[
+			[1 2 3]
+			[4 5 6]
+		]
+		[
+			[1 2 3]
+			[4 5 6]
+		]
+		[
+			[1 2 3]
+			[4 5 6]
+		]
+		[
+			[1 2 3]
+			[4 5 6]
+		]
+	]
+	\end{lstlisting}	
+	\item 第6行：定义expand运算，我们以上例中$v=[[1, 2, 3],[4, 5, 6]] \in R^{2 \times 3}$为例进行讲解，我们先来看$dim=1, copies=4$的情况；
+	\item 第7行：$trans_cmd$为$[0, 1]$；
+	\item 第8行：$trans_cmd$为$[0, 2, 1]$，因为$len(self.data.shape)$的值为2，当$dim=0$时，在列表最前面插入；
+	\item 第9行：$new_shape$为$[2, 3, 4]$；
+	\item 第10行：$self.data.repeat(4)$后为$R^{24}$的数组$[1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4 5 5 5 5 6 6 6 6]$，将其重新定义为$R^{2 \times 3 \times 4}$，其值如下所
+	示：
+	\lstset{language=PYTHON, caption={张量expand代码解读1(chpZ01/tensor.py)}, label={chpZ01-tensor-expand-code-3}}
+	\begin{lstlisting}
+	[
+		[
+			[1 1 1 1]
+			[2 2 2 2]
+			[3 3 3 3]
+		]
+		[
+			[4 4 4 4]
+			[5 5 5 5]
+			[6 6 6 6]
+		]
+	]
+	\end{lstlisting}
+	\item 第11行：将最后1维放到中间$R^{2 \times 4 \times 3}$，如下所示：
+	\lstset{language=PYTHON, caption={张量expand代码解读1(chpZ01/tensor.py)}, label={chpZ01-tensor-expand-code-4}}
+	\begin{lstlisting}
+	[
+		[
+			[1 2 3]
+			[1 2 3]
+			[1 2 3]
+			[1 2 3]
+		]
+		[
+			[4 5 6]
+			[4 5 6]
+			[4 5 6]
+			[4 5 6]
+		]
+	]
+	\end{lstlisting}
+\end{itemize}
+
+
+我们用符号来表示这一过程$\boldsymbol{u}=sum(v, 0)$为例：
+\begin{equation}
+\begin{aligned}
+\begin{bmatrix}
+	u_{1} & u_{2} & u_{3} & u_{4} & u_{5}
+\end{bmatrix}=\begin{bmatrix}
+	V_{1,1}+V_{2,1}+V_{3,1} & V_{1,2}+V_{2,2}+V_{3,2} \\
+	V_{1,3}+V_{2,3}+V_{3,3} & V_{1,4}+V_{2,4}+V_{3,4} \\
+	V_{1,5}+V_{2,5}+V_{3,5}
+\end{bmatrix}
+\end{aligned}
+\label{chpZ01-sum-dim-0-u-V}
+\end{equation}
+注意：上面是行向量，只是一行写不下而折行显示。

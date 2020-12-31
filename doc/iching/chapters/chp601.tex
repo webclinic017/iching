@@ -9,10 +9,22 @@
 \section{强化学习环境概述}
 我们以SBW（Slippery Bandit Walk）为例，如下图所示：
 \subsection{Docker模式}
-安装Docker：https://docs.docker.com/engine/install/ubuntu/。
-安装nvidia-docker：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker 注意：由于已经安装了Docker，所以需要忽略第一个命令。
-下载镜像：sudo nvidia-docker pull mimoralea/gdrl:v0.14
-启动镜像：sudo nvidia-docker run -it --rm -p 8888:8888 -v /home/ps/yantao/:/mnt/yantao/ mimoralea/gdrl:v0.14 -d /bin/bash
-可以通过 http://192.168.2.66:8888 来访问该环境。
-运行：sudo nvidia-docker ps
-在列出的镜像中，找到mimoralea/gdrl:v0.14镜像，进入该镜像：sudo nvidia-docker exec -it 镜像号 /bin/bash
+如下所示：
+\lstset{language=BASH, caption={张量expand示例(chpZ01/tensor.py)}, label={chp601-docker-info}}
+\begin{lstlisting}
+# install docker
+https://docs.docker.com/engine/install/ubuntu/
+# install nvidia-docker
+https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker
+# download image
+sudo nvidia-docker pull mimoralea/gdrl:v0.14
+# startup image
+sudo nvidia-docker run -it --rm -p 8888:8888 -v /home/ps/yantao/:/mnt/yantao/ mimoralea/gdrl:v0.14 -d /bin/bash
+# jupity notebook access
+http://192.168.2.66:8888
+# list image list
+sudo nvidia-docker ps
+# enter specific image: mimoralea/gdrl:v0.14
+sudo nvidia-docker exec -it image-container-id /bin/bash
+\end{lstlisting}
+注意：由于已经安装了Docker，所以需要忽略第一个命令。

@@ -86,3 +86,25 @@ class TTensor(unittest.TestCase):
         print('b: {0};'.format(b.to_string()))
         print('c: {0};'.format(c.to_string()))
 
+    def test_sum_001(self):
+        v = Tensor(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]))
+        print(v.sum(0))
+        print(v.sum(1))
+
+    def test_expand_001(self):
+        v = Tensor(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]))
+        print('v.expand: {0}'.format(v.expand(0, 4)))
+
+    def test_expand_002(self):
+        v = Tensor(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]))
+        print('v.expand: {0}'.format(v.expand(1, 4)))
+

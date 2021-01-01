@@ -52,6 +52,14 @@ class Tensor(object):
                     self.creators[0].backward(rst, self)
                     rst = self.grad * self.creators[0]
                     self.creators[1].backward(rst, self)
+                elif 'sum' in self.creation_op:
+                    dim = int(self.creation_op.split('_')[1])
+                    ds = self.creators[0].data.shape[dim]
+                    self.creators[0].backward(self.grad.expand(dim, ds))
+                elif 'expand' in self.creation_op:
+                    dim = int(self.creation_op.split('_')[1])
+                    self.creators[0].backward(self.grad.sum(dim))
+
 
     def __add__(self, other):
         if self.autograd and other.autograd:

@@ -59,6 +59,8 @@ class Tensor(object):
                 elif 'expand' in self.creation_op:
                     dim = int(self.creation_op.split('_')[1])
                     self.creators[0].backward(self.grad.sum(dim))
+                elif 'transpose' in self.creation_op:
+                    self.creators[0].backward(self.grad.transpose())
 
 
     def __add__(self, other):
@@ -88,18 +90,23 @@ class Tensor(object):
 
     def expand(self, dim, copies):
         trans_cmd = list(range(0, len(self.data.shape)))
-        print('trans_cmd1: {0};'.format(trans_cmd))
         trans_cmd.insert(dim, len(self.data.shape))
-        print('trans_cmd2: {0};'.format(trans_cmd))
         new_shape = list(self.data.shape) + [copies]
-        print('new_shape: {0};'.format(new_shape))
         new_data = self.data.repeat(copies).reshape(new_shape)
-        print('1 new_data: {0}; {1};'.format(new_data.shape, new_data))
         new_data = new_data.transpose(trans_cmd)
-        print('2 new_data: {0}; {1};'.format(new_data.shape, new_data))
         if self.autograd:
             return Tensor(new_data, autograd=True, creators=[self], creation_op='expand_'+str(dim))
         return Tensor(new_data)
+
+    def transpose(self):
+        if self.autograd:
+            return Tensor(self.data.transpose(), autograd=True, creators=[self], creation_op='transpose')
+        return Tensor(self.data.transpose())
+
+    def mm(self, x):
+        if self.autograd:
+            return Tensor(self.data.dot(x.data), autograd=True, creators=[self, x], creation_op='mm')
+        return Tensor(self.data.dot(x.data))
 
     def __repr__(self):
         return str(self.data.__repr__())

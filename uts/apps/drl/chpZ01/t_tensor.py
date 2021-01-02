@@ -108,3 +108,23 @@ class TTensor(unittest.TestCase):
         ]))
         print('v.expand: {0}'.format(v.expand(1, 4)))
 
+    def test_sum_grad_001(self):
+        v = Tensor(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]), autograd=True)
+        u = v.sum(0)
+        u.backward(Tensor(np.array([1, 1, 1])))
+        print('grad: {0};'.format(v.to_string()))
+
+    def test_transpose_001(self):
+        v = Tensor(np.array([
+            [1, 2, 3],
+            [4, 5, 6]
+        ]), autograd=True)
+        v_t = v.transpose()
+        print('v_t: \r\n{0};'.format(v_t))
+        v_t.backward(Tensor(np.array([[1, 1], [1, 1], [1, 1]])))
+        print('grad v: \r\n{0};'.format(v.grad))
+
+

@@ -1351,6 +1351,9 @@ INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong50.
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei8f.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong95.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong61.tfm
+INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong98.tfm
+INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei7f.tfm
+INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong7f.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei5f.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei53.tfm
 INPUT ./chapters/chp001.tex
@@ -1382,7 +1385,6 @@ INPUT e:/awork/iching/doc/iching/images/p000002.png
 INPUT e:/awork/iching/doc/iching/images/p000002.png
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/adobe/times/ptmr8t.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/vf/adobe/times/ptmr8t.vf
-INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong7f.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong83.tfm
 INPUT e:/awork/iching/doc/iching/images/p000003.png
 INPUT e:/awork/iching/doc/iching/images/p000003.png
@@ -1405,7 +1407,6 @@ INPUT e:/awork/iching/doc/iching/images/p000006.png
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei72.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei60.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei5e.tfm
-INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong98.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong9a.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong8a.tfm
 INPUT e:/awork/iching/doc/iching/images/p000007.png
@@ -1531,13 +1532,14 @@ INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simsun.ttc
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simsun.ttc
-INPUT c:/Windows/Fonts/simsun.ttc
-INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simsun.ttc

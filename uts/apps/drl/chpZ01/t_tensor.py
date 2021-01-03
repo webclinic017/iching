@@ -127,4 +127,17 @@ class TTensor(unittest.TestCase):
         v_t.backward(Tensor(np.array([[1, 1], [1, 1], [1, 1]])))
         print('grad v: \r\n{0};'.format(v.grad))
 
+    def test_mm_001(self):
+        a1 = Tensor(np.array([[1.0, 2.0, 3.0]]), autograd=True)
+        w_2 = Tensor(np.array([
+            [11.0, 12.0, 13.0, 14.0],
+            [21.0, 22.0, 23.0, 24.0],
+            [31.0, 32.0, 33.0, 34.0]
+        ]), autograd=True)
+        z2 = a1.mm(w_2)
+        print('z2: {0};\r\n{1}'.format(z2.data.shape, z2))
+        z2.backward(Tensor(np.array([[1.0, 1.0, 1.0, 1.0]])))
+        print('a1.grad: {0};'.format(a1.grad))
+        print('w_2.grad: {0};'.format(w_2.grad))
+
 

@@ -706,4 +706,12 @@ grad v:
 \end{lstlisting}
 
 \subsubsection{矩阵乘法}
-下面我们来看矩阵乘法，
+下面我们来看矩阵乘法，在深度学习中，矩阵乘法最大的应用场景是第$l-1$层的激活值$\boldsymbol{a}^{l-1}$与
+第$l$层的连接权值$W \in R^{N_{l} \times N_{l-1}}$相乘得到第$l$层的输入值$\boldsymbol{z}^{l}$，如
+下所示：
+\begin{equation}
+\begin{aligned}
+\boldsymbol{z}^{l} = W \cdot \boldsymbol{a}^{l-1}
+\end{aligned}
+\end{equation}
+下面我们来举一个具体的例子：

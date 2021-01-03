@@ -62,8 +62,8 @@ class Tensor(object):
                 elif 'transpose' in self.creation_op:
                     self.creators[0].backward(self.grad.transpose())
                 elif 'mm' == self.creation_op:
-                    act = self.creators[1]
-                    weights = self.creators[0]
+                    act = self.creators[0]
+                    weights = self.creators[1]
                     new_grad = self.grad.mm(weights.transpose())
                     act.backward(new_grad)
                     new_grad = self.grad.transpose().mm(act).transpose()

@@ -2,6 +2,13 @@
 import numpy as np
 import unittest
 from apps.drl.chpZ01.tensor import Tensor
+from apps.drl.chpZ01.optim_sgd import OptimSgd
+from apps.drl.chpZ01.linear import Linear
+from apps.drl.chpZ01.sequential import Sequential
+from apps.drl.chpZ01.loss_mse import LossMse
+from apps.drl.chpZ01.af_tanh import AfTanh
+from apps.drl.chpZ01.af_sigmoid import AfSigmoid
+from apps.drl.chpZ01.af_relu import AfRelu
 
 class TTensor(unittest.TestCase):
     @classmethod
@@ -140,5 +147,99 @@ class TTensor(unittest.TestCase):
         z2.backward(Tensor(np.ones_like(z2.data)))
         print('a1.grad: {0};'.format(a1.grad))
         print('w_2.grad: {0};'.format(w_2.grad))
+
+    def test_train_nn_001(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        w = list()
+        w.append(Tensor(np.random.rand(2,3), autograd=True))
+        w.append(Tensor(np.random.rand(3,1), autograd=True))
+        for i in range(10):
+            pred = data.mm(w[0]).mm(w[1])
+            loss = ((pred - target)*(pred - target)).sum(0)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            for w_ in w:
+                w_.data -= w_.grad.data * 0.1
+                w_.grad.data *= 0
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+    def test_train_nn_002(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        w = list()
+        w.append(Tensor(np.random.rand(2,3), autograd=True))
+        w.append(Tensor(np.random.rand(3,1), autograd=True))
+        optim = OptimSgd(parameters=w, alpha=0.1)
+        for i in range(10):
+            pred = data.mm(w[0]).mm(w[1])
+            loss = ((pred - target)*(pred - target)).sum(0)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+    def test_train_nn_003(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        model = Sequential([Linear(2,3), Linear(3,1)])
+        optim = OptimSgd(parameters=model.get_parameters(), alpha=0.05)
+        for i in range(10):
+            pred = model.forward(data)
+            loss = ((pred - target)*(pred - target)).sum(0)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+    def test_train_nn_004(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        model = Sequential([Linear(2,3), Linear(3,1)])
+        criterion = LossMse()
+        optim = OptimSgd(parameters=model.get_parameters(), alpha=0.05)
+        for i in range(10):
+            pred = model.forward(data)
+            loss = criterion.forward(pred, target)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+    def test_train_nn_005(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        model = Sequential([Linear(2,3), AfTanh(), Linear(3,1), AfSigmoid()])
+        criterion = LossMse()
+        optim = OptimSgd(parameters=model.get_parameters(), alpha=1)
+        for i in range(10):
+            pred = model.forward(data)
+            loss = criterion.forward(pred, target)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+    def test_train_nn_006(self):
+        np.random.seed(0)
+        data = Tensor(np.array([[0,0],[0,1],[1,0],[1,1]]), autograd=True)
+        target = Tensor(np.array([[0],[1],[0],[1]]), autograd=True)
+        model = Sequential([Linear(2,3), AfRelu(), Linear(3,1), AfSigmoid()])
+        criterion = LossMse()
+        optim = OptimSgd(parameters=model.get_parameters(), alpha=0.8)
+        for i in range(10):
+            pred = model.forward(data)
+            loss = criterion.forward(pred, target)
+            loss.backward(Tensor(np.ones_like(loss.data)))
+            optim.step()
+            print('epoch_{0}: loss={1};'.format(i, loss))
+        print(loss)
+
+
 
 

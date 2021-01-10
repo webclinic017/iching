@@ -1357,6 +1357,8 @@ INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong7f.
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei77.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei96.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unisong/unisong6f.tfm
+INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei6f.tfm
+INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei65.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei5f.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei53.tfm
 INPUT ./chapters/chp001.tex
@@ -1421,7 +1423,6 @@ INPUT e:/awork/iching/doc/iching/images/p000008.png
 INPUT e:/awork/iching/doc/iching/images/p000008.png
 INPUT e:/awork/iching/doc/iching/images/p000008.png
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei50.tfm
-INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei65.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei88.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei52.tfm
 INPUT d:/software/texlive/2020/texmf-dist/fonts/tfm/zhmetrics/unihei/unihei4f.tfm
@@ -1532,7 +1533,6 @@ INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
-INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simhei.ttf
@@ -1542,6 +1542,8 @@ INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
+INPUT c:/Windows/Fonts/simhei.ttf
+INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc
 INPUT c:/Windows/Fonts/simhei.ttf
 INPUT c:/Windows/Fonts/simsun.ttc

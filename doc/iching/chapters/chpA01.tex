@@ -1,0 +1,31 @@
+\newpage
+\maketitle
+\begin{center}
+\Large \textbf{第A01章 回归} \quad 
+\end{center}
+\begin{abstract}
+在本章中我们将讨论回归问题，我们首先讨论用线性回归来处理简单问题，接着我们研究分段线性回归来处理复杂问题，
+然后我们对线性回归进行扩展，讨论多项式回归。
+\end{abstract}
+\section{深度学习框架概述}
+在本章中，我们将研究回归问题，就是模型将生成一个数作为结果。
+\subsection{线性回归}
+在这里我们研究一个简单的线性回归问题，我们研究的问题是匀加速直线运动的速度问题。我们知道匀加速直线运动的
+速度公式为：
+\begin{equation}
+	\begin{aligned}
+	v = v_{0} + at = 1.5 + 2.3 \times t
+	\end{aligned}
+	\label{chpA01-volacity-yjszxyd}
+\end{equation}
+我们假设我们不知道这个公式，只有如下所示的数据：
+\begin{table}[h]
+	\caption{时间速度观察数据表}
+	\label{chpA01-tbl-v-t}
+	\begin{spacing}{1.5}
+	\begin{tabular}{|p{1cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|} \hline
+	时间 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\ \hline  
+	速度 & 3.8 & 6.1 & 8.4 & 10.7 & 13.0 & 15.3 & 17.6 & 19.9 & 22.2 & 24.5 \\ \hline
+	\end{tabular}
+	\end{spacing}
+\end{table}

@@ -1,7 +1,7 @@
 #
 import numpy as np
 import gym
-import gym_bandits
+#import gym_bandits
 
 class Exp002001(object):
     def __init__(self):

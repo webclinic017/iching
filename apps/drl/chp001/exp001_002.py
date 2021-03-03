@@ -1,5 +1,5 @@
 #
-import gym, gym_walk
+import gym #, gym_walk
 import numpy as np
 from pprint import pprint
 from tqdm import tqdm_notebook as tqdm

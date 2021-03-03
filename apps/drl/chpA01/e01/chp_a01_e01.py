@@ -1,6 +1,8 @@
 #
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
+from apps.drl.chpA01.e01.chp_a01_e01_ds import ChpA01E01Ds
 
 class ChpA01E01(object):
     def __init__(self):
@@ -11,7 +13,15 @@ class ChpA01E01(object):
         #self.lnrn_plain()
         #self.lnrn_sgd()
         #self.lnrn_adam()
-        self.lnrn_adam_mse()
+        #self.lnrn_adam_mse()
+
+    def ds_exp(self):
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        for X, y in dl:
+            print('X: {0}; y: {1};'.format(X, y))
+            break
 
     def lnrn_plain(self):
         X, y_hat = self.load_ds()

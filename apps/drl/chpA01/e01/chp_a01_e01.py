@@ -16,9 +16,7 @@ class ChpA01E01(object):
         #self.lnrn_adam()
         #self.lnrn_adam_mse()
         #self.lnrn_with_ds()
-        #self.lnrn_with_model()
-        self.lnrn_gpu()
-        # 
+        self.lnrn_with_model()
 
     def ds_exp(self):
         ds = ChpA01E01Ds(num=1000)

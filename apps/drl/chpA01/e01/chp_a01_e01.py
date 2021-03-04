@@ -16,7 +16,8 @@ class ChpA01E01(object):
         #self.lnrn_adam()
         #self.lnrn_adam_mse()
         #self.lnrn_with_ds()
-        self.lnrn_with_model()
+        #self.lnrn_with_model()
+        self.lnrn_gpu()
 
     def ds_exp(self):
         ds = ChpA01E01Ds(num=1000)
@@ -74,6 +75,52 @@ class ChpA01E01(object):
             model.train()
             for X, y_hat in dl:
                 optimizer.zero_grad()
+                y = model(X)
+                loss = criterion(y, y_hat)
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
+
+    def get_exec_device(self):
+        gpu_num = torch.cuda.device_count()
+        for gi in range(gpu_num):
+            print(torch.cuda.get_device_name(gi))
+        pref_gi = 0
+        if torch.cuda.is_available():
+            if pref_gi is not None:
+                device = 'cuda:{0}'.format(pref_gi)
+            else:
+                device = 'cuda'
+        else:
+            device = 'cpu'
+        #device1 = 'cuda' if torch.cuda.is_available() else 'cpu'
+        return device
+    
+    def lnrn_gpu(self):
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        # define the model
+        device = self.get_exec_device()
+        model = ChpA01E01Model().to(device)
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        #learning_params = model.parameters() # 需要epochs=100才能收敛
+        learning_params = []
+        for k, v in model.named_parameters():
+            if k == 'w001':
+                learning_params.append({'params': v, 'lr': 0.01})
+            elif k == 'b001':
+                learning_params.append({'params': v, 'lr': 0.1})
+        optimizer = torch.optim.Adam(learning_params, lr=0.001)
+        epochs = 10
+        for epoch in range(epochs):
+            model.train()
+            for X, y_hat in dl:
+                optimizer.zero_grad()
+                X, y_hat = X.to(device), y_hat.to(device)
                 y = model(X)
                 loss = criterion(y, y_hat)
                 loss.backward()

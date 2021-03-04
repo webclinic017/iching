@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from apps.drl.chpA01.e01.chp_a01_e01_ds import ChpA01E01Ds
+from apps.drl.chpA01.e01.chp_a01_e01_model import ChpA01E01Model
 
 class ChpA01E01(object):
     def __init__(self):
@@ -14,7 +15,10 @@ class ChpA01E01(object):
         #self.lnrn_sgd()
         #self.lnrn_adam()
         #self.lnrn_adam_mse()
-        self.lnrn_with_ds()
+        #self.lnrn_with_ds()
+        #self.lnrn_with_model()
+        self.lnrn_gpu()
+        # 
 
     def ds_exp(self):
         ds = ChpA01E01Ds(num=1000)
@@ -48,6 +52,35 @@ class ChpA01E01(object):
                 loss.backward()
                 optimizer.step()
                 print('{0}: w={1}; b={2}; loss={3};'.format(epoch, w, b, loss))
+
+    def lnrn_with_model(self):
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        # define the model
+        model = ChpA01E01Model()
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        #learning_params = model.parameters() # 需要epochs=100才能收敛
+        learning_params = []
+        for k, v in model.named_parameters():
+            if k == 'w001':
+                learning_params.append({'params': v, 'lr': 0.01})
+            elif k == 'b001':
+                learning_params.append({'params': v, 'lr': 0.1})
+        optimizer = torch.optim.Adam(learning_params, lr=0.001)
+        epochs = 10
+        for epoch in range(epochs):
+            model.train()
+            for X, y_hat in dl:
+                optimizer.zero_grad()
+                y = model(X)
+                loss = criterion(y, y_hat)
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
 
     def lnrn_plain(self):
         X, y_hat = self.load_ds()

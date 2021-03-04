@@ -14,6 +14,7 @@ class ChpA01E01(object):
         #self.lnrn_sgd()
         #self.lnrn_adam()
         #self.lnrn_adam_mse()
+        self.lnrn_with_ds()
 
     def ds_exp(self):
         ds = ChpA01E01Ds(num=1000)
@@ -22,6 +23,31 @@ class ChpA01E01(object):
         for X, y in dl:
             print('X: {0}; y: {1};'.format(X, y))
             break
+
+    def lnrn_with_ds(self):
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        # define the model
+        w = torch.tensor(1.0, requires_grad=True)
+        b = torch.tensor(0.0, requires_grad=True)
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        optimizer = torch.optim.Adam([
+            {'params': w, 'lr': 0.01},
+            {'params': b, 'lr': 0.1}
+        ], lr=0.001)
+        epochs = 10
+        for epoch in range(epochs):
+            for X, y_hat in dl:
+                optimizer.zero_grad()
+                y = w * X + b
+                loss = criterion(y, y_hat)
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, w, b, loss))
 
     def lnrn_plain(self):
         X, y_hat = self.load_ds()

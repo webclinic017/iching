@@ -8,6 +8,7 @@ from apps.drl.chpA01.e01.chp_a01_e01_model import ChpA01E01Model
 class ChpA01E01(object):
     def __init__(self):
         self.name = ''
+        self.model_file = './work/lnrn.pt'
 
     def startup(self, args={}):
         print('线性回归 adam')
@@ -18,6 +19,49 @@ class ChpA01E01(object):
         #self.lnrn_with_ds()
         #self.lnrn_with_model()
         self.lnrn_gpu()
+        self.lnrn_save_load()
+        #self.lnrn_tvt() # train, valid
+        #self.lnrn_eval()
+
+    def lnrn_save_load(self):
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        # define the model
+        device = self.get_exec_device()
+        model = ChpA01E01Model().to(device)
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        #learning_params = model.parameters() # 需要epochs=100才能收敛
+        learning_params = []
+        for k, v in model.named_parameters():
+            if k == 'w001':
+                learning_params.append({'params': v, 'lr': 0.01})
+            elif k == 'b001':
+                learning_params.append({'params': v, 'lr': 0.1})
+        optimizer = torch.optim.Adam(learning_params, lr=0.001)
+        epochs = 10
+        for epoch in range(epochs):
+            model.train()
+            for X, y_hat in dl:
+                optimizer.zero_grad()
+                X, y_hat = X.to(device), y_hat.to(device)
+                y = model(X)
+                loss = criterion(y, y_hat)
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
+        print('模型保存和加载测试')
+        # 保存模型
+        torch.save(model.state_dict(), self.model_file)
+        # 载入模型
+        ckpt = torch.load(self.model_file)
+        m1 = ChpA01E01Model()
+        print('初始值：w={0}; b={1};'.format(m1.w001, m1.b001))
+        m1.load_state_dict(ckpt)
+        print('载入值：w={0}; b={1};'.format(m1.w001, m1.b001))
 
     def ds_exp(self):
         ds = ChpA01E01Ds(num=1000)

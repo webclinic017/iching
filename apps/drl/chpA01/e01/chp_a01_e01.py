@@ -18,10 +18,59 @@ class ChpA01E01(object):
         #self.lnrn_adam_mse()
         #self.lnrn_with_ds()
         #self.lnrn_with_model()
-        self.lnrn_gpu()
-        self.lnrn_save_load()
-        #self.lnrn_tvt() # train, valid
+        #self.lnrn_gpu()
         #self.lnrn_eval()
+        #self.lnrn_save_load()
+        #self.lnrn_ds_split() # train and valid split
+
+    def lnrn_ds_split():
+        pass
+
+    def lnrn_eval(self):
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        batch_size = 10
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+        # define the model
+        device = self.get_exec_device()
+        model = ChpA01E01Model().to(device)
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        #learning_params = model.parameters() # 需要epochs=100才能收敛
+        learning_params = []
+        for k, v in model.named_parameters():
+            if k == 'w001':
+                learning_params.append({'params': v, 'lr': 0.01})
+            elif k == 'b001':
+                learning_params.append({'params': v, 'lr': 0.1})
+        optimizer = torch.optim.Adam(learning_params, lr=0.001)
+        epochs = 10
+        for epoch in range(epochs):
+            model.train()
+            for X, y_hat in dl:
+                optimizer.zero_grad()
+                X, y_hat = X.to(device), y_hat.to(device)
+                y = model(X)
+                loss = criterion(y, y_hat)
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
+        # 模型验证
+        test_num = 100
+        test_ds = ChpA01E01Ds(num=test_num)
+        model.eval()
+        preds = []
+        batch_size = 30
+        test_dl = DataLoader(ds, batch_size=batch_size, shuffle=False)
+        test_loss = 0
+        for X, y_hat in test_dl:
+            X, y_hat = X.to(device), y_hat.to(device)
+            with torch.no_grad():
+                y = model(X)
+                test_loss += criterion(y, y_hat)
+        test_loss /= test_num
+        print('测试集上代价函数值：{0};'.format(test_loss))
 
     def lnrn_save_load(self):
         # load dataset
@@ -53,6 +102,21 @@ class ChpA01E01(object):
                 loss.backward()
                 optimizer.step()
                 print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
+        # 模型验证
+        test_num = 100
+        test_ds = ChpA01E01Ds(num=test_num)
+        model.eval()
+        preds = []
+        batch_size = 30
+        test_dl = DataLoader(ds, batch_size=batch_size, shuffle=False)
+        test_loss = 0
+        for X, y_hat in test_dl:
+            X, y_hat = X.to(device), y_hat.to(device)
+            with torch.no_grad():
+                y = model(X)
+                test_loss += criterion(y, y_hat)
+        test_loss /= test_num
+        print('测试集上代价函数值：{0};'.format(test_loss))
         print('模型保存和加载测试')
         # 保存模型
         torch.save(model.state_dict(), self.model_file)

@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+import sklearn.model_selection as skm
 from apps.drl.chpA01.e01.chp_a01_e01_ds import ChpA01E01Ds
 from apps.drl.chpA01.e01.chp_a01_e01_model import ChpA01E01Model
 
@@ -21,10 +22,89 @@ class ChpA01E01(object):
         #self.lnrn_gpu()
         #self.lnrn_eval()
         #self.lnrn_save_load()
-        #self.lnrn_ds_split() # train and valid split
+        self.lnrn_ds_split() # train and valid split
 
-    def lnrn_ds_split():
-        pass
+    def lnrn_ds_split(self):
+        print('分配训练、验证、测试数据集 v0.0.1')
+        # load dataset
+        ds = ChpA01E01Ds(num=1000)
+        total_count= len(ds)
+        train_count = int(0.7 * total_count)
+        valid_count = int(0.2 * total_count)
+        test_count = total_count - train_count - valid_count
+        train_ds, valid_ds, test_ds = torch.utils.data.random_split(ds, (train_count, valid_count, test_count))
+        train_batch_size = 10
+        valid_batch_size = 23
+        test_batch_size = 88
+        train_dl = DataLoader(train_ds, batch_size=train_batch_size, shuffle=True)
+        valid_dl = DataLoader(valid_ds, batch_size=valid_batch_size, shuffle=False)
+        test_dl = DataLoader(test_ds, batch_size=test_batch_size, shuffle=False)
+        # define the model
+        device = self.get_exec_device()
+        model = ChpA01E01Model().to(device)
+        # define the loss function
+        criterion = torch.nn.MSELoss()
+        # define optimization method
+        #learning_params = model.parameters() # 需要epochs=100才能收敛
+        learning_params = []
+        for k, v in model.named_parameters():
+            if k == 'w001':
+                learning_params.append({'params': v, 'lr': 0.01})
+            elif k == 'b001':
+                learning_params.append({'params': v, 'lr': 0.1})
+        optimizer = torch.optim.Adam(learning_params, lr=0.001)
+        epochs = 10
+        best_loss = 10000.0
+        unimproved_loop = 0
+        improved_threshold = 0.000000001
+        max_unimproved_loop = 5
+        train_done = False
+        for epoch in range(epochs):
+            model.train()
+            for X, y_hat in train_dl:
+                optimizer.zero_grad()
+                X, y_hat = X.to(device), y_hat.to(device)
+                y = model(X)
+                loss = criterion(y, y_hat)
+                lossv = 0.0
+                for Xv, yv_hat in valid_dl:
+                    with torch.no_grad():
+                        Xv, yv_hat = Xv.to(device), yv_hat.to(device)
+                        yv = model(Xv)
+                        lossv += criterion(yv, yv_hat)
+                lossv /= valid_count
+                if lossv < best_loss:
+                    # save the model
+                    torch.save(model.state_dict(), self.model_file)
+                    if lossv < best_loss - improved_threshold:
+                        unimproved_loop = 0
+                    else:
+                        unimproved_loop += 1
+                    best_loss = lossv
+                if unimproved_loop >= max_unimproved_loop:
+                    train_done = True
+                    break
+                # early stopping处理
+                loss.backward()
+                optimizer.step()
+                print('{0}: w={1}; b={2}; loss={3};'.format(epoch, model.w001, model.b001, loss))
+            if train_done:
+                break
+        # 模型验证
+        test_loss = 0
+        for X, y_hat in test_dl:
+            X, y_hat = X.to(device), y_hat.to(device)
+            with torch.no_grad():
+                y = model(X)
+                test_loss += criterion(y, y_hat)
+        test_loss /= len(test_ds)
+        print('测试集上代价函数值：{0};'.format(test_loss))
+        # 载入模型
+        ckpt = torch.load(self.model_file)
+        m1 = ChpA01E01Model()
+        print('初始值：w={0}; b={1};'.format(m1.w001, m1.b001))
+        m1.load_state_dict(ckpt)
+        print('载入值：w={0}; b={1};'.format(m1.w001, m1.b001))
 
     def lnrn_eval(self):
         # load dataset

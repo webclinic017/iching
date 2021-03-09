@@ -46,7 +46,7 @@ class Covid2019Engine(object):
                 test_file=config['test_file'], 
                 test_batch_size=config['test_batch_size']
             )
-        model = self.load_model()
+        model = self.load_model(device, config)
         self.plot_pred(valid_dl, model, device) 
 
     def plot_pred(self, data_dl, model, device, lim=35., preds=None, targets=None):
@@ -84,7 +84,7 @@ class Covid2019Engine(object):
                 test_file=config['test_file'], 
                 test_batch_size=config['test_batch_size']
             )
-        model = self.load_model()
+        model = self.load_model(device, config)
         model.eval()                                # set model to evalutation mode
         preds = []
         for x in test_dl:                            # iterate through the dataloader
@@ -105,9 +105,7 @@ class Covid2019Engine(object):
             for i, p in enumerate(preds):
                 writer.writerow([i, p])
 
-    def load_model(self):
-        device = self.get_exec_device()
-        config = self.load_config()
+    def load_model(self, device, config):
         model = Covid2019Model(Covid2019Ds.X_dim).to(device)
         ckpt = torch.load(config['save_path'], map_location='cpu')  # Load your best model
         model.load_state_dict(ckpt)
@@ -155,8 +153,8 @@ class Covid2019Engine(object):
         plt.ylabel('MSE loss')
         plt.title('Learning curve of {}'.format(title))
         plt.legend()
-        #plt.show()
         plt.savefig('./work/hw1_train.png')
+        plt.show()
 
     def _evaluate(self, data_dl, model, device, criterion):
         model.eval()                                # set model to evalutation mode
@@ -189,7 +187,7 @@ class Covid2019Engine(object):
         config = {
             'train_file': './data/lhy/hw1/covid.train.csv',
             'test_file': './data/lhy/hw1/covid.test.csv',
-            'n_epochs': 3000,                # maximum number of epochs
+            'n_epochs': 3, #3000,                # maximum number of epochs
             'train_batch_size': 270,               # mini-batch size for dataloader
             'test_batch_size': 270,               # mini-batch size for dataloader
             'optimizer': 'SGD',              # optimization algorithm (optimizer in torch.optim)

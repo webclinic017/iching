@@ -72,6 +72,7 @@ class Covid2019Engine(object):
         plt.xlabel('ground truth value')
         plt.ylabel('predicted value')
         plt.title('Ground Truth v.s. Prediction')
+        plt.savefig('./work/evaluate.png')
         plt.show()
 
     def submit_result(self):

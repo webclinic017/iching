@@ -9,8 +9,8 @@ class ChpA01E02Main(object):
     def startup(self, args={}):
         print('新冠预测作业')
         engine = Covid2019Engine()
-        #engine.train()
-        engine.evaluate()
+        engine.train()
+        #engine.evaluate()
         #engine.submit_result()
         '''
         mode = 'train'

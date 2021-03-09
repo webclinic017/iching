@@ -1,7 +1,6 @@
 #
 from torch.utils.data import DataLoader
-from apps.drl.chpA01.e02.covid2019_ds import Covid2019Ds
-from apps.drl.chpA01.e02.covid2019_model import Covid2019Model
+from apps.drl.chpA01.e02.covid2019_engine import Covid2019Engine
 
 class ChpA01E02Main(object):
     def __init__(self):
@@ -9,6 +8,11 @@ class ChpA01E02Main(object):
 
     def startup(self, args={}):
         print('新冠预测作业')
+        engine = Covid2019Engine()
+        engine.train()
+        #engine.evaluate()
+        #engine.submit_result()
+        '''
         mode = 'train'
         train_ds = Covid2019Ds('./data/lhy/hw1/covid.train.csv', mode=mode)
         batch_size = 32
@@ -22,3 +26,4 @@ class ChpA01E02Main(object):
             y = model(X)
             print(y)
             break
+        '''

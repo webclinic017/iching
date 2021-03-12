@@ -14,5 +14,5 @@ class DrlApp(object):
         #exp = Exp001002()
         #exp = Exp002001()
         #exp = ChpA01Main()
-        exp = ChpA01E02Main()
+        exp = ChpA01Main()
         exp.startup()

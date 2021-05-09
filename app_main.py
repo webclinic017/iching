@@ -12,7 +12,7 @@ from apps.sop.sop_app import SopApp
 from apps.wxs.wxs_app import WxsApp
 '''
 #from apps.ots.ots_app import OtsApp
-from apps.drl.drl_app import DrlApp
+#from apps.drl.drl_app import DrlApp
 
 
 def norm_batch_tasks(batch_vals, task_num):
@@ -27,10 +27,6 @@ def exp():
 
 def main():
     print('易经量化交易系统 v0.0.1')
-    i_debug = 10
-    if 1 == i_debug:
-        exp()
-        return
     #app = OgmlApp()
     #app = TpApp()
     #app = RxgbApp()
@@ -40,8 +36,8 @@ def main():
     #app = FmmlApp()
     #app = SopApp()
     #app = OtsApp()
-    app = DrlApp()
-    app.startup()
+    #app = DrlApp()
+    #app.startup()
 
 if '__main__' == __name__:
     main()

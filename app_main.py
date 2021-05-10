@@ -12,7 +12,7 @@ from apps.sop.sop_app import SopApp
 from apps.wxs.wxs_app import WxsApp
 '''
 from apps.ots.ots_app import OtsApp
-#from apps.drl.drl_app import DrlApp
+from apps.drl.drl_app import DrlApp
 
 
 def norm_batch_tasks(batch_vals, task_num):
@@ -35,8 +35,8 @@ def main():
     #app = TcvApp()
     #app = FmmlApp()
     #app = SopApp()
-    app = OtsApp()
-    #app = DrlApp()
+    #app = OtsApp()
+    app = DrlApp()
     app.startup()
 
 if '__main__' == __name__:

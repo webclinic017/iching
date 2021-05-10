@@ -11,7 +11,7 @@ from apps.fmml.fmml_app import FmmlApp
 from apps.sop.sop_app import SopApp
 from apps.wxs.wxs_app import WxsApp
 '''
-#from apps.ots.ots_app import OtsApp
+from apps.ots.ots_app import OtsApp
 #from apps.drl.drl_app import DrlApp
 
 
@@ -35,9 +35,9 @@ def main():
     #app = TcvApp()
     #app = FmmlApp()
     #app = SopApp()
-    #app = OtsApp()
+    app = OtsApp()
     #app = DrlApp()
-    #app.startup()
+    app.startup()
 
 if '__main__' == __name__:
     main()

@@ -43,10 +43,15 @@ class Backtest(object):
         self.portfolio = self.portfolio_cls(self.data_source, self.events, self.start_date, self.initial_capital)
         self.order_executor = self.order_executor_cls(self.events)
 
+    def _learn(self):
+        print('^_^')
+
     def _run_backtest(self):
         '''
         执行回测
         '''
+        self._learn()
+        exit(1)
         i = 0
         while True:
             i += 1

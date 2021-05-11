@@ -28,12 +28,12 @@ class HistAshareCsvHftDs(BaseDs):
                 header=0, index_col=1, parse_dates=True,
                 names = ['day', 'open', 'high', 'low', 'close', 'volume']
             ).sort_values(by='day')
-
             if comb_index is None:
                 comb_index = self.symbol_data[s].index
             else:
                 comb_index.union(self.symbol_data[s].index)
             self.latest_symbol_data[s] = []
+        print('comb_index: {0};'.format(comb_index))
         for s in self.symbol_list:
             self.symbol_data[s] = self.symbol_data[s].reindex(index = comb_index, method='pad')
             self.symbol_data[s]['return'] = self.symbol_data[s]['close'] / self.symbol_data[s]['close'].shift(1) - 1

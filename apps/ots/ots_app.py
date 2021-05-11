@@ -9,6 +9,8 @@ from apps.ots.strategy.portfolio import Portfolio
 from apps.ots.backtest import Backtest
 from apps.ots.ds.hist_ashare_csv_hft_ds import HistAshareCsvHftDs
 from apps.ots.strategy.portfolio_hft import PortfolioHft
+#
+from apps.ots.exp.bfw_c1e1 import BfwC1e1
 
 class OtsApp(object):
     def __init__(self):
@@ -17,8 +19,9 @@ class OtsApp(object):
     def startup(self, args={}):
         #self.mac_main(args)
         #self.snp_daily_forcast_strategy_main(args)
-        self.intraday_mr_strategy_main(args)
+        #self.intraday_mr_strategy_main(args)
         #HistAshareCsvHftDs.download_ashare_minute_data('sh601939')
+        self.start_bfw_c1e1()
 
     def mac_main(self, args):
         csv_dir = './data'
@@ -56,3 +59,7 @@ class OtsApp(object):
             PortfolioHft, IntradayMrStrategy
         )
         backtest.startup()
+
+    def start_bfw_c1e1(self):
+        bfw = BfwC1e1()
+        bfw.startup()

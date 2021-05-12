@@ -17,3 +17,10 @@ class BfwC1e1(object):
         print('v0.0.1 Ct={0};'.format(Ct))
         vega = BsModel.calculate_vega(St, K, t, T, r, sigma)
         print('vega={0};'.format(vega))
+
+        sigma_t = 1200
+        for n in range(10000):
+            C_t = BsModel.calculate_C(St, K, t, T, r, sigma_t)
+            vega_t = BsModel.calculate_vega(St, K, t, T, r, sigma_t)
+            sigma_t = sigma_t - 1/vega * (C_t - Ct)
+            print('C0={0}; vega={1}; sigma={2};'.format(C_t, vega_t, sigma_t))

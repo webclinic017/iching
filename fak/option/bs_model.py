@@ -17,12 +17,10 @@ class BsModel(object):
         '''
         已知波动率计算期权价格的BS公式
         '''
-        mu = 0.0
-        sigma = 1.0
         d1 = BsModel.calculate_d1(St, K, t, T, r, sigma)
         d2 = BsModel.calculate_d2(St, K, t, T, r, sigma)
-        nd1 = BsModel.calculate_nd(d1, mu, sigma)
-        nd2 = BsModel.calculate_nd(d2, mu, sigma)
+        nd1 = BsModel.calculate_nd(d1)
+        nd2 = BsModel.calculate_nd(d2)
         return St * nd1 - math.exp(-r*(T-t)) * K * nd2
 
     @staticmethod

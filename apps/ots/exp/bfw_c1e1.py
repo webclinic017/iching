@@ -30,7 +30,7 @@ class BfwC1e1(object):
         '''
         计算由均值为mu，方差为sigma的正态分布下，x<=x0时的概率
         '''
-        return norm.pdf(x0, loc=mu, scale=sigma)
+        return norm.cdf(x0, loc=mu, scale=sigma)
 
     def calculate_bsm(self, St, K, t, T, r, sigma):
         mu = 0.0

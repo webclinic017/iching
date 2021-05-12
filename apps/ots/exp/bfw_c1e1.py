@@ -25,21 +25,22 @@ class BfwC1e1(object):
         sigma = 0.3 # 波动率
         Ct = self.calculate_bsm(St, K, t, T, r, sigma)
         print('Ct={0};'.format(Ct))
-
-    def calculate_norm_p(self, mu, sigma, x0):
-        '''
-        计算由均值为mu，方差为sigma的正态分布下，x<=x0时的概率
-        '''
-        return norm.cdf(x0, loc=mu, scale=sigma)
+        vega = self.calculate_vega(St, K, t, T, r, sigma)
+        print('vega={0};'.format(vega))
 
     def calculate_bsm(self, St, K, t, T, r, sigma):
         mu = 0.0
         sigma = 1.0
         d1 = self.calculate_bsm_d1(St, K, t, T, r, sigma)
         d2 = self.calculate_bsm_d2(St, K, t, T, r, sigma)
-        nd1 = self.calculate_norm_p(mu, sigma, d1)
-        nd2 = self.calculate_norm_p(mu, sigma, d2)
+        nd1 = self.calculate_bsm_nd(d1, mu, sigma)
+        nd2 = self.calculate_bsm_nd(d2, mu, sigma)
         return St * nd1 - math.exp(-r*(T-t)) * K * nd2
+
+    def calculate_vega(self, St, K, t, T, r, sigma):
+        d1 = self.calculate_bsm_d1(St, K, t, T, r, sigma)
+        nd1p = self.calculate_bsm_ndp(d1)
+        return St * nd1p * math.sqrt(T-t)
 
     def calculate_bsm_d1(self, St, K, t, T, r, sigma):
         return self.calculate_bsm_d(St, K, t, T, r, sigma, DMode.D1)
@@ -54,3 +55,13 @@ class BfwC1e1(object):
             numerator = math.log(St / K) + (r - sigma*sigma / 2.0)*(T - t)
         denominator = sigma * math.sqrt(T-t)
         return numerator / denominator
+        
+
+    def calculate_bsm_nd(self, x0, mu=0.0, sigma=1.0):
+        '''
+        计算由均值为mu，方差为sigma的正态分布下，x<=x0时的概率
+        '''
+        return norm.cdf(x0, loc=mu, scale=sigma)
+
+    def calculate_bsm_ndp(self, x0, mu=0.0, sigma=1.0):
+        return norm.pdf(x0, loc=mu, scale=sigma)

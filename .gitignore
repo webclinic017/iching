@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -149,3 +150,7 @@ dmypy.json
 *.log
 *.out
 *..synctex.gz
+
+# include iqt/env and iqt/data/
+!iqt/data
+!iqt/env/

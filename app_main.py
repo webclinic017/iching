@@ -17,7 +17,6 @@ from apps.nup_app import NupApp
 from apps.sop.sop_app import SopApp
 from apps.ots.ots_app import OtsApp
 from apps.drl.drl_app import DrlApp
-from iqt.iqt_app import IqtApp
 from biz.dct.dct_app import DctApp
 
 # 启动命令行参数默认值
@@ -44,8 +43,6 @@ def main(argv={}):
         app = OtsApp()
     elif params['mode'] == 'drl':
         app = DrlApp()
-    elif params['mode'] == 'iqt':
-        app = IqtApp()
     elif params['mode'] == 'dct':
         app = DctApp()
     else:

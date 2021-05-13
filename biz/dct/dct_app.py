@@ -1,4 +1,5 @@
 #
+from biz.dct.dct_ds import DctDs
 
 class DctApp(object):
     def __init__(self):
@@ -6,3 +7,5 @@ class DctApp(object):
 
     def startup(self, args={}):
         print('数字货币交易系统')
+        ds = DctDs()
+        ds.load_data()

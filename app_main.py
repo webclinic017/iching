@@ -17,7 +17,49 @@ from apps.nup_app import NupApp
 from apps.sop.sop_app import SopApp
 from apps.ots.ots_app import OtsApp
 from apps.drl.drl_app import DrlApp
-#from iqt.iqt_app import IqtApp
+from iqt.iqt_app import IqtApp
+from biz.dct.dct_app import DctApp
+
+# 启动命令行参数默认值
+params = {
+    'version': '0.0.1',
+    'mode': '1',
+    'exp': ''
+}
+
+def main(argv={}):
+    # 解析命令行参数
+    opts, args = getopt.getopt(argv, 'v:i', ['mode=', 'exp=']) # args是未加选项的字符串列表
+    for opt, val in opts:
+        if opt=='-i':
+            print('易经量化交易平台')
+        elif opt=='-v':
+            params['version'] = val
+        elif opt=='--mode':
+            params['mode'] = val
+        elif opt=='--exp':
+            params['exp'] = val
+    # 根据mode选项相应的应用
+    if params['mode'] == 'ots':
+        app = OtsApp()
+    elif params['mode'] == 'drl':
+        app = DrlApp()
+    elif params['mode'] == 'iqt':
+        app = IqtApp()
+    elif params['mode'] == 'dct':
+        app = DctApp()
+    else:
+        app = NupApp()
+    app.startup()
+
+if '__main__' == __name__:
+    '''
+    命令行启动参数示例：python app_main.py -i -v 0.0.1 --mode iqt --exp tt a1 a2 a3
+    '''
+    argv = sys.argv[1:]
+    main(argv)
+
+
 
 
 def norm_batch_tasks(batch_vals, task_num):
@@ -28,27 +70,6 @@ def norm_batch_tasks(batch_vals, task_num):
     return np.hstack(tuple(arrs)).mean(axis=1)
 
 def exp():
-    pass
-
-params = {
-    'version': '0.0.1',
-    'mode': '1',
-    'exp': ''
-}
-
-def main(argv={}):
-    opts, args = getopt.getopt(argv, 'v:i', ['mode=', 'exp='])
-    print('args:{0}; {1};'.format(type(args), args))
-    for opt, val in opts:
-        if opt=='-i':
-            print('易经量化交易平台')
-        elif opt=='-v':
-            params['version'] = val
-        elif opt=='--mode':
-            params['mode'] = val
-        elif opt=='--exp':
-            params['exp'] = val
-    print('mode={0}; exp={1};'.format(params['mode'], params['exp']))
     #app = OgmlApp()
     #app = TpApp()
     #app = RxgbApp()
@@ -57,22 +78,4 @@ def main(argv={}):
     #app = TcvApp()
     #app = FmmlApp()
     #app = SopApp()
-    if params['mode'] == 'ots':
-        app = OtsApp()
-    elif params['mode'] == 'drl':
-        app = DrlApp()
-    #elif params['mode'] == 'iqt':
-    #    app = IqtApp()
-    else:
-        app = NupApp()
-    app.startup()
-
-if '__main__' == __name__:
-    '''
-    命令行启动参数：python app_main.py -i -v 0.0.1 --mode iqt --exp tt a1 a2 a3
-      短选项：-字母 -字母:（接收参数） -t
-      长选项：--字符串
-      其他参数
-    '''
-    argv = sys.argv[1:]
-    main(argv)
+    pass

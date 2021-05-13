@@ -8,7 +8,7 @@ class DMode(Enum):
     D1 = 1
     D2 = 2
 
-class BsModel(object):
+class BsmModel(object):
     def __init__(self):
         self.name = 'fak.option.bs_model.BsModel'
     
@@ -17,10 +17,10 @@ class BsModel(object):
         '''
         已知波动率计算期权价格的BS公式
         '''
-        d1 = BsModel.calculate_d1(St, K, t, T, r, sigma)
-        d2 = BsModel.calculate_d2(St, K, t, T, r, sigma)
-        nd1 = BsModel.calculate_nd(d1)
-        nd2 = BsModel.calculate_nd(d2)
+        d1 = BsmModel.calculate_d1(St, K, t, T, r, sigma)
+        d2 = BsmModel.calculate_d2(St, K, t, T, r, sigma)
+        nd1 = BsmModel.calculate_nd(d1)
+        nd2 = BsmModel.calculate_nd(d2)
         return St * nd1 - math.exp(-r*(T-t)) * K * nd2
 
     @staticmethod
@@ -28,17 +28,17 @@ class BsModel(object):
         '''
         计算期权价格对d1的导数，即希腊字母vega的值
         '''
-        d1 = BsModel.calculate_d1(St, K, t, T, r, sigma)
-        nd1p = BsModel.calculate_ndp(d1)
+        d1 = BsmModel.calculate_d1(St, K, t, T, r, sigma)
+        nd1p = BsmModel.calculate_ndp(d1)
         return St * nd1p * math.sqrt(T-t)
 
     @staticmethod
     def calculate_d1(St, K, t, T, r, sigma):
-        return BsModel.calculate_d(St, K, t, T, r, sigma, DMode.D1)
+        return BsmModel.calculate_d(St, K, t, T, r, sigma, DMode.D1)
 
     @staticmethod
     def calculate_d2(St, K, t, T, r, sigma):
-        return BsModel.calculate_d(St, K, t, T, r, sigma, DMode.D2)
+        return BsmModel.calculate_d(St, K, t, T, r, sigma, DMode.D2)
 
     @staticmethod
     def calculate_d(St, K, t, T, r, sigma, mode):

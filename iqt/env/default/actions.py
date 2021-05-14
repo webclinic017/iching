@@ -86,6 +86,7 @@ class iqtActionScheme(ActionScheme):
         action : Any
             The specific action selected from the action space.
         """
+        print('iqt.env.default.actions iqtActionScheme.perform...')
         orders = self.get_orders(action, self.portfolio)
 
         for order in orders:
@@ -245,7 +246,7 @@ class SimpleOrders(iqtActionScheme):
     def get_orders(self,
                    action: int,
                    portfolio: 'Portfolio') -> 'List[Order]':
-
+        print('iqt.env.default.actions.py::SimpleOrders.get_orders...')
         if action == 0:
             return []
 

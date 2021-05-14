@@ -10,14 +10,14 @@ class DctDs(object):
         cdd = CryptoDataDownload()
         # 获取bitfinex行情数据
         bitfinex_btc = cdd.fetch("Bitfinex", "USD", "BTC", "1h")
-        print('step 1')
+        print('载入bitfinex_btc...')
         bitfinex_eth = cdd.fetch("Bitfinex", "USD", "ETH", "1h")
-        print('step 2')
+        print('载入bitfinex_eth...')
         # 获取bitstamp行情数据
         bitstamp_btc = cdd.fetch("Bitstamp", "USD", "BTC", "1h")
-        print('step 3')
+        print('载入bitstamp_btc...')
         bitstamp_eth = cdd.fetch("Bitstamp", "USD", "ETH", "1h")
-        print('step 4')
+        print('载入bitstamp_eth...')
         bitstamp_ltc = cdd.fetch("Bitstamp", "USD", "LTC", "1h")
-        print('step 5')
+        print('载入bitstamp_ltc...')
         return bitfinex_btc, bitfinex_eth, bitstamp_btc, bitstamp_eth, bitstamp_ltc

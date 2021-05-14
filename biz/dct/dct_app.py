@@ -13,6 +13,10 @@ class DctApp(object):
 
     def startup(self, args={}):
         print('数字货币交易系统 v0.0.1')
+        self.test_ledger()
+
+    def test_ledger(self):
+        print('test ledger')
         ds = DctDs()
         bitfinex_btc, bitfinex_eth, bitstamp_btc, bitstamp_eth, bitstamp_ltc = ds.load_data()
         # 定义交易所

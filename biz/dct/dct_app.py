@@ -31,13 +31,13 @@ class DctApp(object):
         )
 
         portfolio = Portfolio(USD, [
-            Wallet(bitfinex, 10000 * USD),
-            Wallet(bitfinex, 10 * BTC),
-            Wallet(bitfinex, 5 * ETH),
-            Wallet(bitstamp, 1000 * USD),
-            Wallet(bitstamp, 5 * BTC),
-            Wallet(bitstamp, 20 * ETH),
-            Wallet(bitstamp, 3 * LTC)
+            Wallet(bitfinex, 1000000 * USD),
+            Wallet(bitfinex, 1000 * BTC),
+            Wallet(bitfinex, 500 * ETH),
+            Wallet(bitstamp, 100000 * USD),
+            Wallet(bitstamp, 500 * BTC),
+            Wallet(bitstamp, 2000 * ETH),
+            Wallet(bitstamp, 300 * LTC)
         ])
 
         feed = DataFeed([
@@ -47,16 +47,16 @@ class DctApp(object):
 
         env = default.create(
             portfolio=portfolio,
-            action_scheme=default.actions.SimpleOrders(),
+            action_scheme=default.actions.SimpleOrders(min_order_pct=0.0001),
             reward_scheme=default.rewards.SimpleProfit(),
             feed=feed
         )
         done = False
         obs = env.reset()
+        env.action_scheme.min_order_pct = 0.0
         while not done:
             action = env.action_space.sample()
             obs, reward, done, info = env.step(action)
-            exit(1)
 
         df = portfolio.ledger.as_frame().head(7)
         print('result: {0};'.format(df))

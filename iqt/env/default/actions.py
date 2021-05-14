@@ -86,7 +86,6 @@ class IqtActionScheme(ActionScheme):
         action : Any
             The specific action selected from the action space.
         """
-        print('iqt.env.default.actions IqtActionScheme.perform...')
         orders = self.get_orders(action, self.portfolio)
 
         for order in orders:
@@ -211,7 +210,6 @@ class SimpleOrders(IqtActionScheme):
         self.min_order_abs = min_order_abs
         criteria = self.default('criteria', criteria)
         self.criteria = criteria if isinstance(criteria, list) else [criteria]
-        print('self.criteria:{0};'.format(self.criteria))
 
         trade_sizes = self.default('trade_sizes', trade_sizes)
         if isinstance(trade_sizes, list):
@@ -246,26 +244,19 @@ class SimpleOrders(IqtActionScheme):
     def get_orders(self,
                    action: int,
                    portfolio: 'Portfolio') -> 'List[Order]':
-        print('iqt.env.default.actions.py::SimpleOrders.get_orders...')
         if action == 0:
             return []
-
         (ep, (criteria, proportion, duration, side)) = self.actions[action]
-
         instrument = side.instrument(ep.pair)
         wallet = portfolio.get_wallet(ep.exchange.id, instrument=instrument)
-
         balance = wallet.balance.as_float()
         size = (balance * proportion)
         size = min(balance, size)
-
         quantity = (size * instrument).quantize()
-
         if size < 10 ** -instrument.precision \
                 or size < self.min_order_pct * portfolio.net_worth \
                 or size < self.min_order_abs:
             return []
-
         order = Order(
             step=self.clock.step,
             side=side,
@@ -277,10 +268,8 @@ class SimpleOrders(IqtActionScheme):
             end=self.clock.step + duration if duration else None,
             portfolio=portfolio
         )
-
         if self._order_listener is not None:
             order.attach(self._order_listener)
-
         return [order]
 
 

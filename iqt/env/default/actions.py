@@ -21,7 +21,7 @@ from iqt.oms.orders import (
 from iqt.oms.wallets import Portfolio
 
 
-class iqtActionScheme(ActionScheme):
+class IqtActionScheme(ActionScheme):
     """An abstract base class for any `ActionScheme` that wants to be
     compatible with the built in OMS.
 
@@ -86,7 +86,7 @@ class iqtActionScheme(ActionScheme):
         action : Any
             The specific action selected from the action space.
         """
-        print('iqt.env.default.actions iqtActionScheme.perform...')
+        print('iqt.env.default.actions IqtActionScheme.perform...')
         orders = self.get_orders(action, self.portfolio)
 
         for order in orders:
@@ -120,7 +120,7 @@ class iqtActionScheme(ActionScheme):
         self.broker.reset()
 
 
-class BSH(iqtActionScheme):
+class BSH(IqtActionScheme):
     """A simple discrete action scheme where the only options are to buy, sell,
     or hold.
 
@@ -173,7 +173,7 @@ class BSH(iqtActionScheme):
         self.action = 0
 
 
-class SimpleOrders(iqtActionScheme):
+class SimpleOrders(IqtActionScheme):
     """A discrete action scheme that determines actions based on a list of
     trading pairs, order criteria, and trade sizes.
 
@@ -284,7 +284,7 @@ class SimpleOrders(iqtActionScheme):
         return [order]
 
 
-class ManagedRiskOrders(iqtActionScheme):
+class ManagedRiskOrders(IqtActionScheme):
     """A discrete action scheme that determines actions based on managing risk,
        through setting a follow-up stop loss and take profit on every order.
 

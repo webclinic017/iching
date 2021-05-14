@@ -53,13 +53,10 @@ class DctApp(object):
         )
         done = False
         obs = env.reset()
-        exit(1)
-
-
         while not done:
             action = env.action_space.sample()
             obs, reward, done, info = env.step(action)
-            print('    action={0}; {1};'.format(action, obs))
+            exit(1)
 
         df = portfolio.ledger.as_frame().head(7)
         print('result: {0};'.format(df))

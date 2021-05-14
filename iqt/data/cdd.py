@@ -3,7 +3,7 @@ https://www.cryptodatadownload.com.
 """
 
 import ssl
-
+import pathlib
 import pandas as pd
 
 
@@ -13,19 +13,16 @@ ssl._create_default_https_context = ssl._create_unverified_context
 class CryptoDataDownload:
     """Provides methods for retrieving data on different cryptocurrencies from
     https://www.cryptodatadownload.com/cdd/.
-
     Attributes
     ----------
     url : str
         The url for collecting data from CryptoDataDownload.
-
     Methods
     -------
     fetch(exchange_name,base_symbol,quote_symbol,timeframe,include_all_volumes=False)
         Fetches data for different exchanges and cryptocurrency pairs.
 
     """
-
     def __init__(self) -> None:
         self.url = "https://www.cryptodatadownload.com/cdd/"
 
@@ -36,7 +33,6 @@ class CryptoDataDownload:
                       timeframe: str,
                       include_all_volumes: bool = False) -> pd.DataFrame:
         """Fetches data from all exchanges that match the evaluation structure.
-
         Parameters
         ----------
         exchange_name : str
@@ -49,15 +45,16 @@ class CryptoDataDownload:
             The timeframe to collect data from.
         include_all_volumes : bool, optional
             Whether or not to include both base and quote volume.
-
         Returns
         -------
         `pd.DataFrame`
             A open, high, low, close and volume for the specified exchange and
             cryptocurrency pair.
         """
-
         filename = "{}_{}{}_{}.csv".format(exchange_name, quote_symbol, base_symbol, timeframe)
+        cache_csv = './work/{0}'.format(filename)
+        if pathlib.Path(cache_csv).exists():
+            return pd.read_csv(cache_csv)
         base_vc = "Volume {}".format(base_symbol)
         new_base_vc = "volume_base"
         quote_vc = "Volume {}".format(quote_symbol)
@@ -79,7 +76,9 @@ class CryptoDataDownload:
         if not include_all_volumes:
             df = df.drop([new_quote_vc], axis=1)
             df = df.rename({new_base_vc: "volume"}, axis=1)
+            df.to_csv(cache_csv)
             return df
+        df.to_csv(cache_csv)
         return df
 
     def fetch_gemini(self,

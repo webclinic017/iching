@@ -211,6 +211,7 @@ class SimpleOrders(iqtActionScheme):
         self.min_order_abs = min_order_abs
         criteria = self.default('criteria', criteria)
         self.criteria = criteria if isinstance(criteria, list) else [criteria]
+        print('self.criteria:{0};'.format(self.criteria))
 
         trade_sizes = self.default('trade_sizes', trade_sizes)
         if isinstance(trade_sizes, list):
@@ -239,7 +240,6 @@ class SimpleOrders(iqtActionScheme):
             self.actions = list(self.actions)
             self.actions = list(product(self.portfolio.exchange_pairs, self.actions))
             self.actions = [None] + self.actions
-
             self._action_space = Discrete(len(self.actions))
         return self._action_space
 

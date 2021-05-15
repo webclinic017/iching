@@ -224,13 +224,11 @@ class Order(TimedIdentifiable, Observable):
     def execute(self) -> None:
         """Executes the order."""
         self.status = OrderStatus.OPEN
-
         if self.portfolio.order_listener:
             self.attach(self.portfolio.order_listener)
-
         for listener in self.listeners or []:
+            print('    ##### {0}; \n'.format(type(listener)))
             listener.on_execute(self)
-
         self.exchange_pair.exchange.execute_order(self, self.portfolio)
 
     def fill(self, trade: 'Trade') -> None:

@@ -2,7 +2,8 @@
 import numpy as np
 
 class TimeUtil(object):
-    def get_year_deltas(self, date_list: list, day_count: float=365.) -> 'np.ndarray':
+    @staticmethod
+    def get_year_deltas(date_list: list, day_count: float=365.) -> 'np.ndarray':
         ''' Return vector of floats with day deltas in year fractions.
         Initial value normalized to zero.
         Parameters

@@ -3,7 +3,7 @@ import numpy as np
 from fak.option.time_util import TimeUtil
 
 class ConstantShortRate(object):
-    def __init__(self, name, short_rate):
+    def __init__(self, name: str, short_rate: float) -> None:
         ''' Class for constant short rate discounting.
         Attributes
         ==========
@@ -23,7 +23,7 @@ class ConstantShortRate(object):
             raise ValueError('Short rate negative.')
             # this is debatable given recent market realities
 
-    def get_discount_factors(self, date_list, dtobjects=True):
+    def get_discount_factors(self, date_list: list, dtobjects: bool=True):
         if dtobjects is True:
             dlist = TimeUtil.get_year_deltas(date_list)
         else:

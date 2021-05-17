@@ -39,8 +39,6 @@ class DctApp(object):
             Wallet(bitstamp, 2000 * ETH),
             Wallet(bitstamp, 300 * LTC)
         ])
-        print('wallets: {0};'.format(portfolio._wallets))
-        exit(1)
         # 定义数据源
         feed = DataFeed([
             Stream.source(list(bitstamp_eth['volume'][-100:]), dtype="float").rename("volume:/USD-ETH"),

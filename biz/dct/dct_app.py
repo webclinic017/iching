@@ -29,7 +29,7 @@ class DctApp(object):
             Stream.source(list(bitstamp_eth['close'][-100:]), dtype="float").rename("USD-ETH"),
             Stream.source(list(bitstamp_ltc['close'][-100:]), dtype="float").rename("USD-LTC")
         )
-
+        # 定义在各个交易所的投资组合
         portfolio = Portfolio(USD, [
             Wallet(bitfinex, 1000000 * USD),
             Wallet(bitfinex, 1000 * BTC),
@@ -39,12 +39,14 @@ class DctApp(object):
             Wallet(bitstamp, 2000 * ETH),
             Wallet(bitstamp, 300 * LTC)
         ])
-
+        print('wallets: {0};'.format(portfolio._wallets))
+        exit(1)
+        # 定义数据源
         feed = DataFeed([
             Stream.source(list(bitstamp_eth['volume'][-100:]), dtype="float").rename("volume:/USD-ETH"),
             Stream.source(list(bitstamp_ltc['volume'][-100:]), dtype="float").rename("volume:/USD-LTC")
         ])
-
+        # 生成环境
         env = default.create(
             portfolio=portfolio,
             action_scheme=default.actions.SimpleOrders(min_order_pct=0.0001),

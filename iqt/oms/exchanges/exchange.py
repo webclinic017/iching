@@ -94,6 +94,7 @@ class Exchange(Component, TimedIdentifiable):
         """
         for s in streams:
             pair = "".join([c if c.isalnum() else "/" for c in s.name])
+            print('pair={0};'.format(pair))
             self._price_streams[pair] = s.rename(self.name + ":/" + s.name)
         return self
 

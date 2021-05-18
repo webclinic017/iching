@@ -53,7 +53,7 @@ def create(portfolio: 'Portfolio',
 
     action_scheme.portfolio = portfolio
 
-    observer = observers.iqtObserver(
+    observer = observers.IqtObserver(
         portfolio=portfolio,
         feed=feed,
         renderer_feed=kwargs.get("renderer_feed", None),

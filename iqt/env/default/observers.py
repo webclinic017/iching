@@ -148,7 +148,7 @@ class ObservationHistory(object):
         self.index = 0
 
 
-class iqtObserver(Observer):
+class IqtObserver(Observer):
     """The iqt observer that is compatible with the other `default`
     components.
 

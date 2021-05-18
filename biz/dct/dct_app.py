@@ -6,6 +6,8 @@ from iqt.oms.exchanges import Exchange
 from iqt.oms.services.execution.simulated import execute_order
 from iqt.oms.instruments import USD, BTC, ETH, LTC
 from biz.dct.dct_ds import DctDs
+# 
+from biz.dct.iqc.iqt_simple_trader import IqtSimpleTrader
 
 class DctApp(object):
     def __init__(self):
@@ -13,7 +15,9 @@ class DctApp(object):
 
     def startup(self, args={}):
         print('数字货币交易系统 v0.0.1')
-        self.test_ledger()
+        #self.test_ledger()
+        trader = IqtSimpleTrader()
+        trader.startup()
 
     def test_ledger(self):
         print('test ledger')

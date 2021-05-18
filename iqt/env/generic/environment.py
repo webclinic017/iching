@@ -144,7 +144,6 @@ class TradingEnv(gym.Env, TimeIndexed):
             if hasattr(c, "reset"):
                 c.reset()
         obs = self.observer.observe(self)
-        print('init obs: {0};'.format(obs))
         self.clock.increment()
         return obs
 

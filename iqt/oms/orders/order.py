@@ -227,7 +227,6 @@ class Order(TimedIdentifiable, Observable):
         if self.portfolio.order_listener:
             self.attach(self.portfolio.order_listener)
         for listener in self.listeners or []:
-            print('    ##### {0}; \n'.format(type(listener)))
             listener.on_execute(self)
         self.exchange_pair.exchange.execute_order(self, self.portfolio)
 

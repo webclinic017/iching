@@ -9,6 +9,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+runs/
 data/
 work/
 logs/

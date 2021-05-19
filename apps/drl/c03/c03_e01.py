@@ -1,6 +1,6 @@
 #
 import math
-from tensorboardX import SummaryWriter
+#from tensorboardX import SummaryWriter
 
 class C03E01(object):
     def __init__(self):
@@ -8,6 +8,7 @@ class C03E01(object):
 
     def startup(self, args={}):
         print('检查tensorboardx')
+        '''
         writer = SummaryWriter()
         funcs = {
             'sin': math.sin, 'cos': math.cos, 'tan': math.tan
@@ -18,3 +19,4 @@ class C03E01(object):
                 val = func(angle_rad)
                 writer.add_scalar(name, val, angle)
         writer.close()
+        '''

@@ -37,7 +37,16 @@ class IqtSimpleTrader(object):
         num = 0
         while not done:
             # action = agent.compute_action(obs)
-            action = self.agent.sample()
+            #action = self.agent.sample()
+            #print('step_{0}: action={1};'.format(num, action)) # 1 是买入 0是卖出
+            if obs[0][0] < 50.1:
+                print('buy: {0};'.format(obs[0][0]))
+                action = 1
+            elif obs[0][0] > 149.9:
+                print('sell: {0};'.format(obs[0][0]))
+                action = 0
+            else:
+                action = 2
             obs, reward, done, info = env.step(action)
             episode_reward += reward
             num += 1

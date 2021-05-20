@@ -19,6 +19,7 @@ from apps.ots.ots_app import OtsApp
 from apps.drl.drl_app import DrlApp
 from apps.fxcm.fxcm_app import FxcmApp
 #from biz.dct.dct_app import DctApp
+from biz.drlt.drlt_app import DrltApp
 
 # 启动命令行参数默认值
 params = {
@@ -48,6 +49,8 @@ def main(argv={}):
     #    app = DctApp()
     elif params['mode'] == 'fxcm':
         app = FxcmApp()
+    elif params['mode'] == 'drlt':
+        app = DrltApp()
     else:
         app = NupApp()
     app.startup()

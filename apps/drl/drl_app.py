@@ -8,6 +8,7 @@ from apps.drl.c02.c02_app import C02App
 from apps.drl.c03.c03_app import C03App
 from apps.drl.c04.c04_app import C04App
 from apps.drl.c06.c06_app import C06App
+from apps.drl.c13.c13_app import C13App
 
 class DrlApp(object):
     def __init__(self):
@@ -23,5 +24,6 @@ class DrlApp(object):
         #app = C02App()
         #app = C03App()
         #app = C04App()
-        app = C06App()
+        #app = C06App()
+        app = C13App()
         app.startup()

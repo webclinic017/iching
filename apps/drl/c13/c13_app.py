@@ -12,6 +12,7 @@ import biz.drlt.rll as rll
 from apps.drl.c13.app_config import AppConfig
 from biz.drlt.nns.a2c_model import A2cModel
 from biz.drlt.nns.a3c_common import A3cCommon
+from biz.drlt.nns.reward_tracker import RewardTracker
 
 class C13App(object):
     def __init__(self):
@@ -30,13 +31,19 @@ class C13App(object):
                             help="Name of the run")
         args = parser.parse_args()
         '''
-        device = 'cuda:1'
+        device = 'cuda:0'
         run_name = 'a3c'
 
         env = C13App.make_env()
         net = A2cModel(env.observation_space.shape,
-                            env.action_space.n).to(device)
+                            env.action_space.n) #.to(device)
+        for param in net.parameters():
+            print('##### pos 0.01 #####  dthread grads: {0};'.format(type(param.grad)))
+
         net.share_memory()
+
+        for param in net.parameters():
+            print('##### pos 0.02 #####  dthread grads: {0};'.format(type(param.grad)))
 
         optimizer = optim.Adam(net.parameters(),
                             lr=AppConfig.LEARNING_RATE, eps=1e-3)
@@ -54,25 +61,36 @@ class C13App(object):
         step_idx = 0
         grad_buffer = None
 
+        for param in net.parameters():
+            print('##### pos1 #####  dthread grads: {0};'.format(type(param.grad)))
+
         try:
             while True:
                 train_entry = train_queue.get()
                 if train_entry is None:
                     break
-
                 step_idx += 1
-
                 if grad_buffer is None:
                     grad_buffer = train_entry
                 else:
                     for tgt_grad, grad in zip(grad_buffer,
                                             train_entry):
                         tgt_grad += grad
-
                 if step_idx % AppConfig.TRAIN_BATCH == 0:
+                    net.zero_grad() #yt
+
+                    
+                    for param in net.parameters():
+                        print('##### pos200 #####  dthread grads: {0};'.format(type(param.grad)))
+
+
+
                     for param, grad in zip(net.parameters(),
                                         grad_buffer):
-                        param.grad = torch.FloatTensor(grad).to(device)
+                        v1 = torch.FloatTensor(grad).to(device)
+                        print('param.grad: {0}; grad: {1}; device:{2}; param: {3};'.format(param.grad, v1.shape, device, param.shape))
+                        if param.grad is not None:
+                            param.grad = torch.FloatTensor(grad).to(device)
 
                     nn_utils.clip_grad_norm_(
                         net.parameters(), AppConfig.CLIP_GRAD)
@@ -92,6 +110,7 @@ class C13App(object):
 
     @staticmethod
     def grads_func(proc_name, net, device, train_queue):
+        net.to(device)
         envs = [C13App.make_env() for _ in range(AppConfig.NUM_ENVS)]
 
         agent = rll.agent.PolicyAgent(
@@ -103,7 +122,7 @@ class C13App(object):
         frame_idx = 0
 
         writer = IchingWriter()
-        with A3cCommon.RewardTracker(writer, AppConfig.REWARD_BOUND) as tracker:
+        with RewardTracker(writer, AppConfig.REWARD_BOUND) as tracker:
             with rll.common.utils.TBMeanTracker(
                     writer, 100) as tb_tracker:
                 for exp in exp_source:
@@ -164,5 +183,8 @@ class C13App(object):
                         for param in net.parameters()
                     ]
                     train_queue.put(grads)
+                    
+                    for param in net.parameters():
+                        print('##### pos AAA #####  dthread grads: {0};'.format(type(param.grad)))
 
         train_queue.put(None)

@@ -37,14 +37,7 @@ class C13App(object):
         env = C13App.make_env()
         net = A2cModel(env.observation_space.shape,
                             env.action_space.n) #.to(device)
-        for param in net.parameters():
-            print('##### pos 0.01 #####  dthread grads: {0};'.format(type(param.grad)))
-
         net.share_memory()
-
-        for param in net.parameters():
-            print('##### pos 0.02 #####  dthread grads: {0};'.format(type(param.grad)))
-
         optimizer = optim.Adam(net.parameters(),
                             lr=AppConfig.LEARNING_RATE, eps=1e-3)
 
@@ -60,10 +53,6 @@ class C13App(object):
         batch = []
         step_idx = 0
         grad_buffer = None
-
-        for param in net.parameters():
-            print('##### pos1 #####  dthread grads: {0};'.format(type(param.grad)))
-
         try:
             while True:
                 train_entry = train_queue.get()
@@ -78,17 +67,9 @@ class C13App(object):
                         tgt_grad += grad
                 if step_idx % AppConfig.TRAIN_BATCH == 0:
                     net.zero_grad() #yt
-
-                    
-                    for param in net.parameters():
-                        print('##### pos200 #####  dthread grads: {0};'.format(type(param.grad)))
-
-
-
                     for param, grad in zip(net.parameters(),
                                         grad_buffer):
                         v1 = torch.FloatTensor(grad).to(device)
-                        print('param.grad: {0}; grad: {1}; device:{2}; param: {3};'.format(param.grad, v1.shape, device, param.shape))
                         if param.grad is not None:
                             param.grad = torch.FloatTensor(grad).to(device)
 
@@ -183,8 +164,5 @@ class C13App(object):
                         for param in net.parameters()
                     ]
                     train_queue.put(grads)
-                    
-                    for param in net.parameters():
-                        print('##### pos AAA #####  dthread grads: {0};'.format(type(param.grad)))
 
         train_queue.put(None)

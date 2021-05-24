@@ -21,17 +21,8 @@ class DrltApp(object):
 
     def startup(self, args={}):
         print('深度强化学习交易系统 v0.0.2')
-        '''
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--cuda", help="Enable cuda", default=False, action="store_true")
-        parser.add_argument("--data", default=STOCKS, help=f"Stocks file or dir, default={STOCKS}")
-        parser.add_argument("--year", type=int, help="Year to train on, overrides --data")
-        parser.add_argument("--val", default=VAL_STOCKS, help="Validation data, default=" + VAL_STOCKS)
-        parser.add_argument("-r", "--run", required=True, help="Run name")
-        args = parser.parse_args()
-        '''
-        #device = torch.device("cuda:0")
-        device = torch.device("cpu")
+        device = torch.device("cuda:0")
+        #device = torch.device("cpu")
         run_name = "yt1"
         saves_path = AppConfig.SAVES_DIR / f"simple-{run_name}"
         saves_path.mkdir(parents=True, exist_ok=True)

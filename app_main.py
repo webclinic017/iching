@@ -20,6 +20,7 @@ from apps.drl.drl_app import DrlApp
 from apps.fxcm.fxcm_app import FxcmApp
 #from biz.dct.dct_app import DctApp
 from biz.drlt.drlt_app import DrltApp
+from apps.mml.mml_app import MmlApp
 
 # 启动命令行参数默认值
 params = {
@@ -51,6 +52,8 @@ def main(argv={}):
         app = FxcmApp()
     elif params['mode'] == 'drlt':
         app = DrltApp()
+    elif params['mode'] == 'mml':
+        app = MmlApp()
     else:
         app = NupApp()
     app.startup()

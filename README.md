@@ -64,4 +64,10 @@ apps/common：金融市场公共方法，如手续费、税费、过户费等规
 apps/ogml：MAML模型在omniglot数据集上的应用示例；  
 apps/tp：在A股日K线数据集上的交易对应用示例；
 
+# 数学基础
+## 机器学习中的数学
+### 第二章 线性代数
+#### 2.7. 线性变换 https://github.com/yt7589/iching/blob/master/doc/mml/c02/c0201.ipynb
+
+
 闫涛 2021.02.05  

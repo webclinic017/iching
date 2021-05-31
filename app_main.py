@@ -42,17 +42,17 @@ def main(argv={}):
         elif opt=='--exp':
             params['exp'] = val
     # 根据mode选项相应的应用
-    if params['mode'] == 'ots':
+    if params['mode'] == 'ots': # 期权交易系统
         app = OtsApp()
-    elif params['mode'] == 'drl':
+    elif params['mode'] == 'drl': # 深度强化学习理论学习
         app = DrlApp()
     #elif params['mode'] == 'dct':
     #    app = DctApp()
-    elif params['mode'] == 'fxcm':
+    elif params['mode'] == 'fxcm': # Python for finance
         app = FxcmApp()
-    elif params['mode'] == 'drlt':
+    elif params['mode'] == 'drlt': # DQN用于量化交易
         app = DrltApp()
-    elif params['mode'] == 'mml':
+    elif params['mode'] == 'mml': # 机器学习中的数学
         app = MmlApp()
     else:
         app = NupApp()

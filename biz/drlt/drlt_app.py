@@ -37,7 +37,6 @@ class DrltApp(object):
                 stock_data = BarData.load_year_data(year)
             else:
                 stock_data = {"YNDX": BarData.load_relative(data_path)}
-            print('stodk_data: {0};'.format(stock_data))
             env = HourBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT)
             env_tst = HourBarEnv(

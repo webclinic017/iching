@@ -135,7 +135,7 @@ class State1D(State):
             res[dst+1] = self._cur_close() / self.open_price - 1.0
         return res
 
-class HourBarEnv(gym.Env):
+class MinuteBarEnv(gym.Env):
     metadata = {'render.modes': ['human']}
     spec = EnvSpec("StocksEnv-v0")
 

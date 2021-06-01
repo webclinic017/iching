@@ -33,9 +33,11 @@ class DrltApp(object):
 
         if year is not None or data_path.is_file():
             if year is not None:
+                print('load stock data...')
                 stock_data = BarData.load_year_data(year)
             else:
                 stock_data = {"YNDX": BarData.load_relative(data_path)}
+            print('stodk_data: {0};'.format(stock_data))
             env = HourBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT)
             env_tst = HourBarEnv(
@@ -47,6 +49,7 @@ class DrltApp(object):
                 data_path, bars_count=AppConfig.BARS_COUNT)
         else:
             raise RuntimeError("No data to train on")
+        exit(1)
 
         env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
         val_data = {"YNDX": BarData.load_relative(val_path)}

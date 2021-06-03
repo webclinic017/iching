@@ -87,9 +87,9 @@ class State:
         if action == AssetActions.Buy and not self.have_position:
             self.have_position = True
             self.open_price = close
-            reward -= self.commission_perc
+            reward -= self.commission_perc * 100.0
         elif action == AssetActions.Close and self.have_position:
-            reward -= self.commission_perc
+            reward -= self.commission_perc * 100.0
             done |= self.reset_on_close
             if self.reward_on_close:
                 reward += 100.0 * (close / self.open_price - 1.0)
@@ -202,4 +202,4 @@ class MinuteBarEnv(gym.Env):
             file: BarData.load_relative(file)
             for file in BarData.price_files(data_dir)
         }
-        return HourBarEnv(prices, **kwargs)
+        return MinuteBarEnv(prices, **kwargs)

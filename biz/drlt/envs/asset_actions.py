@@ -2,13 +2,13 @@
 import enum
 
 class AssetActions(enum.Enum):
-    Skip = 0
+    Keep = 0
     Buy = 1
-    Close = 2
+    Sell = 2
 
 '''
 另一种方案：
-    Skip = 0
+    Keep = 0
     Buy01 = 1 # 拿当前现金的10%来买
     Buy02 = 2 # 
     Buy03 = 3

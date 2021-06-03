@@ -4,6 +4,7 @@ from biz.drlt.app_config import AppConfig
 from biz.drlt.ds.bar_data import BarData
 from biz.drlt.envs.asset_actions import AssetActions
 from biz.drlt.envs.minute_bar_env import State
+from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 
 class TMinuteBarEnv(unittest.TestCase):
     @classmethod
@@ -13,6 +14,19 @@ class TMinuteBarEnv(unittest.TestCase):
     @classmethod
     def tearDown(cls):
         pass
+
+    def test_MinuteBarEnv_main(self):
+        '''
+        研究市场环境类
+        '''
+        year = 2016
+        instrument = 'data\\YNDX_160101_161231.csv'
+        stock_data = BarData.load_year_data(year)
+        print('stock_data: {0};'.format(stock_data[instrument]))
+        env = MinuteBarEnv(
+                stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
+        print('action_sapce = {0};'.format(env.action_space))
+        print('shape: {0};'.format(env._state.shape))
 
     def test_State_main(self):
         print('生成环境状态类')

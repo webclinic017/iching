@@ -24,18 +24,40 @@ class TMinuteBarEnv(unittest.TestCase):
         st.reset(stock_data[instrument], offset=AppConfig.BARS_COUNT+1)
         obs = st.encode()
         print('initial observation: type:{0}; shape:{1};'.format(type(obs), obs))
+        # 购买股票
         action = AssetActions.Buy
         reward, done = st.step(action=action)
-        print('reward={0}; done={1};'.format(reward, done))
         obs = st.encode()
         info = {
             'instrument': 'YNDX',
             'offset': st._offset
         }
-        print('********************** step **********************************')
-        print('obs: {0};'.format(obs))
-        print('info: {0};'.format(info))
-        #while True:
-        #    st.step()
+        self._print_State_step_result(reward, done, obs, info)
+        # 持有
+        action = AssetActions.Skip
+        reward, done = st.step(action=action)
+        obs = st.encode()
+        info = {
+            'instrument': 'YNDX',
+            'offset': st._offset
+        }
+        self._print_State_step_result(reward, done, obs, info)
+        # 卖出
+        action = AssetActions.Close
+        reward, done = st.step(action=action)
+        obs = st.encode()
+        info = {
+            'instrument': 'YNDX',
+            'offset': st._offset
+        }
+        self._print_State_step_result(reward, done, obs, info)
         print('^_^')
         self.assertTrue(1>0)
+
+    def _print_State_step_result(self, reward, done, obs, info):
+        '''
+        打印经过一次step后情况，包括：奖励、是否完成、当前状态、额外信息
+        '''
+        print('reward={0}; done={1}; info={2};'.format(reward, done, info['offset']))
+        print('当前观测状态: {0};'.format(obs))
+        print('**********************************************************************************************')

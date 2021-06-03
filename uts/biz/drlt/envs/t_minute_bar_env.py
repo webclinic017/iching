@@ -3,9 +3,9 @@ import unittest
 from biz.drlt.app_config import AppConfig
 from biz.drlt.ds.bar_data import BarData
 from biz.drlt.envs.asset_actions import AssetActions
-from biz.drlt.envs.hour_bar_env import State
+from biz.drlt.envs.minute_bar_env import State
 
-class THourBarEnv(unittest.TestCase):
+class TMinuteBarEnv(unittest.TestCase):
     @classmethod
     def setUp(cls):
         pass
@@ -14,7 +14,7 @@ class THourBarEnv(unittest.TestCase):
     def tearDown(cls):
         pass
 
-    def test_Xstate(self):
+    def test_State_main(self):
         print('生成环境状态类')
         year = 2016
         instrument = 'data\\YNDX_160101_161231.csv'

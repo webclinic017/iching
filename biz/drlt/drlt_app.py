@@ -10,7 +10,7 @@ from ignite.contrib.handlers import tensorboard_logger as tb_logger
 import biz.drlt.rll as rll
 from biz.drlt.app_config import AppConfig
 from biz.drlt.ds.bar_data import BarData
-from biz.drlt.envs.hour_bar_env import HourBarEnv
+from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 from biz.drlt.nns.simple_ff_dqn import SimpleFFDQN
 from biz.drlt.nns.dqn_common import DqnCommon
 from biz.drlt.nns.dqn_validation import DqnValidation
@@ -37,22 +37,21 @@ class DrltApp(object):
                 stock_data = BarData.load_year_data(year)
             else:
                 stock_data = {"YNDX": BarData.load_relative(data_path)}
-            env = HourBarEnv(
+            env = MinuteBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT)
-            env_tst = HourBarEnv(
+            env_tst = MinuteBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT)
         elif data_path.is_dir():
-            env = HourBarEnv.from_dir(
+            env = MinuteBarEnv.from_dir(
                 data_path, bars_count=AppConfig.BARS_COUNT)
-            env_tst = HourBarEnv.from_dir(
+            env_tst = MinuteBarEnv.from_dir(
                 data_path, bars_count=AppConfig.BARS_COUNT)
         else:
             raise RuntimeError("No data to train on")
-        exit(1)
 
         env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
         val_data = {"YNDX": BarData.load_relative(val_path)}
-        env_val = HourBarEnv(val_data, bars_count=AppConfig.BARS_COUNT)
+        env_val = MinuteBarEnv(val_data, bars_count=AppConfig.BARS_COUNT)
 
         net = SimpleFFDQN(env.observation_space.shape[0],
                                 env.action_space.n).to(device)

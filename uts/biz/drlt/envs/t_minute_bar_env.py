@@ -26,6 +26,21 @@ class TMinuteBarEnv(unittest.TestCase):
         env = MinuteBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
         obs = env.reset()
+        seq = 1
+        while True:
+            if seq > 3:
+                done = True
+            if 1 == seq:
+                action = AssetActions.Buy
+            elif 2 == seq:
+                action = AssetActions.Sell
+            else:
+                action = AssetActions.Keep
+            obs, reward, done, info = env.step(action)
+            if done:
+                break
+            env.render(mode='human', obs=obs, reward=reward, info=info)
+            seq += 1
         print('observation: {0};'.format(obs))
 
     def test_State_main(self):

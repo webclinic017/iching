@@ -88,7 +88,7 @@ class State:
             self.have_position = True
             self.open_price = close
             reward -= self.commission_perc * 100.0
-        elif action == AssetActions.Close and self.have_position:
+        elif action == AssetActions.Sell and self.have_position:
             reward -= self.commission_perc * 100.0
             done |= self.reset_on_close
             if self.reward_on_close:
@@ -185,8 +185,8 @@ class MinuteBarEnv(gym.Env):
         }
         return obs, reward, done, info
 
-    def render(self, mode='human', close=False):
-        pass
+    def render(self, mode='human', obs=None, reward=0.0, info={}, close=False):
+        print('打印信息: {0};'.format(obs))
 
     def close(self):
         pass

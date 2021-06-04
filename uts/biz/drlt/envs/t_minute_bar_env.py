@@ -25,8 +25,8 @@ class TMinuteBarEnv(unittest.TestCase):
         print('stock_data: {0};'.format(stock_data[instrument]))
         env = MinuteBarEnv(
                 stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
-        print('action_sapce = {0};'.format(env.action_space))
-        print('shape: {0};'.format(env._state.shape))
+        obs = env.reset()
+        print('observation: {0};'.format(obs))
 
     def test_State_main(self):
         print('生成环境状态类')

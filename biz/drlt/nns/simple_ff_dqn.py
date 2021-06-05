@@ -24,4 +24,5 @@ class SimpleFFDQN(nn.Module):
     def forward(self, x):
         val = self.fc_val(x)
         adv = self.fc_adv(x)
+        print('val: {0}; adv: {1};'.format(val.shape, adv.shape))
         return val + (adv - adv.mean(dim=1, keepdim=True))

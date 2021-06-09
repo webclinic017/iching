@@ -47,6 +47,7 @@ class ExperienceSource:
         self.vectorized = vectorized
 
     def __iter__(self):
+        print('ExperienceSource.__iter__ 1????')
         states, agent_states, histories, cur_rewards, cur_steps = [], [], [], [], []
         env_lens = []
         for env in self.pool:
@@ -173,7 +174,9 @@ class ExperienceSourceFirstLast(ExperienceSource):
         self.steps = steps_count
 
     def __iter__(self):
+        print('ExperienceSourceFirstLast.__iter__ 1')
         for exp in super(ExperienceSourceFirstLast, self).__iter__():
+            print('ExperienceSourceFirstLast.__iter__ 2')
             if exp[-1].done and len(exp) <= self.steps:
                 last_state = None
                 elems = exp

@@ -24,8 +24,10 @@ class TExperienceSourceFirstLast(unittest.TestCase):
                                 env.action_space.n).to(device)
         selector = rll.actions.EpsilonGreedyActionSelector(AppConfig.EPS_START)
         agent = DQNAgent(net, selector, device=device)
+
+        
         exp_source = rll.experience.ExperienceSourceFirstLast(
             env, agent, AppConfig.GAMMA, steps_count=AppConfig.REWARD_STEPS)
         src_itr = iter(exp_source)
         v1 = next(src_itr)
-        print('v1: {0}; {1};'.format(type(v1), v1))
+        #print('v1: {0}; {1};'.format(type(v1), v1))

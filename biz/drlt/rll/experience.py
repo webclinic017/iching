@@ -36,10 +36,8 @@ class ExperienceSource:
         assert steps_count >= 1
         assert isinstance(vectorized, bool)
         if isinstance(env, (list, tuple)):
-            print('ExpericeSource.__init__ case 1')
             self.pool = env
         else:
-            print('ExpericeSource.__init__ case 2')
             self.pool = [env]
         self.agent = agent
         self.steps_count = steps_count
@@ -64,7 +62,7 @@ class ExperienceSource:
                 obs_len = 1
                 states.append(obs)
             env_lens.append(obs_len)
-            print('##### env_lens={0};'.format(obs_len))
+            print('##### obs_lens={0};'.format(obs_len))
             for _ in range(obs_len):
                 histories.append(deque(maxlen=self.steps_count))
                 cur_rewards.append(0.0)
@@ -175,15 +173,6 @@ class ExperienceSourceFirstLast(ExperienceSource):
         super(ExperienceSourceFirstLast, self).__init__(env, agent, steps_count+1, steps_delta, vectorized=vectorized)
         self.gamma = gamma
         self.steps = steps_count
-        print('self.pool: {0}; {1};'.format(type(self.pool),self.pool))
-        print('self.agent: {0}; {1};'.format(type(self.agent),self.agent))
-        print('self.steps_count: {0}; {1};'.format(type(self.steps_count),self.steps_count))
-        print('self.steps_delta: {0}; {1};'.format(type(self.steps_delta),self.steps_delta))
-        print('self.total_rewards: {0}; {1};'.format(type(self.total_rewards),self.total_rewards))
-        print('self.total_steps: {0}; {1};'.format(type(self.total_steps),self.total_steps))
-        print('self.vectorized: {0}; {1};'.format(type(self.vectorized),self.vectorized))
-        print('self.gamma: {0}; {1};'.format(type(self.gamma), self.gamma))
-        print('self.steps: {0}; {1};'.format(type(self.steps), self.steps))
 
     def __iter__(self):
         print('ExperienceSourceFirstLast.__iter__ 1')

@@ -47,12 +47,14 @@ class ExperienceSource:
         self.vectorized = vectorized
 
     def __iter__(self):
+        print('ExperienceSource.__iter__ 1')
         states, agent_states, histories, cur_rewards, cur_steps = [], [], [], [], []
         env_lens = []
         for env in self.pool:
             obs = env.reset()
             # if the environment is vectorized, all it's output is lists of results.
             # Details are here: https://github.com/openai/universe/blob/master/doc/env_semantics.rst
+            print('########### self.vectorized: {0};'.format(self.vectorized))
             if self.vectorized:
                 obs_len = len(obs)
                 states.extend(obs)
@@ -60,7 +62,7 @@ class ExperienceSource:
                 obs_len = 1
                 states.append(obs)
             env_lens.append(obs_len)
-
+            print('##### obs_lens={0};'.format(obs_len))
             for _ in range(obs_len):
                 histories.append(deque(maxlen=self.steps_count))
                 cur_rewards.append(0.0)
@@ -173,7 +175,9 @@ class ExperienceSourceFirstLast(ExperienceSource):
         self.steps = steps_count
 
     def __iter__(self):
+        print('ExperienceSourceFirstLast.__iter__ 1')
         for exp in super(ExperienceSourceFirstLast, self).__iter__():
+            print('ExperienceSourceFirstLast.__iter__ 2')
             if exp[-1].done and len(exp) <= self.steps:
                 last_state = None
                 elems = exp

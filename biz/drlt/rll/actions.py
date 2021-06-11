@@ -23,6 +23,7 @@ class EpsilonGreedyActionSelector(ActionSelector):
     def __init__(self, epsilon=0.05, selector=None):
         self.epsilon = epsilon
         self.selector = selector if selector is not None else ArgmaxActionSelector()
+        print('epsilon: {0}; selector: {1};'.format(self.epsilon, self.selector))
 
     def __call__(self, scores):
         assert isinstance(scores, np.ndarray)

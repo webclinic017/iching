@@ -145,4 +145,4 @@ class DrltApp(object):
 
 
 
-        print('^_^ v0.0.4')
+        print('^_^ v0.0.5')

@@ -66,7 +66,6 @@ class ExperienceSource:
                 cur_rewards.append(0.0)
                 cur_steps.append(0)
                 agent_states.append(self.agent.initial_state())
-        print('states: {0};'.format(states))
         iter_idx = 0
         while True:
             actions = [None] * len(states)

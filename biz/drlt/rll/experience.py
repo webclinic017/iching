@@ -54,7 +54,6 @@ class ExperienceSource:
             obs = env.reset()
             # if the environment is vectorized, all it's output is lists of results.
             # Details are here: https://github.com/openai/universe/blob/master/doc/env_semantics.rst
-            print('########### self.vectorized: {0};'.format(self.vectorized))
             if self.vectorized:
                 obs_len = len(obs)
                 states.extend(obs)
@@ -62,13 +61,12 @@ class ExperienceSource:
                 obs_len = 1
                 states.append(obs)
             env_lens.append(obs_len)
-            print('##### obs_lens={0};'.format(obs_len))
             for _ in range(obs_len):
                 histories.append(deque(maxlen=self.steps_count))
                 cur_rewards.append(0.0)
                 cur_steps.append(0)
                 agent_states.append(self.agent.initial_state())
-
+        print('states: {0};'.format(states))
         iter_idx = 0
         while True:
             actions = [None] * len(states)

@@ -18,7 +18,7 @@ class TExperienceSourceFirstLast(unittest.TestCase):
         year = 2016
         stock_data = BarData.load_year_data(year)
         env = MinuteBarEnv(
-                stock_data, bars_count=AppConfig.BARS_COUNT)
+                stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
         env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
         net = SimpleFFDQN(env.observation_space.shape[0],
                                 env.action_space.n).to(device)

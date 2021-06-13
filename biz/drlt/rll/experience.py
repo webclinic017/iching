@@ -84,7 +84,6 @@ class ExperienceSource:
                     actions[g_idx] = action
                     agent_states[g_idx] = new_agent_states[idx]
             grouped_actions = _group_list(actions, env_lens)
-
             global_ofs = 0
             for env_idx, (env, action_n) in enumerate(zip(self.pool, grouped_actions)):
                 if self.vectorized:

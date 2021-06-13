@@ -75,7 +75,6 @@ class DQNAgent(BaseAgent):
         q = q_v.data.cpu().numpy()
         self.action_selector.epsilon = 0
         actions = self.action_selector(q)
-        print('##### q_v: {0}; q: {1}; actions:{2};'.format(q_v.shape, q, actions))
         return actions, agent_states
 
 

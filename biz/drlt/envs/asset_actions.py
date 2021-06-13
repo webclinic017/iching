@@ -2,7 +2,7 @@
 import enum
 
 class AssetActions(enum.Enum):
-    Keep = 0
+    Skip = 0
     Buy = 1
     Sell = 2
 

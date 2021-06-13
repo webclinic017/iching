@@ -67,6 +67,7 @@ class DrltApp(object):
             exp_source, AppConfig.REPLAY_SIZE)
         optimizer = optim.Adam(net.parameters(), lr=AppConfig.LEARNING_RATE)
 
+        
         def process_batch(engine, batch):
             optimizer.zero_grad()
             loss_v = DqnCommon.calc_loss(
@@ -139,10 +140,4 @@ class DrltApp(object):
         val_handler = tb_logger.OutputHandler(
             tag="validation", metric_names=val_metrics)
         tb.attach(engine, log_handler=val_handler, event_name=event)
-
         engine.run(DqnCommon.batch_generator(buffer, AppConfig.REPLAY_INITIAL, AppConfig.BATCH_SIZE))
-
-
-
-
-        print('^_^ v0.0.5')

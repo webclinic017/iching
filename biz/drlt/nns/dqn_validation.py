@@ -38,7 +38,7 @@ class DqnValidation(object):
                 if action == AssetActions.Buy and position is None:
                     position = close_price
                     position_steps = 0
-                elif action == AssetActions.Close and position is not None:
+                elif action == AssetActions.Sell and position is not None:
                     profit = close_price - position - (close_price + position) * comission / 100
                     profit = 100.0 * profit / position
                     stats['order_profits'].append(profit)

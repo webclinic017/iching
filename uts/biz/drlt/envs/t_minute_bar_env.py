@@ -35,7 +35,7 @@ class TMinuteBarEnv(unittest.TestCase):
             elif 2 == seq:
                 action = AssetActions.Sell
             else:
-                action = AssetActions.Keep
+                action = AssetActions.Skip
             obs, reward, done, info = env.step(action)
             if done:
                 break
@@ -72,7 +72,7 @@ class TMinuteBarEnv(unittest.TestCase):
         }
         self._print_State_step_result(reward, done, obs, info)
         # 卖出
-        action = AssetActions.Close
+        action = AssetActions.Sell
         reward, done = st.step(action=action)
         obs = st.encode()
         info = {

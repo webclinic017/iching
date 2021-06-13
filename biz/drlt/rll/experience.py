@@ -68,6 +68,7 @@ class ExperienceSource:
                 agent_states.append(self.agent.initial_state())
         iter_idx = 0
         while True:
+            print('##### while True')
             actions = [None] * len(states)
             states_input = []
             states_indices = []
@@ -86,6 +87,7 @@ class ExperienceSource:
             grouped_actions = _group_list(actions, env_lens)
             global_ofs = 0
             for env_idx, (env, action_n) in enumerate(zip(self.pool, grouped_actions)):
+                print('##### ##### env_idx={0}: action_n={1};'.format(env_idx, action_n))
                 if self.vectorized:
                     next_state_n, r_n, is_done_n, _ = env.step(action_n)
                 else:
@@ -93,6 +95,7 @@ class ExperienceSource:
                     next_state_n, r_n, is_done_n = [next_state], [r], [is_done]
 
                 for ofs, (action, next_state, r, is_done) in enumerate(zip(action_n, next_state_n, r_n, is_done_n)):
+                    print('##### ##### ##### third loop')
                     idx = global_ofs + ofs
                     state = states[idx]
                     history = histories[idx]
@@ -102,8 +105,11 @@ class ExperienceSource:
                     if state is not None:
                         history.append(Experience(state=state, action=action, reward=r, done=is_done))
                     if len(history) == self.steps_count and iter_idx % self.steps_delta == 0:
+                        print('yield in ExpericenSource... history:{0}; iter_idx={1}; self.steps_count={2}; self.steps_delta={3};'
+                                .format(len(history), iter_idx, self.steps_count, self.steps_delta))
                         yield tuple(history)
                     states[idx] = next_state
+                    print('idx={0}; states:{1};'.format(idx, len(states)))
                     if is_done:
                         # in case of very short episode (shorter than our steps count), send gathered history
                         if 0 < len(history) < self.steps_count:

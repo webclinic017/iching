@@ -1,7 +1,7 @@
 #
+import unittest
 import torch
 import gym
-import unittest
 import biz.drlt.rll as rll
 from biz.drlt.app_config import AppConfig
 from biz.drlt.ds.bar_data import BarData
@@ -9,10 +9,9 @@ from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 from biz.drlt.nns.simple_ff_dqn import SimpleFFDQN
 from biz.drlt.rll.agent import DQNAgent
 from biz.drlt.rll.experience import ExperienceSourceFirstLast
+from biz.drlt.rll.experience import ExperienceReplayBuffer
 
-from collections import namedtuple, deque
-
-class TExperienceSourceFirstLast(unittest.TestCase):
+class TExperienceReplayBuffer(unittest.TestCase):
     def test_exp(self):
         #
         device = torch.device("cuda:0")
@@ -25,10 +24,11 @@ class TExperienceSourceFirstLast(unittest.TestCase):
                                 env.action_space.n).to(device)
         selector = rll.actions.EpsilonGreedyActionSelector(AppConfig.EPS_START)
         agent = DQNAgent(net, selector, device=device)
-
-        
         exp_source = rll.experience.ExperienceSourceFirstLast(
             env, agent, AppConfig.GAMMA, steps_count=AppConfig.REWARD_STEPS)
-        src_itr = iter(exp_source)
-        v1 = next(src_itr)
-        #print('v1: {0}; {1};'.format(type(v1), v1)) # 返回(s, a, r, s')
+        replay_buffer = ExperienceReplayBuffer(
+            exp_source, AppConfig.REPLAY_SIZE)
+        replay_buffer.populate(1000)
+        batch_size = 16
+        X = replay_buffer.sample(batch_size)
+        print('X: {0}; {1};'.format(type(X), X))

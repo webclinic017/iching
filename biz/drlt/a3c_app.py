@@ -9,17 +9,18 @@ import gym
 #
 from ann.iching_writer import IchingWriter
 import biz.drlt.rll as rll
-from apps.drl.c13.app_config import AppConfig
+from biz.drlt.app_config import AppConfig
 from biz.drlt.nns.a2c_model import A2cModel
 from biz.drlt.nns.a3c_common import A3cCommon
 from biz.drlt.nns.reward_tracker import RewardTracker
 
-class C13App(object):
+class A3cApp(object):
     def __init__(self):
-        self.name = 'apps.drl.c13.c13_app.C13App'
+        self.name = 'biz.drlt.a3c_app.A3cApp'
 
-    def startup(self):
+    def train(self):
         print('A3C算法股票交易系统 v0.0.0_1(Pong)')
+
         mp.set_start_method('spawn')
         os.environ['OMP_NUM_THREADS'] = "1"
         '''
@@ -33,19 +34,19 @@ class C13App(object):
         device = 'cuda:0'
         run_name = 'a3c'
 
-        env = C13App.make_env()
+        env = A3cApp.make_env()
         net = A2cModel(env.observation_space.shape,
                             env.action_space.n) #.to(device)
         net.share_memory()
         optimizer = optim.Adam(net.parameters(),
-                            lr=AppConfig.LEARNING_RATE, eps=1e-3)
+                            lr=AppConfig.a3c_config['LEARNING_RATE'], eps=1e-3)
 
-        train_queue = mp.Queue(maxsize=AppConfig.PROCESSES_COUNT)
+        train_queue = mp.Queue(maxsize=AppConfig.a3c_config['PROCESSES_COUNT'])
         data_proc_list = []
-        for proc_idx in range(AppConfig.PROCESSES_COUNT):
+        for proc_idx in range(AppConfig.a3c_config['PROCESSES_COUNT']):
             proc_name = f"-a3c-grad_pong_{run_name}#{proc_idx}"
             p_args = (proc_name, net, device, train_queue)
-            data_proc = mp.Process(target=C13App.grads_func, args=p_args)
+            data_proc = mp.Process(target=A3cApp.grads_func, args=p_args)
             data_proc.start()
             data_proc_list.append(data_proc)
 
@@ -64,7 +65,7 @@ class C13App(object):
                     for tgt_grad, grad in zip(grad_buffer,
                                             train_entry):
                         tgt_grad += grad
-                if step_idx % AppConfig.TRAIN_BATCH == 0:
+                if step_idx % AppConfig.a3c_config['TRAIN_BATCH'] == 0:
                     net.zero_grad() #yt
                     for param, grad in zip(net.parameters(),
                                         grad_buffer):
@@ -73,7 +74,7 @@ class C13App(object):
                             param.grad = torch.FloatTensor(grad).to(device)
 
                     nn_utils.clip_grad_norm_(
-                        net.parameters(), AppConfig.CLIP_GRAD)
+                        net.parameters(), AppConfig.a3c_config['CLIP_GRAD'])
                     optimizer.step()
                     grad_buffer = None
         finally:
@@ -86,23 +87,23 @@ class C13App(object):
 
     @staticmethod
     def make_env():
-        return rll.common.wrappers.wrap_dqn(gym.make(AppConfig.ENV_NAME))
+        return rll.common.wrappers.wrap_dqn(gym.make(AppConfig.a3c_config['ENV_NAME']))
 
     @staticmethod
     def grads_func(proc_name, net, device, train_queue):
         net.to(device)
-        envs = [C13App.make_env() for _ in range(AppConfig.NUM_ENVS)]
+        envs = [A3cApp.make_env() for _ in range(AppConfig.a3c_config['NUM_ENVS'])]
 
         agent = rll.agent.PolicyAgent(
             lambda x: net(x)[0], device=device, apply_softmax=True)
         exp_source = rll.experience.ExperienceSourceFirstLast(
-            envs, agent, gamma=AppConfig.GAMMA, steps_count=AppConfig.REWARD_STEPS)
+            envs, agent, gamma=AppConfig.a3c_config['GAMMA'], steps_count=AppConfig.a3c_config['REWARD_STEPS'])
 
         batch = []
         frame_idx = 0
 
         writer = IchingWriter()
-        with RewardTracker(writer, AppConfig.REWARD_BOUND) as tracker:
+        with RewardTracker(writer, AppConfig.a3c_config['REWARD_BOUND']) as tracker:
             with rll.common.utils.TBMeanTracker(
                     writer, 100) as tb_tracker:
                 for exp in exp_source:
@@ -113,12 +114,12 @@ class C13App(object):
                         break
 
                     batch.append(exp)
-                    if len(batch) < AppConfig.GRAD_BATCH:
+                    if len(batch) < AppConfig.a3c_config['GRAD_BATCH']:
                         continue
 
                     data = A3cCommon.unpack_batch(
                         batch, net, device=device,
-                        last_val_gamma=AppConfig.GAMMA**AppConfig.REWARD_STEPS)
+                        last_val_gamma=AppConfig.a3c_config['GAMMA']**AppConfig.a3c_config['REWARD_STEPS'])
                     states_v, actions_t, vals_ref_v = data
 
                     batch.clear()
@@ -130,13 +131,13 @@ class C13App(object):
 
                     log_prob_v = F.log_softmax(logits_v, dim=1)
                     adv_v = vals_ref_v - value_v.detach()
-                    log_p_a = log_prob_v[range(AppConfig.GRAD_BATCH), actions_t]
+                    log_p_a = log_prob_v[range(AppConfig.a3c_config['GRAD_BATCH']), actions_t]
                     log_prob_actions_v = adv_v * log_p_a
                     loss_policy_v = -log_prob_actions_v.mean()
 
                     prob_v = F.softmax(logits_v, dim=1)
                     ent = (prob_v * log_prob_v).sum(dim=1).mean()
-                    entropy_loss_v = AppConfig.ENTROPY_BETA * ent
+                    entropy_loss_v = AppConfig.a3c_config['ENTROPY_BETA'] * ent
 
                     loss_v = entropy_loss_v + loss_value_v + \
                             loss_policy_v
@@ -156,7 +157,7 @@ class C13App(object):
 
                     # gather gradients
                     nn_utils.clip_grad_norm_(
-                        net.parameters(), AppConfig.CLIP_GRAD)
+                        net.parameters(), AppConfig.a3c_config['CLIP_GRAD'])
                     grads = [
                         param.grad.data.cpu().numpy()
                         if param.grad is not None else None

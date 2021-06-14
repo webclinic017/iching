@@ -8,6 +8,6 @@ class DrltApp(object):
 
     def startup(self, args={}):
         print('深度强化学习交易系统 v0.0.2')
-        # app = DqnApp()
-        app = A3cApp()
+        app = DqnApp()
+        # app = A3cApp()
         app.train()

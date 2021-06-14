@@ -68,6 +68,69 @@ class DrltApp(object):
         optimizer = optim.Adam(net.parameters(), lr=AppConfig.LEARNING_RATE)
 
         
+        epochs = 1000
+        sync_tgt_net_per_iters = 1000
+        validate_per_iters = 10000
+        metrics = {}
+        iter_num = 0
+        best_mean_val = None
+        best_val_reward = None
+        eval_states = None
+        for epoch in range(epochs):
+            for batch in DqnCommon.batch_generator(buffer, AppConfig.REPLAY_INITIAL, AppConfig.BATCH_SIZE):
+                optimizer.zero_grad()
+                loss_v = DqnCommon.calc_loss(
+                    batch, net, tgt_net.target_model,
+                    gamma=AppConfig.GAMMA ** AppConfig.REWARD_STEPS, device=device)
+                loss_v.backward()
+                optimizer.step()
+                eps_tracker.frame(iter_num) # engine.state.iteration)
+                iter_num += 1
+                if iter_num % 100 == 0:
+                    print('epoch_{0}_{1}: loss={2};'.format(epoch, iter_num, loss_v))
+                if eval_states is None:
+                    eval_states = buffer.sample(AppConfig.STATES_TO_EVALUATE)
+                    eval_states = [np.array(transition.state, copy=False)
+                            for transition in eval_states]
+                    eval_states = np.array(eval_states, copy=False)
+                # 隔sync_tgt_net_per_iters次更新target network参数
+                if iter_num % sync_tgt_net_per_iters == 0:
+                    print('synchronize target network with working network')
+                    tgt_net.sync()
+                    mean_val = DqnCommon.calc_values_of_states(
+                        eval_states, net, device=device)
+                    metrics["values_mean"] = mean_val
+                    if best_mean_val is None:
+                        best_mean_val = mean_val
+                    if best_mean_val < mean_val:
+                        print("%d: Best mean value updated %.3f -> %.3f" % (
+                            iter_num, best_mean_val,
+                            mean_val))
+                        path = saves_path / ("mean_value-%.3f.data" % mean_val)
+                        torch.save(net.state_dict(), path)
+                        best_mean_val = mean_val
+                # 每validate_per_iters次运行一遍验证集
+                if iter_num % validate_per_iters == 0:
+                    res = DqnValidation.validation_run(env_tst, net, device=device)
+                    print("%d: tst: %s" % (iter_num, res))
+                    for key, val in res.items():
+                        metrics[key + "_tst"] = val
+                    res = DqnValidation.validation_run(env_val, net, device=device)
+                    print("%d: val: %s" % (iter_num, res))
+                    for key, val in res.items():
+                        metrics[key + "_val"] = val
+                    val_reward = res['episode_reward']
+                    if best_val_reward is None:
+                        best_val_reward = val_reward
+                    if best_val_reward < val_reward:
+                        print("Best validation reward updated: %.3f -> %.3f, model saved" % (
+                            best_val_reward, val_reward
+                        ))
+                        best_val_reward = val_reward
+                        path = saves_path / ("val_reward-%.3f.data" % val_reward)
+                        torch.save(net.state_dict(), path)
+
+        '''
         def process_batch(engine, batch):
             optimizer.zero_grad()
             loss_v = DqnCommon.calc_loss(
@@ -141,3 +204,4 @@ class DrltApp(object):
             tag="validation", metric_names=val_metrics)
         tb.attach(engine, log_handler=val_handler, event_name=event)
         engine.run(DqnCommon.batch_generator(buffer, AppConfig.REPLAY_INITIAL, AppConfig.BATCH_SIZE))
+        '''

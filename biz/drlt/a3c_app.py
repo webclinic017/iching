@@ -1,5 +1,6 @@
 # A3C算法示例
 import os
+import pathlib
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -8,6 +9,8 @@ import torch.nn.utils as nn_utils
 import gym
 #
 from ann.iching_writer import IchingWriter
+from biz.drlt.ds.bar_data import BarData
+from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 import biz.drlt.rll as rll
 from biz.drlt.app_config import AppConfig
 from biz.drlt.nns.a2c_model import A2cModel
@@ -34,7 +37,9 @@ class A3cApp(object):
         device = 'cuda:0'
         run_name = 'a3c'
 
+        #env, env_val, env_tst = A3cApp.make_env()
         env = A3cApp.make_env()
+        print('shape: {0}; n: {1};'.format(env.observation_space.shape, env.action_space.n))
         net = A2cModel(env.observation_space.shape,
                             env.action_space.n) #.to(device)
         net.share_memory()
@@ -87,12 +92,46 @@ class A3cApp(object):
 
     @staticmethod
     def make_env():
+        '''
+        run_name = "yt1"
+        saves_path = AppConfig.SAVES_DIR / f"simple-{run_name}"
+        saves_path.mkdir(parents=True, exist_ok=True)
+
+        data_path = pathlib.Path(AppConfig.STOCKS)
+        val_path = pathlib.Path(AppConfig.VAL_STOCKS)
+        year = 2016
+
+        if year is not None or data_path.is_file():
+            if year is not None:
+                print('load stock data...')
+                stock_data = BarData.load_year_data(year)
+            else:
+                stock_data = {"YNDX": BarData.load_relative(data_path)}
+            env = MinuteBarEnv(
+                stock_data, bars_count=AppConfig.BARS_COUNT)
+            env_tst = MinuteBarEnv(
+                stock_data, bars_count=AppConfig.BARS_COUNT)
+        elif data_path.is_dir():
+            env = MinuteBarEnv.from_dir(
+                data_path, bars_count=AppConfig.BARS_COUNT)
+            env_tst = MinuteBarEnv.from_dir(
+                data_path, bars_count=AppConfig.BARS_COUNT)
+        else:
+            raise RuntimeError("No data to train on")
+
+        env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
+        val_data = {"YNDX": BarData.load_relative(val_path)}
+        env_val = MinuteBarEnv(val_data, bars_count=AppConfig.BARS_COUNT)
+        return env, env_val, env_tst
+        '''
         return rll.common.wrappers.wrap_dqn(gym.make(AppConfig.a3c_config['ENV_NAME']))
 
     @staticmethod
     def grads_func(proc_name, net, device, train_queue):
         net.to(device)
         envs = [A3cApp.make_env() for _ in range(AppConfig.a3c_config['NUM_ENVS'])]
+        #env, env_val, env_tst = A3cApp.make_env()
+        #envs = [env]
 
         agent = rll.agent.PolicyAgent(
             lambda x: net(x)[0], device=device, apply_softmax=True)

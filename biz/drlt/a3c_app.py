@@ -13,7 +13,7 @@ from biz.drlt.ds.bar_data import BarData
 from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 import biz.drlt.rll as rll
 from biz.drlt.app_config import AppConfig
-from biz.drlt.nns.a2c_model import A2cModel
+from biz.drlt.nns.a2c_conv1d_model import A2cConv1dModel
 from biz.drlt.nns.a3c_common import A3cCommon
 from biz.drlt.nns.reward_tracker import RewardTracker
 
@@ -37,10 +37,10 @@ class A3cApp(object):
         device = 'cuda:0'
         run_name = 'a3c'
 
-        #env, env_val, env_tst = A3cApp.make_env()
-        env = A3cApp.make_env()
+        env, env_val, env_tst = A3cApp.make_env()
+        #env = A3cApp.make_env()
         print('shape: {0}; n: {1};'.format(env.observation_space.shape, env.action_space.n))
-        net = A2cModel(env.observation_space.shape,
+        net = A2cConv1dModel((1, env.observation_space.shape[0]),
                             env.action_space.n) #.to(device)
         net.share_memory()
         optimizer = optim.Adam(net.parameters(),
@@ -92,7 +92,6 @@ class A3cApp(object):
 
     @staticmethod
     def make_env():
-        '''
         run_name = "yt1"
         saves_path = AppConfig.SAVES_DIR / f"simple-{run_name}"
         saves_path.mkdir(parents=True, exist_ok=True)
@@ -108,9 +107,9 @@ class A3cApp(object):
             else:
                 stock_data = {"YNDX": BarData.load_relative(data_path)}
             env = MinuteBarEnv(
-                stock_data, bars_count=AppConfig.BARS_COUNT)
+                stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
             env_tst = MinuteBarEnv(
-                stock_data, bars_count=AppConfig.BARS_COUNT)
+                stock_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
         elif data_path.is_dir():
             env = MinuteBarEnv.from_dir(
                 data_path, bars_count=AppConfig.BARS_COUNT)
@@ -121,17 +120,16 @@ class A3cApp(object):
 
         env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
         val_data = {"YNDX": BarData.load_relative(val_path)}
-        env_val = MinuteBarEnv(val_data, bars_count=AppConfig.BARS_COUNT)
+        env_val = MinuteBarEnv(val_data, bars_count=AppConfig.BARS_COUNT, volumes=True)
         return env, env_val, env_tst
-        '''
-        return rll.common.wrappers.wrap_dqn(gym.make(AppConfig.a3c_config['ENV_NAME']))
+        #return rll.common.wrappers.wrap_dqn(gym.make(AppConfig.a3c_config['ENV_NAME']))
 
     @staticmethod
     def grads_func(proc_name, net, device, train_queue):
         net.to(device)
-        envs = [A3cApp.make_env() for _ in range(AppConfig.a3c_config['NUM_ENVS'])]
-        #env, env_val, env_tst = A3cApp.make_env()
-        #envs = [env]
+        #envs = [A3cApp.make_env() for _ in range(AppConfig.a3c_config['NUM_ENVS'])]
+        env, env_val, env_tst = A3cApp.make_env()
+        envs = [env]
 
         agent = rll.agent.PolicyAgent(
             lambda x: net(x)[0], device=device, apply_softmax=True)

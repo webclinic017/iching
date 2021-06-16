@@ -35,8 +35,8 @@ class AppConfig(object):
         'NUM_ENVS': 4, #8
         'GRAD_BATCH': 32, #64
         'TRAIN_BATCH': 2,
-        'ENV_NAME': "PongNoFrameskip-v4",
-        'NAME': 'pong',
+        'ENV_NAME': "stock-minute-bar-v1",
+        'NAME': 'minuteBar',
         'REWARD_BOUND': 18
     }
     

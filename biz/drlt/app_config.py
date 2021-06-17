@@ -26,17 +26,17 @@ class AppConfig(object):
 
     # A3C
     a3c_config = {
-        'GAMMA': 0.99,
-        'LEARNING_RATE': 0.001,
-        'ENTROPY_BETA': 0.01,
-        'REWARD_STEPS': 4,
-        'CLIP_GRAD': 0.1,
-        'PROCESSES_COUNT': 2, # 4
-        'NUM_ENVS': 4, #8
-        'GRAD_BATCH': 32, #64
-        'TRAIN_BATCH': 2,
-        'ENV_NAME': "stock-minute-bar-v1",
-        'NAME': 'minuteBar',
-        'REWARD_BOUND': 18
+        'gamma': 0.99,
+        'learning_rate': 0.001,
+        'entropy_beta': 0.01,
+        'reward_steps': 4,
+        'clip_grad': 0.1,
+        'processes_count': 2, # 4
+        'num_envs': 4, #8
+        'grad_batch': 32, #64
+        'train_batch': 2,
+        'env_name': "stock-minute-bar-v1",
+        'name': 'minuteBar',
+        'reward_bound': 18
     }
     

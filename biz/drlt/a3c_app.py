@@ -22,30 +22,18 @@ class A3cApp(object):
         self.name = 'biz.drlt.a3c_app.A3cApp'
 
     def train(self):
-        print('A3C算法股票交易系统 v0.0.0_1(Pong)')
-
+        print('A3C算法股票交易系统 v0.0.1')
         mp.set_start_method('spawn')
         os.environ['OMP_NUM_THREADS'] = "1"
-        '''
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--cuda", default=False,
-                            action="store_true", help="Enable cuda")
-        parser.add_argument("-n", "--name", required=True,
-                            help="Name of the run")
-        args = parser.parse_args()
-        '''
         device = 'cuda:0'
         run_name = 'a3c'
-
         env, env_val, env_tst = A3cApp.make_env()
-        #env = A3cApp.make_env()
         print('shape: {0}; n: {1};'.format(env.observation_space.shape, env.action_space.n))
         net = A2cConv1dModel((1, env.observation_space.shape[0]),
-                            env.action_space.n) #.to(device)
+                            env.action_space.n)
         net.share_memory()
         optimizer = optim.Adam(net.parameters(),
                             lr=AppConfig.a3c_config['learning_rate'], eps=1e-3)
-
         train_queue = mp.Queue(maxsize=AppConfig.a3c_config['processes_count'])
         data_proc_list = []
         for proc_idx in range(AppConfig.a3c_config['processes_count']):
@@ -54,7 +42,6 @@ class A3cApp(object):
             data_proc = mp.Process(target=A3cApp.grads_func, args=p_args)
             data_proc.start()
             data_proc_list.append(data_proc)
-
         batch = []
         step_idx = 0
         grad_buffer = None
@@ -71,13 +58,11 @@ class A3cApp(object):
                                             train_entry):
                         tgt_grad += grad
                 if step_idx % AppConfig.a3c_config['train_batch'] == 0:
-                    net.zero_grad() #yt
+                    net.zero_grad()
                     for param, grad in zip(net.parameters(),
                                         grad_buffer):
-                        v1 = torch.FloatTensor(grad).to(device)
                         if param.grad is not None:
                             param.grad = torch.FloatTensor(grad).to(device)
-
                     nn_utils.clip_grad_norm_(
                         net.parameters(), AppConfig.a3c_config['clip_grad'])
                     optimizer.step()
@@ -141,8 +126,7 @@ class A3cApp(object):
 
         writer = IchingWriter()
         with RewardTracker(writer, AppConfig.a3c_config['reward_bound']) as tracker:
-            with rll.common.utils.TBMeanTracker(
-                    writer, 100) as tb_tracker:
+            with rll.common.utils.TBMeanTracker(writer, 100) as tb_tracker:
                 for exp in exp_source:
                     frame_idx += 1
                     new_rewards = exp_source.pop_total_rewards()

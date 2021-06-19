@@ -51,7 +51,9 @@ class A2cConv1dModel(nn.Module):
         return int(np.prod(o.size()))
 
     def forward(self, x):
+        print('orgin x: {0};'.format(x.shape))
         x = x.reshape(x.shape[0], 1, x.shape[1])
+        print('changed x: {0};'.format(x.shape))
         fx = x.float() / 256
         conv_out = self.conv(fx).view(fx.size()[0], -1)
         return self.policy(conv_out), self.value(conv_out)

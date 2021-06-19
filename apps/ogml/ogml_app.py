@@ -79,8 +79,6 @@ class OgmlApp(object):
                 )
                 train_meta_loss.append(meta_loss.item())
                 train_acc.append(acc)
-                print('^_^ bye ^_^')
-                sys.exit(0)
             print("  Loss    : ", np.mean(train_meta_loss))
             print("  Accuracy: ", np.mean(train_acc))
             # 每個 epoch 結束後，看看 validation accuracy 如何  

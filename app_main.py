@@ -4,7 +4,6 @@ import sys
 import getopt
 import numpy as np
 '''
-from apps.ogml.ogml_app import OgmlApp
 #from apps.tp.tp_app import TpApp
 from apps.rxgb.rxgb_app import RxgbApp
 from apps.asml.asml_app import AsmlApp
@@ -21,6 +20,7 @@ from apps.fxcm.fxcm_app import FxcmApp
 #from biz.dct.dct_app import DctApp
 from biz.drlt.drlt_app import DrltApp
 from apps.mml.mml_app import MmlApp
+from apps.ogml.ogml_app import OgmlApp # MAML元学习
 
 # 启动命令行参数默认值
 params = {
@@ -54,6 +54,8 @@ def main(argv={}):
         app = DrltApp()
     elif params['mode'] == 'mml': # 机器学习中的数学
         app = MmlApp()
+    elif params['mode'] == 'maml':
+        app = OgmlApp()
     else:
         app = NupApp()
     app.startup()

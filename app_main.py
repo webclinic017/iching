@@ -8,6 +8,7 @@ import numpy as np
 from apps.rxgb.rxgb_app import RxgbApp
 from apps.asml.asml_app import AsmlApp
 from apps.asdk.asdk_app import AsdkApp
+from apps.ogml.ogml_app import OgmlApp # MAML元学习
 from apps.tcv.tcv_app import TcvApp
 from apps.fmml.fmml_app import FmmlApp
 from apps.wxs.wxs_app import WxsApp
@@ -20,7 +21,7 @@ from apps.fxcm.fxcm_app import FxcmApp
 #from biz.dct.dct_app import DctApp
 from biz.drlt.drlt_app import DrltApp
 from apps.mml.mml_app import MmlApp
-from apps.ogml.ogml_app import OgmlApp # MAML元学习
+from apps.dmrl.maml.maml_app import MamlApp
 
 # 启动命令行参数默认值
 params = {
@@ -55,7 +56,7 @@ def main(argv={}):
     elif params['mode'] == 'mml': # 机器学习中的数学
         app = MmlApp()
     elif params['mode'] == 'maml':
-        app = OgmlApp()
+        app = MamlApp()
     else:
         app = NupApp()
     app.startup()

@@ -50,12 +50,12 @@ class OgmlApp(object):
         train_loader = DataLoader(train_set,
                                 batch_size = n_way, # 這裡的 batch size 並不是 meta batch size, 而是一個 task裡面會有多少不同的
                                                     # characters，也就是 few-shot classifiecation 的 n_way
-                                num_workers = 4,
+                                num_workers = 0, #4,
                                 shuffle = True,
                                 drop_last = True)
         val_loader = DataLoader(val_set,
                                 batch_size = n_way,
-                                num_workers = 4,
+                                num_workers = 0, #4,
                                 shuffle = True,
                                 drop_last = True)
         train_iter = iter(train_loader)

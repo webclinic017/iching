@@ -13,7 +13,7 @@ from apps.fmml.fmml_app import FmmlApp
 from apps.wxs.wxs_app import WxsApp
 '''
 from apps.nup_app import NupApp
-from apps.sop.sop_app import SopApp
+#from apps.sop.sop_app import SopApp
 from apps.ots.ots_app import OtsApp
 from apps.drl.drl_app import DrlApp
 from apps.fxcm.fxcm_app import FxcmApp

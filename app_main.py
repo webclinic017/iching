@@ -22,6 +22,7 @@ from apps.fxcm.fxcm_app import FxcmApp
 from biz.drlt.drlt_app import DrltApp
 from apps.mml.mml_app import MmlApp
 from apps.dmrl.maml.maml_app import MamlApp
+from ann.dmrl.dmrl_app import DmrlApp
 
 # 启动命令行参数默认值
 params = {
@@ -57,6 +58,8 @@ def main(argv={}):
         app = MmlApp()
     elif params['mode'] == 'maml':
         app = MamlApp()
+    elif params['mode'] == 'dmrl':
+        app = DmrlApp()
     else:
         app = NupApp()
     app.startup()

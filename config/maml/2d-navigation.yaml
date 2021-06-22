@@ -3,6 +3,8 @@
 # Name of the environment.
 env-name: "2DNavigation-v0"
 
+output_folder: './work/meta-rl-trpo'
+
 # Additional parameters for the environment (eg. bound for task sampling).
 env-kwargs:
   low: -0.5

@@ -1,4 +1,6 @@
 # 
+import os
+import json
 import yaml
 
 class MamlTrpoEngine(object):
@@ -10,6 +12,15 @@ class MamlTrpoEngine(object):
         self.train(args=args)
 
     def train(self, args={}):
+        # 读入配置文件
         with open(args['config'], 'r', encoding='utf-8') as fd:
             config = yaml.load(fd, Loader=yaml.FullLoader)
-        print('config: {0}; {1};'.format(type(config), config))
+        # 处理输出目录
+        if config['output_folder'] is not None:
+            if not os.path.exists(config['output_folder']):
+                os.makedirs(config['output_folder'])
+            policy_filename = os.path.join(config['output_folder'], 'policy.th')
+            config_filename = os.path.join(config['output_folder'], 'config.json')
+            with open(config_filename, 'w') as fd:
+                #config.update(vars(args))
+                json.dump(config, fd, indent=4)

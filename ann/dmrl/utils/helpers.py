@@ -4,7 +4,7 @@ import torch
 from functools import reduce
 from operator import mul
 
-from maml_rl.policies import CategoricalMLPPolicy, NormalMLPPolicy
+from ann.dmrl.policies import CategoricalMLPPolicy, NormalMLPPolicy
 
 
 def get_policy_for_env(env, hidden_sizes=(100, 100), nonlinearity='relu'):

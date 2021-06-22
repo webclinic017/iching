@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.distributions import Categorical
 
 from collections import OrderedDict
-from maml_rl.policies.policy import Policy, weight_init
+from ann.dmrl.policies.policy import Policy, weight_init
 
 class CategoricalMLPPolicy(Policy):
     """Policy network based on a multi-layer perceptron (MLP), with a 

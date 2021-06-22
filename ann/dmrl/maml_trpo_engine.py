@@ -8,13 +8,14 @@ import gym
 # 
 from biz.drlt.ds.bar_data import BarData
 from biz.drlt.envs.minute_bar_env import MinuteBarEnv
+import ann.dmrl.utils.helpers as iduh # import get_policy_for_env
 
 class MamlTrpoEngine(object):
     def __init__(self):
         self.name = 'ann.dmrl.maml_trpo_engine.MamlTrpoEngine'
 
     def startup(self, args={}):
-        print('基于TRPO的元强化学习算法 v0.0.1')
+        print('基于TRPO的元强化学习算法 v0.0.2')
         self.train(args=args)
 
     def train(self, args={}):
@@ -36,8 +37,12 @@ class MamlTrpoEngine(object):
             torch.cuda.manual_seed_all(config['seed'])
         #env = gym.make(config['env-name'], **config.get('env-kwargs', {}))
         env, env_val, env_tst = self.make_env(config)
-        print('env: {0}; {1};'.format(type(env), env))
         env.close()
+        # Policy
+        policy = iduh.get_policy_for_env(env,
+                                    hidden_sizes=config['hidden-sizes'],
+                                    nonlinearity=config['nonlinearity'])
+        policy.share_memory()
         print('^_^ The End ^_^')
 
     def make_env(self, config):

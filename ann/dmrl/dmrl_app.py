@@ -1,12 +1,45 @@
 #
+from ann.dmrl.maml_trpo_engine import MamlTrpoEngine
 
 class DmrlApp(object):
     def __init__(self):
         self.name = 'ann.dmrl.dmrl_app.DmrlApp'
 
-    # python train.py --config configs/maml/halfcheetah-vel.yaml --output-folder maml-halfcheetah-vel --seed 1 --num-workers 8
     def startup(self):
-        print('元强化学习（meta-rl） v0.0.3')
+        print('元强化学习（meta-rl） v0.0.4')
+        engine = MamlTrpoEngine()
+        args = self.get_args()
+        engine.startup(args=args)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def metaRL001(self):
         args = self.get_cmd_args()
         print('args: {0};'.format(args))
         print('^_^ The End ^_^')
@@ -37,7 +70,7 @@ class DmrlApp(object):
         '''
         args = {}
         args['mode'] = 'dmrl'
-        args['config'] = 'configs/maml/2d-navigation.yaml'
+        args['config'] = 'config/maml/2d-navigation.yaml'
         args['misc'] = {}
         args['misc']['output-folder'] = './work'
         args['misc']['seed'] = 1

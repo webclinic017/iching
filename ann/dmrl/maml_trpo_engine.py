@@ -2,6 +2,7 @@
 import os
 import json
 import yaml
+import torch
 
 class MamlTrpoEngine(object):
     def __init__(self):
@@ -24,3 +25,7 @@ class MamlTrpoEngine(object):
             with open(config_filename, 'w') as fd:
                 #config.update(vars(args))
                 json.dump(config, fd, indent=4)
+        # 处理Seed可重复性
+        if config['seed'] is not None:
+            torch.manual_seed(config['seed'])
+            torch.cuda.manual_seed_all(config['seed'])

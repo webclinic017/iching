@@ -7,10 +7,10 @@ import time
 from datetime import datetime, timezone
 from copy import deepcopy
 
-from maml_rl.samplers.sampler import Sampler, make_env
-from maml_rl.envs.utils.sync_vector_env import SyncVectorEnv
-from maml_rl.episode import BatchEpisodes
-from maml_rl.utils.reinforcement_learning import reinforce_loss
+from ann.dmrl.samplers.sampler import Sampler, make_env
+from ann.dmrl.envs.utils.sync_vector_env import SyncVectorEnv
+from ann.dmrl.episode import BatchEpisodes
+from ann.dmrl.utils.reinforcement_learning import reinforce_loss
 
 
 def _create_consumer(queue, futures, loop=None):
@@ -120,10 +120,8 @@ class MultiTaskSampler(Sampler):
                                'for a pending call to `sample_async` '
                                'to complete. Please call `sample_wait` '
                                'before calling `sample_async` again.')
-
         for index, task in enumerate(tasks):
             self.task_queue.put((index, task, kwargs))
-
         num_steps = kwargs.get('num_steps', 1)
         futures = self._start_consumer_threads(tasks,
                                                num_steps=num_steps)

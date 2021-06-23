@@ -1,7 +1,8 @@
 # General
 # -------
 # Name of the environment.
-env-name: "2DNavigation-v0"
+#env-name: "2DNavigation-v0"
+env-name: "iching-env"
 
 output_folder: './work/meta-rl-trpo'
 seed: 100
@@ -9,6 +10,9 @@ saves_dir: './work/saves'
 stocks: './data/YNDX_160101_161231.csv'
 val_stocks: './data/YNDX_150101_151231.csv'
 bars_count: 10
+batch_size: 32
+num_workers: 0
+use_cuda: True
 
 # Additional parameters for the environment (eg. bound for task sampling).
 env-kwargs:

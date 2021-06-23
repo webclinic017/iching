@@ -14,6 +14,7 @@ class MamlApp(object):
         self.name = 'apps.dmrl.maml.MamlApp'
         self.chpt_file = './work/maml.pkl'
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.fixed_weights = [] # 需要固定的权值名称列表
 
     def exp(self):
         print('MAML算法试验代码')
@@ -32,6 +33,28 @@ class MamlApp(object):
         elif 100000 == mode:
             self.exp()
 
+    def set_epoch_fixed_weights(self, epoch):
+        if epoch == 1:
+            self.fixed_weights.append('conv1.0.weight')
+            self.fixed_weights.append('conv1.0.bias')
+            self.fixed_weights.append('conv1.1.weight')
+            self.fixed_weights.append('conv1.1.bias')
+        elif epoch == 2:
+            self.fixed_weights.append('conv2.0.weight')
+            self.fixed_weights.append('conv2.0.bias')
+            self.fixed_weights.append('conv2.1.weight')
+            self.fixed_weights.append('conv2.1.bias')
+        elif epoch == 3:
+            self.fixed_weights.append('conv3.0.weight')
+            self.fixed_weights.append('conv3.0.bias')
+            self.fixed_weights.append('conv3.1.weight')
+            self.fixed_weights.append('conv3.1.bias')
+        elif epoch == 4:
+            self.fixed_weights.append('conv4.0.weight')
+            self.fixed_weights.append('conv4.0.bias')
+            self.fixed_weights.append('conv4.1.weight')
+            self.fixed_weights.append('conv4.1.bias')
+
     def train(self):
         torch.cuda.set_device(0)
         n_way = 5
@@ -41,7 +64,7 @@ class MamlApp(object):
         inner_lr = 0.4
         meta_lr = 0.001
         meta_batch_size = 8 #32
-        max_epoch = 4 #40
+        max_epoch = 5 #40
         eval_batches = 20
         train_data_path = './data/Omniglot/images_background/'
         dataset = OmniglotDs(train_data_path, n_way, k_shot, q_query)
@@ -153,9 +176,10 @@ class MamlApp(object):
                 train_label = self.create_label(n_way, k_shot).to(self.device)
                 logits = model.functional_forward(train_set, fast_weights)
                 loss = criterion(logits, train_label)
-                grads = torch.autograd.grad(loss, fast_weights.values(), create_graph = True) # 這裡是要計算出 loss 對 θ 的微分 (∇loss)    
+                grads = torch.autograd.grad(loss, fast_weights.values(), create_graph = True) # 這裡是要計算出 loss 對 θ 的微分 (∇loss) 
                 fast_weights = OrderedDict((name, param - inner_lr * grad)
                                   for ((name, param), grad) in zip(fast_weights.items(), grads)) # 這裡是用剛剛算出的 ∇loss 來 update θ 變成 θ'
+                fast_weights = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) for ((name, param), grad) in zip(fast_weights.items(), grads))
             val_label = self.create_label(n_way, q_query).to(self.device)
             logits = model.functional_forward(val_set, fast_weights) # 這裡用 val_set 和 θ' 算 logit
             loss = criterion(logits, val_label)                      # 這裡用 val_set 和 θ' 算 loss

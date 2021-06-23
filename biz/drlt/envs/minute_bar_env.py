@@ -196,6 +196,10 @@ class MinuteBarEnv(gym.Env):
         seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
         return [seed1, seed2]
 
+    def sample_tasks(self, num_tasks):
+        print('MinuteBarEnv.sample_tasks ')
+        return [idx for idx in range(num_tasks)]
+
     @classmethod
     def from_dir(cls, data_dir, **kwargs):
         prices = {

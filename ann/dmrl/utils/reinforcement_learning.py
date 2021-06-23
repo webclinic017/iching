@@ -1,6 +1,6 @@
 import numpy as np
 
-from maml_rl.utils.torch_utils import weighted_mean, to_numpy
+from ann.dmrl.utils.torch_utils import weighted_mean, to_numpy
 
 def value_iteration(transitions, rewards, gamma=0.95, theta=1e-5):
     rewards = np.expand_dims(rewards, axis=2)

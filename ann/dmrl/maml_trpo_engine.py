@@ -4,24 +4,31 @@ import json
 import pathlib
 import yaml
 import torch
+from tqdm import trange
 import gym
 # 
 from biz.drlt.ds.bar_data import BarData
 from biz.drlt.envs.minute_bar_env import MinuteBarEnv
 import ann.dmrl.utils.helpers as iduh # import get_policy_for_env
+from ann.dmrl.baseline import LinearFeatureBaseline
+from ann.dmrl.samplers.multi_task_sampler import MultiTaskSampler
+from ann.dmrl.metalearners import MAMLTRPO
+import ann.dmrl.utils.reinforcement_learning as durl # import get_returns
 
 class MamlTrpoEngine(object):
     def __init__(self):
         self.name = 'ann.dmrl.maml_trpo_engine.MamlTrpoEngine'
 
     def startup(self, args={}):
-        print('基于TRPO的元强化学习算法 v0.0.2')
+        print('基于TRPO的元强化学习算法 v0.0.8')
         self.train(args=args)
 
     def train(self, args={}):
         # 读入配置文件
         with open(args['config'], 'r', encoding='utf-8') as fd:
             config = yaml.load(fd, Loader=yaml.FullLoader)
+        config['device'] = ('cuda' if (torch.cuda.is_available()
+                   and config['use_cuda']) else 'cpu')
         # 处理输出目录
         if config['output_folder'] is not None:
             if not os.path.exists(config['output_folder']):
@@ -43,6 +50,50 @@ class MamlTrpoEngine(object):
                                     hidden_sizes=config['hidden-sizes'],
                                     nonlinearity=config['nonlinearity'])
         policy.share_memory()
+        # Baseline
+        baseline = LinearFeatureBaseline(iduh.get_input_size(env))
+        # Sampler
+        sampler = MultiTaskSampler(config['env-name'],
+                               env_kwargs={},
+                               batch_size=config['batch_size'],
+                               policy=policy,
+                               baseline=baseline,
+                               env=env,
+                               seed=config['seed'],
+                               num_workers=config['num_workers'])
+        metalearner = MAMLTRPO(policy,
+                           fast_lr=config['fast-lr'],
+                           first_order=config['first-order'],
+                           device=config['device'])
+        num_iterations = 0
+        for batch in trange(config['num-batches']):
+            print(batch)
+            tasks = sampler.sample_tasks(num_tasks=config['meta-batch-size'])
+            futures = sampler.sample_async(tasks,
+                                       num_steps=config['num-steps'],
+                                       fast_lr=config['fast-lr'],
+                                       gamma=config['gamma'],
+                                       gae_lambda=config['gae-lambda'],
+                                       device=config['device'])
+            print('MamlTrpoEngine.train before calling step')
+            logs = metalearner.step(*futures,
+                                    max_kl=config['max-kl'],
+                                    cg_iters=config['cg-iters'],
+                                    cg_damping=config['cg-damping'],
+                                    ls_max_steps=config['ls-max-steps'],
+                                    ls_backtrack_ratio=config['ls-backtrack-ratio'])
+            print('MamlTrpoEngine.train after calling step')
+            train_episodes, valid_episodes = sampler.sample_wait(futures)
+            num_iterations += sum(sum(episode.lengths) for episode in train_episodes[0])
+            num_iterations += sum(sum(episode.lengths) for episode in valid_episodes)
+            logs.update(tasks=tasks,
+                        num_iterations=num_iterations,
+                        train_returns=durl.get_returns(train_episodes[0]),
+                        valid_returns=durl.get_returns(valid_episodes))
+        # Save policy
+        if config['output_folder'] is not None:
+            with open(policy_filename, 'wb') as f:
+                torch.save(policy.state_dict(), f)
         print('^_^ The End ^_^')
 
     def make_env(self, config):

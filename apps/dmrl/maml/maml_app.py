@@ -177,8 +177,8 @@ class MamlApp(object):
                 logits = model.functional_forward(train_set, fast_weights)
                 loss = criterion(logits, train_label)
                 grads = torch.autograd.grad(loss, fast_weights.values(), create_graph = True) # 這裡是要計算出 loss 對 θ 的微分 (∇loss) 
-                fast_weights = OrderedDict((name, param - inner_lr * grad)
-                                  for ((name, param), grad) in zip(fast_weights.items(), grads)) # 這裡是用剛剛算出的 ∇loss 來 update θ 變成 θ'
+                #fast_weights = OrderedDict((name, param - inner_lr * grad)
+                #                  for ((name, param), grad) in zip(fast_weights.items(), grads)) # 這裡是用剛剛算出的 ∇loss 來 update θ 變成 θ'
                 fast_weights = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) for ((name, param), grad) in zip(fast_weights.items(), grads))
             val_label = self.create_label(n_way, q_query).to(self.device)
             logits = model.functional_forward(val_set, fast_weights) # 這裡用 val_set 和 θ' 算 logit

@@ -6,6 +6,14 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
+    def calculate_corr(self, stock1, stock2):
+        stock1_df = pd.read_csv('./data/aks_dks/{0}.csv'.format(stock1))
+        x = stock1_df.iloc[0:, 4]
+        stock2_df = pd.read_csv('./data/aks_dks/{0}.csv'.format(stock2))
+        y = stock2_df.iloc[0:, 4]
+        x_y_corr = x.corr(y)
+        print('corr_{0}_{1}: {2};'.format(stock1, stock2, x_y_corr))
+
     def get_stocks_dk(self, start_date, end_date):
         stock_symbols = self.get_stocks()
         total = len(stock_symbols)
@@ -31,4 +39,4 @@ class AksDs(object):
 
     def get_stocks(self):
         stocks_df = pd.read_csv('./data/aks_stocks.csv')
-        return stocks_df.iloc[1:, 1]
+        return stocks_df.iloc[0:, 1]

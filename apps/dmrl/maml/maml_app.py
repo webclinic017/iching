@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader #, Dataset
 from collections import OrderedDict
 from apps.dmrl.maml.omniglot_ds import OmniglotDs
 from apps.dmrl.maml.maml_model import MamlModel
+from apps.dmrl.maml.aks_ds import AksDs
 
 class MamlApp(object):
     def __init__(self):
@@ -18,14 +19,12 @@ class MamlApp(object):
 
     def exp(self):
         print('MAML算法试验代码')
-        n_way = 5
-        k_shot = 2
-        v1 = torch.arange(n_way).repeat_interleave(k_shot).long()
-        print('{0};'.format(v1))
+        ds = AksDs()
+        ds.get_stock_dk('')
 
     def startup(self):
         print('MAML算法 v0.0.1')
-        mode = 1
+        mode = 100000
         if 1 == mode:
             self.train()
         elif 2 == mode:

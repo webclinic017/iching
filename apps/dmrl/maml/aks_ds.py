@@ -6,6 +6,31 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
+    def get_high_correlate_stocks(self):
+        '''
+        '''
+        idx = 1
+        stocks = {}
+        with open('./data/aks_corrs.txt', 'r', encoding='utf-8') as fd:
+            for row in fd:
+                row = row.strip()
+                arrs = row.split(':')
+                key = arrs[0]
+                if 'sh688690' in key or 'sz001207' in key or 'sh688216' in key:
+                    continue
+                val = float(arrs[2])
+                arrs2 = arrs[0].split('-')
+                s1 = arrs2[0]
+                s2 = arrs2[1]
+                if val > 0.97 and '{0}-{1}'.format(s1, s2) not in stocks and '{0}-{1}'.format(s2, s1) not in stocks:
+                    stocks[key] = val
+                idx += 1
+                if idx % 1000 == 0:
+                    print('已经处理{0}条记录，获取{1}个股票对...'.format(idx, len(stocks)))
+        with open('./data/aks_pairs.txt', 'w', encoding='utf-8') as fd:
+            for k, v in stocks.items():
+                fd.write('{0}:{1}\n'.format(k, v))
+
     def calculate_corrs(self):
         stock1s = self.get_stocks()
         stock2s = self.get_stocks()

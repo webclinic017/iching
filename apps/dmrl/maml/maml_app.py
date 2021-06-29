@@ -26,7 +26,8 @@ class MamlApp(object):
         #ds.get_stock_dk(stock_symbol=stock_symbol, start_date=start_date, end_date=end_date)
         #ds.get_stocks_dk(start_date, end_date)
         #ds.calculate_corr('sh600004', 'sh600006')
-        ds.calculate_corrs()
+        #ds.calculate_corrs()
+        ds.get_high_correlate_stocks()
 
     def startup(self):
         print('MAML算法 v0.0.1')

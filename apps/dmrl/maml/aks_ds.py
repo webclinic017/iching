@@ -27,9 +27,32 @@ class AksDs(object):
                 idx += 1
                 if idx % 1000 == 0:
                     print('已经处理{0}条记录，获取{1}个股票对...'.format(idx, len(stocks)))
+        stock_nums = {}
+        for k, v in stocks.items():
+            arrs = k.split('-')
+            s1 = arrs[0]
+            s2 = arrs[1]
+            if s1 in stock_nums:
+                stock_nums[s1] += 1
+            else:
+                stock_nums[s1] = 1
+            if s2 in stock_nums:
+                stock_nums[s2] += 1
+            else:
+                stock_nums[s2] = 1
+        sel_stocks = set()
+        for k, v in stock_nums.items():
+            print('{0}={1};'.format(k, v))
+            if v >= 5:
+                sel_stocks.add(k)
         with open('./data/aks_pairs.txt', 'w', encoding='utf-8') as fd:
-            for k, v in stocks.items():
-                fd.write('{0}:{1}\n'.format(k, v))
+            for k in sorted(stocks):
+                v = stocks[k]
+                arrs = k.split('-')
+                s1 = arrs[0]
+                s2 = arrs[1]
+                if s1 in sel_stocks and s2 in sel_stocks:
+                    fd.write('{0}:{1}\n'.format(k, v))
 
     def calculate_corrs(self):
         stock1s = self.get_stocks()

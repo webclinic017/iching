@@ -6,6 +6,15 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
+    def get_minute_bar(self, stock_symbol, period = '1', adjust='hfq'):
+        '''
+        获取指定股票分钟级1分钟级别复权后行情数据
+        stock_symbol 股票代码
+        period 默认为1分钟级别，可以取1、5、15分钟级别
+        adjust 可选qfq复权前，hfq复权后
+        '''
+        return ak.stock_zh_a_minute(symbol=stock_symbol, period=period, adjust=adjust)
+
     def get_high_correlate_stocks(self):
         '''
         '''

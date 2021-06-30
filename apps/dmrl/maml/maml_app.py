@@ -27,7 +27,12 @@ class MamlApp(object):
         #ds.get_stocks_dk(start_date, end_date)
         #ds.calculate_corr('sh600004', 'sh600006')
         #ds.calculate_corrs()
-        ds.get_high_correlate_stocks()
+        # ds.get_high_correlate_stocks()
+        stock_symbols = ['sh600260', 'sh600487', 'sh600624', 'sh600728', 'sh600905']
+        for stock_symbol in stock_symbols:
+            df = ds.get_minute_bar(stock_symbol)
+            df.to_csv('./data/aks_1ms/{0}_1m.csv'.format(stock_symbol), index=False)
+        print('^_^ The End ^_^')
 
     def startup(self):
         print('MAML算法 v0.0.1')

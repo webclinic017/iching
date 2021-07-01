@@ -20,18 +20,10 @@ class MamlApp(object):
     def exp(self):
         print('MAML算法试验代码')
         ds = AksDs()
-        stock_symbol = 'sh600000'
-        start_date = '2020-06-25'
-        end_date = '2021-06-24'
-        #ds.get_stock_dk(stock_symbol=stock_symbol, start_date=start_date, end_date=end_date)
-        #ds.get_stocks_dk(start_date, end_date)
-        #ds.calculate_corr('sh600004', 'sh600006')
-        #ds.calculate_corrs()
-        # ds.get_high_correlate_stocks()
-        stock_symbols = ['sh600260', 'sh600487', 'sh600624', 'sh600728', 'sh600905']
-        for stock_symbol in stock_symbols:
-            df = ds.get_minute_bar(stock_symbol)
-            df.to_csv('./data/aks_1ms/{0}_1m.csv'.format(stock_symbol), index=False)
+        ds.load_minute_bar_ds('sh600260')
+        ###############################################################################
+        #################### 程序结束标志 #######################################
+        ###############################################################################
         print('^_^ The End ^_^')
 
     def startup(self):

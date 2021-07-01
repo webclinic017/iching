@@ -1,10 +1,34 @@
 #
+import numpy as np
 import pandas as pd
 import akshare as ak
 
 class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
+
+    def load_minute_bar_ds(self, stock_symbol):
+        csv_file = './data/aks_1ms/{0}_1m.csv'.format(stock_symbol)
+        items = []
+        with open(csv_file, 'r', encoding='utf-8') as fd:
+            is_first_row = True
+            for row in fd:
+                if is_first_row:
+                    is_first_row = False
+                    continue
+                row = row.strip()
+                arrs0 = row.split(',')
+                if len(row)<=0 or arrs0[1]=='' or arrs0[2]=='' or arrs0[3]=='' or arrs0[4]=='' or arrs0[5]=='':
+                    break
+                item = []
+                item.append(float(arrs0[1]))
+                item.append(float(arrs0[2]))
+                item.append(float(arrs0[3]))
+                item.append(float(arrs0[4]))
+                item.append(float(arrs0[5]))
+                items.append(item)
+        ds = np.array(items, dtype=np.float32)
+        print(ds)
 
     def get_minute_bar(self, stock_symbol, period = '1', adjust='hfq'):
         '''

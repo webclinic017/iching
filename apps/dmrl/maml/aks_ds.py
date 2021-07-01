@@ -27,8 +27,10 @@ class AksDs(object):
                 item.append(float(arrs0[4]))
                 item.append(float(arrs0[5]))
                 items.append(item)
-        ds = np.array(items, dtype=np.float32)
-        print(ds)
+        raw_ds = np.array(items, dtype=np.float32)
+        log_ds = np.log(raw_ds)
+        ds = np.diff(log_ds, n=1, axis=0)
+        return ds
 
     def get_minute_bar(self, stock_symbol, period = '1', adjust='hfq'):
         '''

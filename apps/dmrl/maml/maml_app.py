@@ -20,8 +20,9 @@ class MamlApp(object):
     def exp(self):
         print('MAML算法试验代码')
         ds = AksDs()
-        s1_ds = ds.load_minute_bar_ds('sh600260')
-        print(s1_ds[:5])
+        s1_ds, close_prices = ds.load_minute_bar_ds('sh600260')
+        print('s1_ds: {0};'.format(s1_ds))
+        ds.draw_close_log_return(close_prices[:100])
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

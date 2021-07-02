@@ -1,11 +1,20 @@
 #
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import akshare as ak
 
 class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
+
+    def draw_close_log_return(self, data):
+        cnt = data.shape[0]
+        x = range(cnt)
+        print('cnt={0};'.format(cnt))
+        fig, axes = plt.subplots(1, 1, figsize=(8, 4))
+        plt.plot(x, data, marker='*')
+        plt.show()
 
     def load_minute_bar_ds(self, stock_symbol):
         csv_file = './data/aks_1ms/{0}_1m.csv'.format(stock_symbol)
@@ -30,7 +39,9 @@ class AksDs(object):
         raw_ds = np.array(items, dtype=np.float32)
         log_ds = np.log(raw_ds)
         ds = np.diff(log_ds, n=1, axis=0)
-        return ds
+        ds_mu = np.mean(ds, axis=0)
+        ds_std = np.std(ds, axis=0)
+        return (ds-ds_mu)/ds_std, raw_ds[:, 3]
 
     def get_minute_bar(self, stock_symbol, period = '1', adjust='hfq'):
         '''

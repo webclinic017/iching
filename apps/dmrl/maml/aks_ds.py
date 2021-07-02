@@ -8,12 +8,41 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
-    def draw_close_log_return(self, data):
-        cnt = data.shape[0]
+    def draw_line_chart(self, data):
+        '''
+        绘制一维折线图
+        data 一维数据
+        '''
+        asc_span_coff = 0.5 # std的变化系数，越小则表明越容易出现上涨或下跌模式
+        desc_span_coff = 0.3
+        c_mu = np.mean(data)
+        c_std = np.std(data) 
+        asc_threshold = 0.008
+        desc_threshold = 0.006
+        #asc_delta = asc_span_coff * c_std
+        #desc_delta = desc_span_coff * c_std
+        if data[0] + asc_span_coff * c_std > (1+asc_threshold)*data[0]:
+            asc_delta = asc_span_coff * c_std
+        else:
+            asc_delta = asc_threshold*data[0]
+        if data[0] - desc_span_coff * c_std > (1-desc_threshold) * data[0]:
+            desc_delta = desc_threshold * data[0]
+        cnt = data.shape[0] # 数据总点数作为横坐标
+        y0 = np.ones((cnt,), dtype=np.float32) * (data[0] - desc_delta) # 超过此限认为是下跌趋势
+        y1 = np.ones((cnt,), dtype=np.float32) * data[0]
+        y2 = np.ones((cnt,), dtype=np.float32) * (data[0] + asc_delta) # 超过此限认为是上涨趋势
         x = range(cnt)
         print('cnt={0};'.format(cnt))
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         plt.plot(x, data, marker='*')
+        plt.plot(x, y0)
+        plt.plot(x, y1)
+        plt.plot(x, y2)
+        x2 = np.array([cnt-1, cnt-1])
+        yr = np.array([data[0] - desc_delta, data[0] + asc_delta])
+        plt.plot(x2, yr)
+        x3 = np.array([0.0, 0.0])
+        plt.plot(x3, yr)
         plt.show()
 
     def load_minute_bar_ds(self, stock_symbol):

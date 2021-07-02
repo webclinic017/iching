@@ -22,7 +22,7 @@ class MamlApp(object):
         ds = AksDs()
         s1_ds, close_prices = ds.load_minute_bar_ds('sh600260')
         print('s1_ds: {0};'.format(s1_ds))
-        ds.draw_close_log_return(close_prices[:100])
+        ds.draw_line_chart(close_prices[:60])
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

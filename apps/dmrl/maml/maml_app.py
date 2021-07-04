@@ -9,6 +9,7 @@ from collections import OrderedDict
 from apps.dmrl.maml.omniglot_ds import OmniglotDs
 from apps.dmrl.maml.maml_model import MamlModel
 from apps.dmrl.maml.aks_ds import AksDs
+from apps.dmrl.maml.app_config import AppConfig
 
 class MamlApp(object):
     def __init__(self):
@@ -21,25 +22,22 @@ class MamlApp(object):
         print('MAML算法试验代码')
         ds = AksDs()
         s1_ds, close_prices = ds.load_minute_bar_ds('sh600260')
-        back_window = 10 # 向前10分钟作为一帧样本
-        forward_step = 60 # 向前看1小时来判断市场状态
         total_samples = len(s1_ds) # total_samples = idx + forward_step
         total_samples = 72
         # 生成第一个样本
-        idx = back_window
+        idx = AppConfig.mdp_params['back_window']
         X1_raw = []
         y1_raw = []
-        for idx in range(back_window, total_samples - forward_step):
-            print('第{0}步：...'.format(idx-back_window+1))
-            raw_data = s1_ds[idx - back_window : idx]
+        for idx in range(AppConfig.mdp_params['back_window'], total_samples - AppConfig.mdp_params['forward_step']):
+            print('第{0}步：...'.format(idx-AppConfig.mdp_params['back_window']+1))
+            raw_data = s1_ds[idx - AppConfig.mdp_params['back_window'] : idx]
             sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))
             X1_raw.append(sample)
-            y1_raw.append(1)
-            ds.draw_line_chart(close_prices[idx : idx + forward_step])
+            y1_raw.append(ds.get_market_regime(close_prices[idx : idx + AppConfig.mdp_params['forward_step']]))
+            ds.draw_line_chart(close_prices[idx : idx + AppConfig.mdp_params['forward_step']])
         X1 = np.array(X1_raw)
         y1 = np.array(y1_raw)
-        print('X1: {0}; {1};'.format(X1.shape, X1))
-        print('y1: {0}; {1};'.format(y1.shape, y1))
+        print(y1)
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

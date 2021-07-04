@@ -3,11 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import akshare as ak
+#
+from apps.dmrl.maml.app_config import AppConfig
 
 class AksDs(object):
-    MR_VIBRATE = 0 # 震荡行情
-    MR_BULL = 1 # 上涨
-    MR_BEAR = 2 # 下跌
 
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
@@ -21,26 +20,22 @@ class AksDs(object):
         如果数据首先超过下限，则为下跌行情，否则为震荡行情。有了市场状态之后，可以根据持
         仓情况，决定适合的操作。
         '''    
-        asc_span_coff = 0.5 # std的变化系数，越小则表明越容易出现上涨或下跌模式
-        desc_span_coff = 0.3
         c_mu = np.mean(data)
         c_std = np.std(data) 
-        asc_threshold = 0.008
-        desc_threshold = 0.006
-        if data[0] + asc_span_coff * c_std > (1+asc_threshold)*data[0]:
-            asc_delta = asc_span_coff * c_std
+        if data[0] + AppConfig.mr_params['asc_span_coff'] * c_std > (1+AppConfig.mr_params['asc_threshold'])*data[0]:
+            asc_delta = AppConfig.mr_params['asc_span_coff'] * c_std
         else:
-            asc_delta = asc_threshold*data[0]
-        if data[0] - desc_span_coff * c_std > (1-desc_threshold) * data[0]:
-            desc_delta = desc_threshold * data[0]
-        market_regime = AksDs.MR_VIBRATE
+            asc_delta = AppConfig.mr_params['asc_threshold']*data[0]
+        if data[0] - AppConfig.mr_params['desc_span_coff'] * c_std > (1-AppConfig.mr_params['desc_threshold']) * data[0]:
+            desc_delta = AppConfig.mr_params['desc_threshold'] * data[0]
+        market_regime = AppConfig.MR_VIBRATE
         cnt = len(data)
-        for i in range(cnt, 1):
+        for i in range(1, cnt, 1):
             if data[i] > data[0] + asc_delta:
-                market_regime = AksDs.MR_BULL
+                market_regime = AppConfig.MR_BULL
                 break
             if data[i] < data[0] - desc_delta:
-                market_regime = AksDs.MR_BEAR
+                market_regime = AppConfig.MR_BEAR
                 break
         return market_regime
 

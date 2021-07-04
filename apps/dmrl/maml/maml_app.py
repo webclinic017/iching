@@ -27,11 +27,19 @@ class MamlApp(object):
         total_samples = 72
         # 生成第一个样本
         idx = back_window
+        X1_raw = []
+        y1_raw = []
         for idx in range(back_window, total_samples - forward_step):
             print('第{0}步：...'.format(idx-back_window+1))
             raw_data = s1_ds[idx - back_window : idx]
             sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))
+            X1_raw.append(sample)
+            y1_raw.append(1)
             ds.draw_line_chart(close_prices[idx : idx + forward_step])
+        X1 = np.array(X1_raw)
+        y1 = np.array(y1_raw)
+        print('X1: {0}; {1};'.format(X1.shape, X1))
+        print('y1: {0}; {1};'.format(y1.shape, y1))
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

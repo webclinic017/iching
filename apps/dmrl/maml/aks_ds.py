@@ -68,7 +68,6 @@ class AksDs(object):
         y1 = np.ones((cnt,), dtype=np.float32) * data[0]
         y2 = np.ones((cnt,), dtype=np.float32) * (data[0] + asc_delta) # 超过此限认为是上涨趋势
         x = range(cnt)
-        print('cnt={0};'.format(cnt))
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         plt.plot(x, data, marker='*')
         plt.plot(x, y0)

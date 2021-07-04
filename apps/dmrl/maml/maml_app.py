@@ -21,8 +21,17 @@ class MamlApp(object):
         print('MAML算法试验代码')
         ds = AksDs()
         s1_ds, close_prices = ds.load_minute_bar_ds('sh600260')
-        print('s1_ds: {0};'.format(s1_ds))
-        ds.draw_line_chart(close_prices[:60])
+        back_window = 10 # 向前10分钟作为一帧样本
+        forward_step = 60 # 向前看1小时来判断市场状态
+        total_samples = len(s1_ds) # total_samples = idx + forward_step
+        total_samples = 72
+        # 生成第一个样本
+        idx = back_window
+        for idx in range(back_window, total_samples - forward_step):
+            print('第{0}步：...'.format(idx-back_window+1))
+            raw_data = s1_ds[idx - back_window : idx]
+            sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))
+            ds.draw_line_chart(close_prices[idx : idx + forward_step])
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

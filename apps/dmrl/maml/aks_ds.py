@@ -11,6 +11,17 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
+    def load_X_from_csv(self, stock_symbol):
+        with open('./data/aks_ds/{0}_X.csv'.format(stock_symbol), 'rb') as fd:
+            X = np.loadtxt(fd, delimiter=',', skiprows=0)
+        return X
+
+    def load_y_from_csv(self, stock_symbol):
+        with open('./data/aks_ds/{0}_y.csv'.format(stock_symbol), 'rb') as fd:
+            y_raw = np.loadtxt(fd, delimiter=',', skiprows=0)
+            y = np.array(y_raw, dtype=np.int32)
+        return y
+
     def generate_stock_ds(self, stock_symbol, draw_line=False):
         print('生成训练数据集')
         if draw_line:

@@ -11,8 +11,30 @@ class AksDs(object):
     def __init__(self):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
 
-    def generate_stock_ds(self, data):
+    def generate_stock_ds(self, stock_symbol, draw_line=False):
         print('生成训练数据集')
+        if draw_line:
+            plt.ion()
+            fig, axes = plt.subplots(1, 1, figsize=(8, 4))
+        s1_ds, close_prices = self.load_minute_bar_ds(stock_symbol)
+        total_samples = len(s1_ds) # total_samples = idx + forward_step
+        # 生成第一个样本
+        idx = AppConfig.mdp_params['back_window']
+        X1_raw = []
+        y1_raw = []
+        for idx in range(AppConfig.mdp_params['back_window'], total_samples - AppConfig.mdp_params['forward_step']):
+            print('第{0}步：...'.format(idx-AppConfig.mdp_params['back_window']+1))
+            raw_data = s1_ds[idx - AppConfig.mdp_params['back_window'] : idx]
+            sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))
+            X1_raw.append(sample)
+            y1_raw.append(self.get_market_regime(close_prices[idx : idx + AppConfig.mdp_params['forward_step']]))
+            if draw_line:
+                self.draw_line_chart(close_prices[idx : idx + AppConfig.mdp_params['forward_step']])
+        X1 = np.array(X1_raw)
+        y1 = np.array(y1_raw)
+        if draw_line:
+            plt.show(block=True)
+        return X1, y1
 
     def get_market_regime(self, data):
         '''
@@ -28,6 +50,8 @@ class AksDs(object):
             asc_delta = AppConfig.mr_params['asc_threshold']*data[0]
         if data[0] - AppConfig.mr_params['desc_span_coff'] * c_std > (1-AppConfig.mr_params['desc_threshold']) * data[0]:
             desc_delta = AppConfig.mr_params['desc_threshold'] * data[0]
+        else:
+            desc_delta = AppConfig.mr_params['desc_span_coff'] * c_std
         market_regime = AppConfig.MR_VIBRATE
         cnt = len(data)
         for i in range(1, cnt, 1):
@@ -63,7 +87,6 @@ class AksDs(object):
         y1 = np.ones((cnt,), dtype=np.float32) * data[0]
         y2 = np.ones((cnt,), dtype=np.float32) * (data[0] + asc_delta) # 超过此限认为是上涨趋势
         x = range(cnt)
-        fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         plt.plot(x, data, marker='*')
         plt.plot(x, y0)
         plt.plot(x, y1)
@@ -73,7 +96,10 @@ class AksDs(object):
         plt.plot(x2, yr)
         x3 = np.array([0.0, 0.0])
         plt.plot(x3, yr)
-        plt.show()
+        #plt.show()
+        plt.draw()
+        plt.pause(0.1)
+        plt.cla()
 
     def load_minute_bar_ds(self, stock_symbol):
         csv_file = './data/aks_1ms/{0}_1m.csv'.format(stock_symbol)

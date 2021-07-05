@@ -20,24 +20,17 @@ class MamlApp(object):
 
     def exp(self):
         print('MAML算法试验代码')
+        stock1_symbol = 'sh600260'
         ds = AksDs()
-        s1_ds, close_prices = ds.load_minute_bar_ds('sh600260')
-        total_samples = len(s1_ds) # total_samples = idx + forward_step
-        total_samples = 72
-        # 生成第一个样本
-        idx = AppConfig.mdp_params['back_window']
-        X1_raw = []
-        y1_raw = []
-        for idx in range(AppConfig.mdp_params['back_window'], total_samples - AppConfig.mdp_params['forward_step']):
-            print('第{0}步：...'.format(idx-AppConfig.mdp_params['back_window']+1))
-            raw_data = s1_ds[idx - AppConfig.mdp_params['back_window'] : idx]
-            sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))
-            X1_raw.append(sample)
-            y1_raw.append(ds.get_market_regime(close_prices[idx : idx + AppConfig.mdp_params['forward_step']]))
-            ds.draw_line_chart(close_prices[idx : idx + AppConfig.mdp_params['forward_step']])
-        X1 = np.array(X1_raw)
-        y1 = np.array(y1_raw)
-        print(y1)
+        Xs = []
+        ys = []
+        X1, y1 = ds.generate_stock_ds(stock1_symbol)
+        np.savetxt('./data/aks_ds/{0}_X.csv'.format(stock1_symbol), X1, delimiter=',')
+        np.savetxt('./data/aks_ds/{0}_y.csv'.format(stock1_symbol), y1, delimiter=',')
+        Xs.append(X1)
+        ys.append(y1)
+        print('X1: {0};'.format(X1.shape))
+        print('y1: {0}; dtype={1};'.format(y1.shape, y1.dtype))
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################

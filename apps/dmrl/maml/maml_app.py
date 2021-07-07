@@ -20,25 +20,37 @@ class MamlApp(object):
 
     def exp(self):
         print('MAML算法试验代码')
+
+    def exp002(self):
+        '''
+        从文件中读出数据集
+        '''
+        stock1_symbol = 'sh600260'
+        ds = AksDs()
+        X1 = ds.load_X_from_csv(stock1_symbol)
+        y1 = ds.load_y_from_csv(stock1_symbol)
+        print('X1: {0};'.format(X1.shape))
+        print('y1: {0}; dtype={1};'.format(y1.shape, y1.dtype))
+        ###############################################################################
+        #################### 程序结束标志 #######################################
+        ###############################################################################
+        print('^_^ The End ^_^')
+
+    def exp001(self):
+        '''
+        以收盘价为例，画实时折线图
+        '''
         stock1_symbol = 'sh600260'
         ds = AksDs()
         Xs = []
         ys = []
         X1, y1 = ds.generate_stock_ds(stock1_symbol, draw_line=True)
-        #np.savetxt('./data/aks_ds/{0}_X.csv'.format(stock1_symbol), X1, delimiter=',')
-        #np.savetxt('./data/aks_ds/{0}_y.csv'.format(stock1_symbol), y1, delimiter=',')
         Xs.append(X1)
         ys.append(y1)
-        '''
-        X1 = ds.load_X_from_csv(stock1_symbol)
-        y1 = ds.load_y_from_csv(stock1_symbol)
-        print('X1: {0};'.format(X1.shape))
-        print('y1: {0}; dtype={1};'.format(y1.shape, y1.dtype))
-        '''
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################
-        print('^_^ The End ^_^')
+        print('^_^ The End ^_^')        
 
     def startup(self):
         print('MAML算法 v0.0.1')

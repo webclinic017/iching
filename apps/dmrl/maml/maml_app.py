@@ -16,10 +16,10 @@ class MamlApp(object):
         self.name = 'apps.dmrl.maml.MamlApp'
         self.chpt_file = './work/maml.pkl'
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.fixed_weights = [] # 需要固定的权值名称列表
+        self.fixed_weights = [] # 需要固定的权值名称列表 
 
     def exp(self):
-        print('MAML算法试验代码')
+        print('MAML算法试验代码 v0.0.1')
 
     def exp002(self):
         '''

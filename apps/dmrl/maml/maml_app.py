@@ -23,7 +23,7 @@ class MamlApp(object):
 
     def exp002(self):
         '''
-        从文件中读出数据集
+        从文件中读出数据集 v0.0.1
         '''
         stock1_symbol = 'sh600260'
         ds = AksDs()

@@ -23,7 +23,7 @@ class MamlApp(object):
 
     def exp002(self):
         '''
-        从文件中读出数据集 v0.0.1
+        从文件中读出数据集
         '''
         stock1_symbol = 'sh600260'
         ds = AksDs()
@@ -50,14 +50,22 @@ class MamlApp(object):
         ###############################################################################
         #################### 程序结束标志 #######################################
         ###############################################################################
-        print('^_^ The End ^_^')        
+        print('^_^ The End ^_^')   
+
+    def prepare_ds(self):
+        '''
+        生成数据集
+        '''
+        pass     
 
     def startup(self):
         print('MAML算法 v0.0.1')
-        mode = 100000
+        mode = 1
         if 1 == mode:
-            self.train()
+            self.prepare_ds()
         elif 2 == mode:
+            self.train()
+        elif 3 == mode:
             self.evaluate_on_test_ds()
         elif 100000 == mode:
             self.exp()

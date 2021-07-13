@@ -56,7 +56,11 @@ class MamlApp(object):
         '''
         生成数据集
         '''
-        pass     
+        stock_symbols = ['sh600260']
+        ds = AksDs()
+        for stock_symbol in stock_symbols:
+            X, y = ds.generate_stock_ds(stock_symbol, draw_line=False)
+            print('X: {0}; y:{0};'.format(type(X), type(y)))
 
     def startup(self):
         print('MAML算法 v0.0.1')

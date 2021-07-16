@@ -63,7 +63,7 @@ class MamlApp(object):
             print('X: {0}; y:{0};'.format(type(X), type(y)))
 
     def startup(self):
-        print('MAML算法 v0.0.1')
+        print('MAML算法 v0.0.2')
         mode = 1
         if 1 == mode:
             self.prepare_ds()

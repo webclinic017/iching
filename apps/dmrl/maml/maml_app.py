@@ -52,25 +52,36 @@ class MamlApp(object):
         ###############################################################################
         print('^_^ The End ^_^')   
 
-    def prepare_ds(self):
+    def prepare_ds(self, stock_symbols):
         '''
         生成数据集
         '''
-        stock_symbols = ['sh600260']
         ds = AksDs()
         for stock_symbol in stock_symbols:
             X, y = ds.generate_stock_ds(stock_symbol, draw_line=False)
-            print('X: {0}; y:{0};'.format(type(X), type(y)))
             X_file = './data/aks_ds/{0}_X.txt'.format(stock_symbol)
             np.savetxt(X_file, X, delimiter=',', newline='\n', encoding='utf-8')
             y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
             np.savetxt(y_file, y, delimiter=',', newline='\n', encoding='utf-8')
+            print('X: {0}; y: {1};'.format(X.shape, y.shape))
+
+    def load_ds_from_txt(self, stock_symbols):
+        for stock_symbol in stock_symbols:
+            X_file = './data/aks_ds/{0}_X.txt'.format(stock_symbol)
+            X = np.loadtxt(X_file, delimiter=',', encoding='utf-8')
+            y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
+            y = np.loadtxt(y_file, delimiter=',', encoding='utf-8')
+            print('X: {0}; y: {1};'.format(X.shape, y.shape))
 
     def startup(self):
         print('MAML算法 v0.0.2')
-        mode = 1
-        if 1 == mode:
-            self.prepare_ds()
+        mode = 102
+        if 101 == mode:
+            stock_symbols = ['sh600260']
+            self.prepare_ds(stock_symbols)
+        elif 102 == mode:
+            stock_symbols = ['sh600260']
+            self.load_ds_from_txt(stock_symbols)
         elif 2 == mode:
             self.train()
         elif 3 == mode:

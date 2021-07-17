@@ -71,16 +71,15 @@ class MamlApp(object):
             X = np.loadtxt(X_file, delimiter=',', encoding='utf-8')
             y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
             y = np.loadtxt(y_file, delimiter=',', encoding='utf-8')
-            print('X: {0}; y: {1};'.format(X.shape, y.shape))
+            print('{0}: X: {1}; y: {2};'.format(stock_symbol, X.shape, y.shape))
 
     def startup(self):
         print('MAML算法 v0.0.2')
         mode = 102
+        stock_symbols = ['sh600260', 'sh600487', 'sh600728']
         if 101 == mode:
-            stock_symbols = ['sh600260']
             self.prepare_ds(stock_symbols)
         elif 102 == mode:
-            stock_symbols = ['sh600260']
             self.load_ds_from_txt(stock_symbols)
         elif 2 == mode:
             self.train()

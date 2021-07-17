@@ -61,6 +61,10 @@ class MamlApp(object):
         for stock_symbol in stock_symbols:
             X, y = ds.generate_stock_ds(stock_symbol, draw_line=False)
             print('X: {0}; y:{0};'.format(type(X), type(y)))
+            X_file = './data/aks_ds/{0}_X.txt'.format(stock_symbol)
+            np.savetxt(X_file, X, delimiter=',', newline='\n', encoding='utf-8')
+            y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
+            np.savetxt(y_file, y, delimiter=',', newline='\n', encoding='utf-8')
 
     def startup(self):
         print('MAML算法 v0.0.2')

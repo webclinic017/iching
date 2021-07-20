@@ -16,7 +16,7 @@ class AksDs(Dataset):
         self.k_shot = k_shot
 
     def __len__(self):
-        return self.X.shape[0]
+        return self.X.shape[0] - self.n
 
     def __getitem__(self, idx):
         return self.X[idx : idx+self.n], self.y[idx : idx+self.n]

@@ -34,6 +34,7 @@ def LinearBlockFunction(x, w, b, w_bn, b_bn):
     x = F.batch_norm(x, running_mean = None, running_var = None, 
                 weight = w_bn, bias = b_bn, training = True)
     x = F.relu(x)
+    return x
 
 
 

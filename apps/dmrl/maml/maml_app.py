@@ -35,6 +35,7 @@ class MamlApp(object):
         stock_symbols = ['sh600260', 'sh600487', 'sh600728']
         target_stock = 'sh600260'
         torch.cuda.set_device(0)
+        in_size = 50 # 每个行情包括之前10天（包括今天），每天有开盘、最高、最低、收盘、交易量这5个值
         n_way = 3
         k_shot = 16
         q_query = 4
@@ -77,7 +78,7 @@ class MamlApp(object):
         train_iter = iter(train_loader)
         val_iter = iter(val_loader)
         test_iter = iter(test_ds)
-        meta_model = MamlModel(1, n_way).to(self.device)
+        meta_model = MamlModel(in_size, n_way).to(self.device)
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
         loss_fn = nn.CrossEntropyLoss().to(self.device)
         for epoch in range(max_epoch):
@@ -329,7 +330,8 @@ class MamlApp(object):
             val_data = task_data[:, k_shot:].reshape(-1, 50)
             task_data = torch.cat((train_data, val_data), 0)
             data.append(task_data)
-        return torch.stack(data).to(self.device), y, iterator
+            print('train_data:{0}; val_data:{1}; task_data:{2}; data:{3};'.format(train_data.shape, val_data.shape, task_data.shape, len(data)))
+        return torch.stack(data).float().to(self.device), y, iterator
 
     
 

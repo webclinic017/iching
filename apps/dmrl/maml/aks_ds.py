@@ -2,14 +2,46 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from torch.utils.data import Dataset
 import akshare as ak
 #
 from apps.dmrl.maml.app_config import AppConfig
 
-class AksDs(object):
-
-    def __init__(self):
+class AksDs(Dataset):
+    def __init__(self, stock_symbol, n_way, k_shot, q_query):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
+        self.X, self.y = self.load_ds_from_txt(stock_symbol=stock_symbol)
+        self.n_way = n_way
+        self.n = k_shot + q_query
+        self.k_shot = k_shot
+
+    def __len__(self):
+        return self.X.shape[0]
+
+    def __getitem__(self, idx):
+        return self.X[idx : idx+self.n], self.y[idx : idx+self.n]
+
+    
+    def load_ds_from_txt(self, stock_symbol):
+        '''
+        从文本文件中读出行情数据集，所有股票以字典形式返回
+        '''
+        X_file = './data/aks_ds/{0}_X.txt'.format(stock_symbol)
+        X = np.loadtxt(X_file, delimiter=',', encoding='utf-8')
+        y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
+        y = np.loadtxt(y_file, delimiter=',', encoding='utf-8')
+        return X, y
+
+    
+
+
+
+
+
+
+
+
+
 
     def load_X_from_csv(self, stock_symbol):
         with open('./data/aks_ds/{0}_X.csv'.format(stock_symbol), 'rb') as fd:

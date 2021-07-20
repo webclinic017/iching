@@ -19,20 +19,50 @@ def ConvBlockFunction(x, w, b, w_bn, b_bn):
     x = F.max_pool2d(x, kernel_size = 2, stride = 2)
     return x
 
+
+
+
+def LinearBlock(in_size, out_size):
+    return nn.Sequential(
+        nn.Linear(in_size, out_size),
+        nn.BatchNorm1d(out_size),
+        nn.ReLU()
+    )
+
+def LinearBlockFunction(x, w, b, w_bn, b_bn):
+    x = F.linear(x, w, b)
+    x = F.batch_norm(x, running_mean = None, running_var = None, 
+                weight = w_bn, bias = b_bn, training = True)
+    x = F.relu(x)
+
+
+
+
+
 class MamlModel(nn.Module):
-    def __init__(self, in_ch, n_way):
+    def __init__(self, in_size, n_way):
         super(MamlModel, self).__init__()
+        '''
         self.conv1 = ConvBlock(in_ch, 64)
         self.conv2 = ConvBlock(64, 64)
         self.conv3 = ConvBlock(64, 64)
         self.conv4 = ConvBlock(64, 64)
+        '''
+        self.linear1 = LinearBlock(in_size, 64)
+        self.linear2 = LinearBlock(64, 64)
+        self.linear3 = LinearBlock(64, 64)
         self.logits = nn.Linear(64, n_way)
     
     def forward(self, x):
+        '''
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv4(x)
+        '''
+        x = self.linear1(x)
+        x = self.linear2(x)
+        x = self.linear3(x)
         x = nn.Flatten(x)
         x = self.logits(x)
         return x
@@ -45,11 +75,21 @@ class MamlModel(nn.Module):
                 以及 batchnormalization 的  weight 跟 bias
                 這是一個 OrderedDict
         '''
+
+        '''
         for block in [1, 2, 3, 4]:
             x = ConvBlockFunction(x, params[f'conv{block}.0.weight'], 
                         params[f'conv{block}.0.bias'],                                 
                         params.get(f'conv{block}.1.weight'), 
                         params.get(f'conv{block}.1.bias'))
+        '''
+        for block in [1, 2, 3]:
+            x = LinearBlockFunction(x,
+                params[f'linear{block}.0.weight'],
+                params[f'linear{block}.0.bias'],
+                params.get(f'linear{block}.1.weight'),
+                params.get(f'linear{block}.1.bias')
+            )
         x = x.view(x.shape[0], -1)
         x = F.linear(x, params['logits.weight'] , params['logits.bias'])
         return x

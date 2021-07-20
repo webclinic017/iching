@@ -43,7 +43,7 @@ class MamlApp(object):
         inner_lr = 0.4
         meta_lr = 0.001
         meta_batch_size = 8 #32
-        max_epoch = 5 #40
+        max_epoch = 10 #40
         eval_batches = 20
         Xs, ys = self.load_ds_from_txt(stock_symbols)
         ds = AksDs(target_stock, n_way=n_way, k_shot=k_shot, q_query=q_query)
@@ -72,12 +72,12 @@ class MamlApp(object):
             test_ds,
             batch_size = n_way,
             num_workers = 0,
-            shuffle = False,
+            shuffle = True,
             drop_last = True
         )
         train_iter = iter(train_loader)
         val_iter = iter(val_loader)
-        test_iter = iter(test_ds)
+        test_iter = iter(test_loader)
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
         loss_fn = nn.CrossEntropyLoss().to(self.device)

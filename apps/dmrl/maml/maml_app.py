@@ -32,8 +32,11 @@ class MamlApp(object):
         elif 100000 == mode:
             self.exp()
 
+    def get_stock_ds(self, stock_symbol):
+        pass
+
     def train(self):
-        stock_symbols = ['sh600260', 'sh600487', 'sh600728']
+        ref_stocks = ['sh600487', 'sh600728']
         target_stock = 'sh600260'
         torch.cuda.set_device(0)
         n_way = 3
@@ -45,7 +48,7 @@ class MamlApp(object):
         meta_batch_size = 8 #32
         max_epoch = 10 #40
         eval_batches = 20
-        Xs, ys = self.load_ds_from_txt(stock_symbols)
+        #Xs, ys = self.load_ds_from_txt(stock_symbols)
         ds = AksDs(target_stock, n_way=n_way, k_shot=k_shot, q_query=q_query)
         print('ds_obj: size={0};'.format(len(ds)))
         cnt = len(ds)

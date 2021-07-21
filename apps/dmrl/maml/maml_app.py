@@ -53,8 +53,10 @@ class MamlApp(object):
         test_cnt = cnt - raw_train_cnt
         train_cnt = int(raw_train_cnt * 0.95)
         val_cnt = raw_train_cnt - train_cnt
-        raw_train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
-        train_ds, val_ds = torch.utils.data.random_split(raw_train_ds, [train_cnt, val_cnt])
+        #raw_train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
+        #train_ds, val_ds = torch.utils.data.random_split(raw_train_ds, [train_cnt, val_cnt])
+        train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
+        val_ds = test_ds
         train_loader = DataLoader(train_ds,
             batch_size = n_way, # 多少个类别
             num_workers = 0, # 4：原值，但是只能取0否则报异常

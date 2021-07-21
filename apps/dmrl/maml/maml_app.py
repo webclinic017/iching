@@ -32,24 +32,8 @@ class MamlApp(object):
         elif 100000 == mode:
             self.exp()
 
-    def get_stock_ds(self, stock_symbol):
-        pass
-
-    def train(self):
-        ref_stocks = ['sh600487', 'sh600728']
-        target_stock = 'sh600260'
-        torch.cuda.set_device(0)
-        n_way = 3
-        k_shot = 16
-        q_query = 4
-        inner_train_steps = 1
-        inner_lr = 0.4
-        meta_lr = 0.001
-        meta_batch_size = 8 #32
-        max_epoch = 10 #40
-        eval_batches = 20
-        #Xs, ys = self.load_ds_from_txt(stock_symbols)
-        ds = AksDs(target_stock, n_way=n_way, k_shot=k_shot, q_query=q_query)
+    def get_stock_ds(self, stock_symbol, n_way, k_shot, q_query):
+        ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query)
         print('ds_obj: size={0};'.format(len(ds)))
         cnt = len(ds)
         raw_train_cnt = int(cnt * 0.95)
@@ -83,6 +67,24 @@ class MamlApp(object):
         train_iter = iter(train_loader)
         val_iter = iter(val_loader)
         test_iter = iter(test_loader)
+        return train_loader, train_iter, val_loader, val_iter, test_loader, test_iter
+
+    def train(self):
+        ref_stocks = ['sh600487', 'sh600728']
+        target_stock = 'sh600260'
+        torch.cuda.set_device(0)
+        n_way = 3
+        k_shot = 16
+        q_query = 4
+        inner_train_steps = 1
+        inner_lr = 0.4
+        meta_lr = 0.001
+        meta_batch_size = 8 #32
+        max_epoch = 10 #40
+        eval_batches = 20
+        #Xs, ys = self.load_ds_from_txt(stock_symbols)
+        train_loader, train_iter, val_loader, val_iter, test_loader, test_iter = \
+                    self.get_stock_ds(target_stock, n_way, k_shot, q_query)
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
         loss_fn = nn.CrossEntropyLoss().to(self.device)

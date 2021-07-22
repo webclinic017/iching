@@ -116,6 +116,7 @@ class MamlApp(object):
         val_iter = val_iters[0]
         test_loader = test_loaders[0]
         test_iter = test_iters[0]
+        stock_cnt = len(train_loaders) # 股票数量
 
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
@@ -126,12 +127,16 @@ class MamlApp(object):
             train_acc = []
             for step in tqdm(range(len(train_loader) // 
                         (meta_batch_size))): # 這裡的 step 是一次 meta-gradinet update step
-                x, y, train_iter = self.get_meta_batch(
-                    meta_batch_size, k_shot, q_query, 
-                    train_loader, train_iter
-                )
+                xs, ys = [], []
+                for idx in range(stock_cnt):
+                    x, y, train_iters[idx] = self.get_meta_batch(
+                        meta_batch_size, k_shot, q_query, 
+                        train_loaders[idx], train_iters[idx]
+                    )
+                    xs.append(x)
+                    ys.append(y)
                 meta_loss, acc = self.train_batch(
-                    meta_model, optimizer, x, y, n_way, 
+                    meta_model, optimizer, xs, ys, n_way, 
                     k_shot, q_query, loss_fn
                 )
                 train_meta_loss.append(meta_loss.item())
@@ -143,12 +148,16 @@ class MamlApp(object):
             val_acc = []
             for eval_step in tqdm(range(len(val_loader) // 
                         (eval_batches))):
-                x, y, val_iter = self.get_meta_batch(
-                    eval_batches, k_shot, q_query, 
-                    val_loader, val_iter
-                )
+                xs, ys = [], []
+                for idx in range(stock_cnt):
+                    x, y, val_iters[idx] = self.get_meta_batch(
+                        eval_batches, k_shot, q_query, 
+                        val_loaders[idx], val_iters[idx]
+                    )
+                    xs.append(x)
+                    ys.append(y)
                 _, acc = self.train_batch(
-                    meta_model, optimizer, x, y, n_way, 
+                    meta_model, optimizer, xs, ys, n_way, 
                     k_shot, q_query, loss_fn, 
                     inner_train_steps = 3, train = False
                 ) # testing時，我們更新三次 inner-step
@@ -180,11 +189,15 @@ class MamlApp(object):
         loss_fn = nn.CrossEntropyLoss().to(self.device)
         for test_step in tqdm(range(len(test_loader) // (test_batches))):
             x, y, val_iter = self.get_meta_batch(test_batches, k_shot, q_query, test_loader, test_iter)
-            _, acc = self.train_batch(meta_model, optimizer, x, y, n_way, k_shot, q_query, loss_fn, inner_train_steps = 3, train = False) # testing時，我們更新三次 inner-step
+            xs = []
+            ys = []
+            xs.append(x)
+            ys.append(y)
+            _, acc = self.train_batch(meta_model, optimizer, xs, ys, n_way, k_shot, q_query, loss_fn, inner_train_steps = 3, train = False) # testing時，我們更新三次 inner-step
             test_acc.append(acc)
         print("  Testing accuracy: ", np.mean(test_acc))
 
-    def train_batch(self, model, optimizer, x, y, n_way, k_shot, 
+    def train_batch(self, model, optimizer, xs, ys, n_way, k_shot, 
                 q_query, loss_fn, inner_train_steps= 1, 
                 inner_lr = 0.4, train = True):
         """
@@ -194,6 +207,8 @@ class MamlApp(object):
         k_shot: 每個類別在 training 的時候會有多少張照片
         q_query: 在 testing 時，每個類別會用多少張照片 update
         """
+        x = xs[0]
+        y = ys[0]
         criterion = loss_fn
         task_loss = [] # 這裡面之後會放入每個 task 的 loss 
         task_acc = []  # 這裡面之後會放入每個 task 的 loss 

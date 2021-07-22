@@ -69,6 +69,20 @@ class MamlApp(object):
         test_iter = iter(test_loader)
         return train_loader, train_iter, val_loader, val_iter, test_loader, test_iter
 
+    def load_stock_datas(self, stock_symbol, \
+                    n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                        val_loaders, val_iters, \
+                            test_loaders, test_iters):
+        train_loader, train_iter, val_loader, val_iter, test_loader, test_iter = \
+                    self.get_stock_ds(stock_symbol, n_way, k_shot, q_query)
+        train_loaders.append(train_loader)
+        train_iters.append(train_iter)
+        val_loaders.append(val_loader)
+        val_iters.append(val_iter)
+        test_loaders.append(test_loader)
+        test_iters.append(test_iter)
+
     def train(self):
         ref_stocks = ['sh600487', 'sh600728']
         target_stock = 'sh600260'
@@ -83,8 +97,26 @@ class MamlApp(object):
         max_epoch = 10 #40
         eval_batches = 20
         #Xs, ys = self.load_ds_from_txt(stock_symbols)
-        train_loader, train_iter, val_loader, val_iter, test_loader, test_iter = \
-                    self.get_stock_ds(target_stock, n_way, k_shot, q_query)
+        train_loaders, train_iters = [], []
+        val_loaders, val_iters = [], []
+        test_loaders, test_iters = [], []
+
+        self.load_stock_datas(target_stock, n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                    val_loaders, val_iters, \
+                    test_loaders, test_iters)
+        for stock_symbol in ref_stocks:
+            self.load_stock_datas(stock_symbol, n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                    val_loaders, val_iters, \
+                    test_loaders, test_iters)
+        train_loader = train_loaders[0]
+        train_iter = train_iters[0]
+        val_loader = val_loaders[0]
+        val_iter = val_iters[0]
+        test_loader = test_loaders[0]
+        test_iter = test_iters[0]
+
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
         loss_fn = nn.CrossEntropyLoss().to(self.device)

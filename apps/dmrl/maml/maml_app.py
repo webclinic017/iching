@@ -31,7 +31,7 @@ class MamlApp(object):
         elif 3 == mode:
             self.evaluate_on_test_ds()
         elif 4 == mode:
-            self.run()
+            self.run_adapt_process()
         elif 100000 == mode:
             self.exp()
 
@@ -150,7 +150,7 @@ class MamlApp(object):
             test_acc.append(acc)
         print("  Testing accuracy: ", np.mean(test_acc))
 
-    def run(self):
+    def run_adapt_process(self):
         stock_symbol = 'sh600260'
         n_way = 3
         k_shot = 16

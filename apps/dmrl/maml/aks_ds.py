@@ -8,9 +8,29 @@ import akshare as ak
 from apps.dmrl.maml.app_config import AppConfig
 
 class AksDs(Dataset):
-    def __init__(self, stock_symbol, n_way, k_shot, q_query):
+    DS_MODE_FULL = 0
+    DS_MODE_TRAIN = 1
+    DS_MODE_VAL = 2
+    DS_MODE_TEST = 3
+
+    def __init__(self, stock_symbol, n_way, k_shot, q_query, ds_mode=0, train_rate=0.0, val_rate=0.0, test_rate=0.0):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
-        self.X, self.y = self.load_ds_from_txt(stock_symbol=stock_symbol)
+        X_raw, y_raw = self.load_ds_from_txt(stock_symbol=stock_symbol)
+        if ds_mode == AksDs.DS_MODE_FULL: # 全部数据集
+            self.X, self.y = X_raw, y_raw
+        elif ds_mode == AksDs.DS_MODE_TRAIN: # 训练数据集
+            start_pos = int(X_raw.shape[0] * train_rate)
+            self.X = X_raw[:start_pos]
+            self.y = y_raw[:start_pos]
+        elif AksDs.DS_MODE_VAL == ds_mode: # 验证数据集
+            start_pos = int(X_raw.shape[0] * train_rate)
+            end_pos = start_pos + int(X_raw.shape[0]*val_rate)
+            self.X = X_raw[start_pos : end_pos]
+            self.y = y_raw[start_pos : end_pos]
+        elif AksDs.DS_MODE_TEST == ds_mode: # 测试数据集
+            start_pos = int(X_raw.shape[0] * train_rate) + int(X_raw.shape[0]*val_rate)
+            self.X = X_raw[start_pos :]
+            self.y = y_raw[start_pos :]
         self.n_way = n_way
         self.n = k_shot + q_query
         self.k_shot = k_shot

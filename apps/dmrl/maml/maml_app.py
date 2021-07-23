@@ -32,57 +32,6 @@ class MamlApp(object):
         elif 100000 == mode:
             self.exp()
 
-    def get_stock_ds(self, stock_symbol, n_way, k_shot, q_query):
-        ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query)
-        print('ds_obj: size={0};'.format(len(ds)))
-        cnt = len(ds)
-        raw_train_cnt = int(cnt * 0.95)
-        test_cnt = cnt - raw_train_cnt
-        train_cnt = int(raw_train_cnt * 0.95)
-        val_cnt = raw_train_cnt - train_cnt
-        #raw_train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
-        #train_ds, val_ds = torch.utils.data.random_split(raw_train_ds, [train_cnt, val_cnt])
-        train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
-        val_ds = test_ds
-        train_loader = DataLoader(train_ds,
-            batch_size = n_way, # 多少个类别
-            num_workers = 0, # 4：原值，但是只能取0否则报异常
-            shuffle = True,
-            drop_last = True
-        )
-        val_loader = DataLoader(
-            val_ds,
-            batch_size = n_way,
-            num_workers = 0,
-            shuffle = False,
-            drop_last = True
-        )
-        test_loader = DataLoader(
-            test_ds,
-            batch_size = n_way,
-            num_workers = 0,
-            shuffle = True,
-            drop_last = True
-        )
-        train_iter = iter(train_loader)
-        val_iter = iter(val_loader)
-        test_iter = iter(test_loader)
-        return train_loader, train_iter, val_loader, val_iter, test_loader, test_iter
-
-    def load_stock_datas(self, stock_symbol, \
-                    n_way, k_shot, q_query, \
-                    train_loaders, train_iters, \
-                        val_loaders, val_iters, \
-                            test_loaders, test_iters):
-        train_loader, train_iter, val_loader, val_iter, test_loader, test_iter = \
-                    self.get_stock_ds(stock_symbol, n_way, k_shot, q_query)
-        train_loaders.append(train_loader)
-        train_iters.append(train_iter)
-        val_loaders.append(val_loader)
-        val_iters.append(val_iter)
-        test_loaders.append(test_loader)
-        test_iters.append(test_iter)
-
     def train(self):
         ref_stocks = ['sh600487', 'sh600728']
         target_stock = 'sh600260'
@@ -174,15 +123,24 @@ class MamlApp(object):
         q_query = 4
         test_batches = 4
         meta_lr = 0.001
-        '''
-        test_loader = DataLoader(OmniglotDs(test_data_path, n_way, k_shot, q_query),
-                                batch_size = n_way,
-                                num_workers = 8,
-                                shuffle = True,
-                                drop_last = True)
-        test_iter = iter(test_loader)
-        '''
         test_acc = []
+        
+        ref_stocks = ['sh600487', 'sh600728']
+        target_stock = 'sh600260'
+        train_loaders, train_iters = [], []
+        val_loaders, val_iters = [], []
+        test_loaders, test_iters = [], []
+
+        self.load_stock_datas(target_stock, n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                    val_loaders, val_iters, \
+                    test_loaders, test_iters)
+        for stock_symbol in ref_stocks:
+            self.load_stock_datas(stock_symbol, n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                    val_loaders, val_iters, \
+                    test_loaders, test_iters)
+
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         meta_model.load_state_dict(torch.load(self.chpt_file))
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
@@ -217,7 +175,6 @@ class MamlApp(object):
             for ti in range(task_cnt):
                 meta_batch = xs[ti][oi]
                 meta_batch_y = ys[ti][oi]
-            #for meta_batch, meta_batch_y in zip(x, y):
                 support_set_x = meta_batch[:n_way*k_shot] # train_set 是我們拿來 update inner loop 參數的 data
                 support_set_y = meta_batch_y[:n_way*k_shot]
                 query_set_x = meta_batch[n_way*k_shot:]   # val_set 是我們拿來 update outer loop 參數的 data
@@ -241,12 +198,6 @@ class MamlApp(object):
             task_loss.append(loss)                                   # 把這個 task 的 loss 丟進 task_loss 裡面
             acc = task_accs.mean() # 算 accuracy
             task_acc.append(acc)
-            
-            
-            
-
-
-
         model.train()
         optimizer.zero_grad()
         meta_batch_loss = torch.stack(task_loss).mean() # 我們要用一整個 batch 的 loss 來 update θ (不是 θ')
@@ -277,7 +228,56 @@ class MamlApp(object):
         return torch.stack(data_x).float().to(self.device), torch.stack(data_y).long().to(self.device), iterator
 
 
+    def get_stock_ds(self, stock_symbol, n_way, k_shot, q_query):
+        ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query)
+        print('ds_obj: size={0};'.format(len(ds)))
+        cnt = len(ds)
+        raw_train_cnt = int(cnt * 0.95)
+        test_cnt = cnt - raw_train_cnt
+        train_cnt = int(raw_train_cnt * 0.95)
+        val_cnt = raw_train_cnt - train_cnt
+        #raw_train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
+        #train_ds, val_ds = torch.utils.data.random_split(raw_train_ds, [train_cnt, val_cnt])
+        train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
+        val_ds = test_ds
+        train_loader = DataLoader(train_ds,
+            batch_size = n_way, # 多少个类别
+            num_workers = 0, # 4：原值，但是只能取0否则报异常
+            shuffle = True,
+            drop_last = True
+        )
+        val_loader = DataLoader(
+            val_ds,
+            batch_size = n_way,
+            num_workers = 0,
+            shuffle = False,
+            drop_last = True
+        )
+        test_loader = DataLoader(
+            test_ds,
+            batch_size = n_way,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        train_iter = iter(train_loader)
+        val_iter = iter(val_loader)
+        test_iter = iter(test_loader)
+        return train_loader, train_iter, val_loader, val_iter, test_loader, test_iter
 
+    def load_stock_datas(self, stock_symbol, \
+                    n_way, k_shot, q_query, \
+                    train_loaders, train_iters, \
+                        val_loaders, val_iters, \
+                            test_loaders, test_iters):
+        train_loader, train_iter, val_loader, val_iter, test_loader, test_iter = \
+                    self.get_stock_ds(stock_symbol, n_way, k_shot, q_query)
+        train_loaders.append(train_loader)
+        train_iters.append(train_iter)
+        val_loaders.append(val_loader)
+        val_iters.append(val_iter)
+        test_loaders.append(test_loader)
+        test_iters.append(test_iter)
 
 
 

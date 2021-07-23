@@ -94,7 +94,7 @@ class MamlApp(object):
         inner_lr = 0.4
         meta_lr = 0.001
         meta_batch_size = 8 #32
-        max_epoch = 10 #40
+        max_epoch = 2 #40
         eval_batches = 20
         #Xs, ys = self.load_ds_from_txt(stock_symbols)
         train_loaders, train_iters = [], []
@@ -209,12 +209,45 @@ class MamlApp(object):
         """
         x = xs[0]
         y = ys[0]
+        task_cnt = len(xs)
         criterion = loss_fn
         task_loss = [] # 這裡面之後會放入每個 task 的 loss 
         task_acc = []  # 這裡面之後會放入每個 task 的 loss 
+        
+
+
         for meta_batch, meta_batch_y in zip(x, y):
-            train_set = meta_batch[:n_way*k_shot] # train_set 是我們拿來 update inner loop 參數的 data
-            val_set = meta_batch[n_way*k_shot:]   # val_set 是我們拿來 update outer loop 參數的 data
+            support_set_x = meta_batch[:n_way*k_shot] # train_set 是我們拿來 update inner loop 參數的 data
+            support_set_y = meta_batch_y[:n_way*k_shot]
+            query_set_x = meta_batch[n_way*k_shot:]   # val_set 是我們拿來 update outer loop 參數的 data
+            query_set_y = meta_batch_y[n_way*k_shot:]
+            theta_primes = []
+            for idx in range(task_cnt):
+                theta_primes.append(OrderedDict(model.named_parameters()))
+            for inner_step in range(inner_train_steps):
+                for i in range(task_cnt):
+                    logits = model.functional_forward(support_set_x, theta_primes[i])
+                    print('logits: {0}; support_set_y: {1}; x:{2};'.format(logits.shape, support_set_y.shape, support_set_x.shape))
+                    loss = criterion(logits, support_set_y)
+                    grads = torch.autograd.grad(loss, theta_primes[i].values(), create_graph = True)
+                    theta_primes[i] = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) \
+                                for ((name, param), grad) in zip(theta_primes[i].items(), grads))
+            #
+            loss = 0.0
+            task_accs = np.array([])
+            for i in range(task_cnt):
+                logits = model.functional_forward(query_set_x, theta_primes[i])
+                task_accs = np.append(task_accs, np.asarray([torch.argmax(logits, -1).cpu().numpy() == query_set_y.cpu().numpy()]).mean())
+                loss += criterion(logits, query_set_y)
+                grads += torch.autograd.grad(loss, theta_primes[i].values(), create_graph = True)
+            task_loss.append(loss)                                   # 把這個 task 的 loss 丟進 task_loss 裡面
+            acc = task_accs.mean() # 算 accuracy
+            task_acc.append(acc)
+            
+            
+            
+            
+            '''
             fast_weights = OrderedDict(model.named_parameters()) # 在 inner loop update 參數時，我們不能動到實際參數，因此用 fast_weights 來儲存新的參數 θ'
             for inner_step in range(inner_train_steps): # 這個 for loop 是 Algorithm2 的 line 7~8
                                                 # 實際上我們 inner loop 只有 update 一次 gradients，不過某些 task 可能會需要多次 update inner loop 的 θ'，
@@ -232,6 +265,10 @@ class MamlApp(object):
             task_loss.append(loss)                                   # 把這個 task 的 loss 丟進 task_loss 裡面
             acc = np.asarray([torch.argmax(logits, -1).cpu().numpy() == val_label.cpu().numpy()]).mean() # 算 accuracy
             task_acc.append(acc)
+            '''
+
+
+
         model.train()
         optimizer.zero_grad()
         meta_batch_loss = torch.stack(task_loss).mean() # 我們要用一整個 batch 的 loss 來 update θ (不是 θ')
@@ -242,19 +279,24 @@ class MamlApp(object):
         return meta_batch_loss, task_acc
 
     def get_meta_batch(self, meta_batch_size, k_shot, q_query, data_loader, iterator):
-        data = []
+        data_x = []
+        data_y = []
         y = torch.tensor([])
         for _ in range(meta_batch_size):
             try:
-                task_data, y = iterator.next()  # 一筆 task_data 就是一個 task 裡面的 data，大小是 [n_way, k_shot+q_query, 1, 28, 28]
+                task_data_x, task_data_y = iterator.next()  # 一筆 task_data 就是一個 task 裡面的 data，大小是 [n_way, k_shot+q_query, 1, 28, 28]
             except StopIteration:
                 iterator = iter(data_loader)
-                task_data, y = iterator.next()
-            train_data = task_data[:, :k_shot].reshape(-1, self.in_size)
-            val_data = task_data[:, k_shot:].reshape(-1, self.in_size)
-            task_data = torch.cat((train_data, val_data), 0)
-            data.append(task_data)
-        return torch.stack(data).float().to(self.device), y, iterator
+                task_data_x, task_data_y = iterator.next()
+            train_data_x = task_data_x[:, :k_shot].reshape(-1, self.in_size)
+            train_data_y = task_data_y[:, :k_shot].reshape(-1)
+            val_data_x = task_data_x[:, k_shot:].reshape(-1, self.in_size)
+            val_data_y = task_data_y[:, k_shot:].reshape(-1)
+            task_data_x = torch.cat((train_data_x, val_data_x), 0)
+            task_data_y = torch.cat((train_data_y, val_data_y), 0)
+            data_x.append(task_data_x)
+            data_y.append(task_data_y)
+        return torch.stack(data_x).float().to(self.device), torch.stack(data_y).long().to(self.device), iterator
 
 
 

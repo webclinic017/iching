@@ -1,5 +1,6 @@
 #
 import sys
+from matplotlib.pyplot import axis
 import numpy as np
 import torch
 import torch.nn as nn
@@ -21,7 +22,7 @@ class MamlApp(object):
 
     def startup(self):
         print('MAML算法 v0.0.2')
-        mode = 2
+        mode = 4
         stock_symbols = ['sh600260', 'sh600487', 'sh600728']
         if 1 == mode:
             self.prepare_ds(stock_symbols)
@@ -29,6 +30,8 @@ class MamlApp(object):
             self.train()
         elif 3 == mode:
             self.evaluate_on_test_ds()
+        elif 4 == mode:
+            self.run()
         elif 100000 == mode:
             self.exp()
 
@@ -114,33 +117,25 @@ class MamlApp(object):
             print("  Validation accuracy: ", np.mean(val_acc))
         print('train is OK!')
         torch.save(meta_model.state_dict(), self.chpt_file)
-        self.evaluate_on_test_ds(test_loader, test_iter)
+        self.evaluate_on_test_ds(target_stock)
 
 
-    def evaluate_on_test_ds(self, test_loader, test_iter):
+    def evaluate_on_test_ds(self, stock_symbol):
         n_way = 3
         k_shot = 16
         q_query = 4
         test_batches = 4
         meta_lr = 0.001
-        test_acc = []
-        
-        ref_stocks = ['sh600487', 'sh600728']
-        target_stock = 'sh600260'
-        train_loaders, train_iters = [], []
-        val_loaders, val_iters = [], []
-        test_loaders, test_iters = [], []
-
-        self.load_stock_datas(target_stock, n_way, k_shot, q_query, \
-                    train_loaders, train_iters, \
-                    val_loaders, val_iters, \
-                    test_loaders, test_iters)
-        for stock_symbol in ref_stocks:
-            self.load_stock_datas(stock_symbol, n_way, k_shot, q_query, \
-                    train_loaders, train_iters, \
-                    val_loaders, val_iters, \
-                    test_loaders, test_iters)
-
+        test_acc = []        
+        test_ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query, ds_mode=AksDs.DS_MODE_TEST, train_rate=0.95, val_rate=0.0, test_rate=0.05)
+        test_loader = DataLoader(
+            test_ds,
+            batch_size = n_way,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        test_iter = iter(test_loader)
         meta_model = MamlModel(self.in_size, n_way).to(self.device)
         meta_model.load_state_dict(torch.load(self.chpt_file))
         optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
@@ -154,6 +149,69 @@ class MamlApp(object):
             _, acc = self.train_batch(meta_model, optimizer, xs, ys, n_way, k_shot, q_query, loss_fn, inner_train_steps = 3, train = False) # testing時，我們更新三次 inner-step
             test_acc.append(acc)
         print("  Testing accuracy: ", np.mean(test_acc))
+
+    def run(self):
+        stock_symbol = 'sh600260'
+        n_way = 3
+        k_shot = 16
+        q_query = 4
+        test_batches = 4
+        meta_lr = 0.001
+        meta_model = MamlModel(self.in_size, n_way).to(self.device)
+        meta_model.load_state_dict(torch.load(self.chpt_file))
+        optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
+        loss_fn = nn.CrossEntropyLoss().to(self.device)  
+        test_ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query, ds_mode=AksDs.DS_MODE_TEST, train_rate=0.95, val_rate=0.0, test_rate=0.03)
+        test_loader = DataLoader(
+            test_ds,
+            batch_size = n_way,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        test_iter = iter(test_loader)
+        for test_step in tqdm(range(len(test_loader) // (test_batches))):
+            x, y, test_iter = self.get_meta_batch(test_batches, k_shot, q_query, test_loader, test_iter)
+            self.adapt_to_new_env(meta_model, optimizer, loss_fn, x, y, 3)
+        # 模拟实际运行过程
+        t1_ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query, ds_mode=AksDs.DS_MODE_TEST, train_rate=0.98, val_rate=0.0, test_rate=0.02)
+        t1_loader = DataLoader(
+            t1_ds,
+            batch_size = n_way,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        t1_iter = iter(t1_loader)
+        accs = np.array([])
+        for X_raw, y_raw in t1_iter:
+            X = X_raw.float().reshape((-1, X_raw.shape[-1])).to(self.device)
+            y = y_raw.long().reshape((-1, ))
+            y_hat = self.run_predict(meta_model, X)
+            acc = np.asarray([y_hat.cpu().numpy() == y.cpu().numpy()]).mean()
+            print('最终精度：{0};'.format(acc))
+            accs = np.append(accs, acc)
+        score = accs.mean()
+        print('score={0};'.format(score))
+            
+
+    def adapt_to_new_env(self, model, optimizer, loss_fn, ds_x, ds_y, loop_num=1):
+        '''
+        已经训练好的模型，使用少量新数据，训练出一个足够好的模型用于新环境
+        '''
+        criterion = loss_fn
+        model.train()
+        for _ in range(loop_num):
+            for x, y in zip(ds_x, ds_y):
+                logits = model(x)
+                loss = criterion(logits, y)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+    def run_predict(self, model, x):
+        logits = model(x)
+        return torch.argmax(logits, -1)
 
     def train_batch(self, model, optimizer, xs, ys, n_way, k_shot, 
                 q_query, loss_fn, inner_train_steps= 1, 
@@ -229,6 +287,7 @@ class MamlApp(object):
 
 
     def get_stock_ds(self, stock_symbol, n_way, k_shot, q_query):
+        '''
         ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query)
         print('ds_obj: size={0};'.format(len(ds)))
         cnt = len(ds)
@@ -239,6 +298,10 @@ class MamlApp(object):
         #raw_train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
         #train_ds, val_ds = torch.utils.data.random_split(raw_train_ds, [train_cnt, val_cnt])
         train_ds, test_ds = torch.utils.data.random_split(ds, [raw_train_cnt, test_cnt])
+        val_ds = test_ds
+        '''
+        train_ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query, ds_mode=AksDs.DS_MODE_TRAIN, train_rate=0.95)
+        test_ds = AksDs(stock_symbol, n_way=n_way, k_shot=k_shot, q_query=q_query, ds_mode=AksDs.DS_MODE_TEST, train_rate=0.95, val_rate=0.0, test_rate=0.05)
         val_ds = test_ds
         train_loader = DataLoader(train_ds,
             batch_size = n_way, # 多少个类别

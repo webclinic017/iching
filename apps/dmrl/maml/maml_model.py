@@ -29,7 +29,8 @@ class MamlModel(nn.Module):
         x = self.linear1(x)
         x = self.linear2(x)
         x = self.linear3(x)
-        x = nn.Flatten(x)
+        #x = nn.Flatten(x)
+        x = x.flatten(start_dim=1)
         x = self.logits(x)
         return x
 

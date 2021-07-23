@@ -207,31 +207,29 @@ class MamlApp(object):
         k_shot: 每個類別在 training 的時候會有多少張照片
         q_query: 在 testing 時，每個類別會用多少張照片 update
         """
-        x = xs[0]
-        y = ys[0]
         task_cnt = len(xs)
+        outer_loop = xs[0].shape[0]
         criterion = loss_fn
         task_loss = [] # 這裡面之後會放入每個 task 的 loss 
         task_acc = []  # 這裡面之後會放入每個 task 的 loss 
-        
-
-
-        for meta_batch, meta_batch_y in zip(x, y):
-            support_set_x = meta_batch[:n_way*k_shot] # train_set 是我們拿來 update inner loop 參數的 data
-            support_set_y = meta_batch_y[:n_way*k_shot]
-            query_set_x = meta_batch[n_way*k_shot:]   # val_set 是我們拿來 update outer loop 參數的 data
-            query_set_y = meta_batch_y[n_way*k_shot:]
+        for oi in range(outer_loop):
             theta_primes = []
-            for idx in range(task_cnt):
-                theta_primes.append(OrderedDict(model.named_parameters()))
-            for inner_step in range(inner_train_steps):
-                for i in range(task_cnt):
-                    logits = model.functional_forward(support_set_x, theta_primes[i])
-                    print('logits: {0}; support_set_y: {1}; x:{2};'.format(logits.shape, support_set_y.shape, support_set_x.shape))
+            for ti in range(task_cnt):
+                meta_batch = xs[ti][oi]
+                meta_batch_y = ys[ti][oi]
+            #for meta_batch, meta_batch_y in zip(x, y):
+                support_set_x = meta_batch[:n_way*k_shot] # train_set 是我們拿來 update inner loop 參數的 data
+                support_set_y = meta_batch_y[:n_way*k_shot]
+                query_set_x = meta_batch[n_way*k_shot:]   # val_set 是我們拿來 update outer loop 參數的 data
+                query_set_y = meta_batch_y[n_way*k_shot:]
+                theta_prime_i = OrderedDict(model.named_parameters())
+                for inner_step in range(inner_train_steps):
+                    logits = model.functional_forward(support_set_x, theta_prime_i)
                     loss = criterion(logits, support_set_y)
-                    grads = torch.autograd.grad(loss, theta_primes[i].values(), create_graph = True)
-                    theta_primes[i] = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) \
-                                for ((name, param), grad) in zip(theta_primes[i].items(), grads))
+                    grads = torch.autograd.grad(loss, theta_prime_i.values(), create_graph = True)
+                    theta_prime_i = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) \
+                                for ((name, param), grad) in zip(theta_prime_i.items(), grads))
+                theta_primes.append(theta_prime_i)
             #
             loss = 0.0
             task_accs = np.array([])
@@ -246,26 +244,6 @@ class MamlApp(object):
             
             
             
-            
-            '''
-            fast_weights = OrderedDict(model.named_parameters()) # 在 inner loop update 參數時，我們不能動到實際參數，因此用 fast_weights 來儲存新的參數 θ'
-            for inner_step in range(inner_train_steps): # 這個 for loop 是 Algorithm2 的 line 7~8
-                                                # 實際上我們 inner loop 只有 update 一次 gradients，不過某些 task 可能會需要多次 update inner loop 的 θ'，
-                                                # 所以我們還是用 for loop 來寫
-                train_label = self.create_label(n_way, k_shot).to(self.device)
-                logits = model.functional_forward(train_set, fast_weights)
-                loss = criterion(logits, train_label)
-                grads = torch.autograd.grad(loss, fast_weights.values(), create_graph = True) # 這裡是要計算出 loss 對 θ 的微分 (∇loss) 
-                #fast_weights = OrderedDict((name, param - inner_lr * grad)
-                #                  for ((name, param), grad) in zip(fast_weights.items(), grads)) # 這裡是用剛剛算出的 ∇loss 來 update θ 變成 θ'
-                fast_weights = OrderedDict((name, param) if name in self.fixed_weights else (name, param - inner_lr * grad) for ((name, param), grad) in zip(fast_weights.items(), grads))
-            val_label = self.create_label(n_way, q_query).to(self.device)
-            logits = model.functional_forward(val_set, fast_weights) # 這裡用 val_set 和 θ' 算 logit
-            loss = criterion(logits, val_label)                      # 這裡用 val_set 和 θ' 算 loss
-            task_loss.append(loss)                                   # 把這個 task 的 loss 丟進 task_loss 裡面
-            acc = np.asarray([torch.argmax(logits, -1).cpu().numpy() == val_label.cpu().numpy()]).mean() # 算 accuracy
-            task_acc.append(acc)
-            '''
 
 
 

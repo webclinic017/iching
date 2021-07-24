@@ -187,7 +187,7 @@ class MamlApp(object):
         for X_raw, y_raw in t1_iter:
             X = X_raw.float().reshape((-1, X_raw.shape[-1])).to(self.device)
             y = y_raw.long().reshape((-1, ))
-            y_hat = self.run_predict(meta_model, X)
+            y_hat = self.run_step(meta_model, X)
             acc = np.asarray([y_hat.cpu().numpy() == y.cpu().numpy()]).mean()
             print('最终精度：{0};'.format(acc))
             accs = np.append(accs, acc)
@@ -209,9 +209,25 @@ class MamlApp(object):
                 loss.backward()
                 optimizer.step()
 
-    def run_predict(self, model, x):
+    def run_step(self, model, x):
         logits = model(x)
         return torch.argmax(logits, -1)
+
+    def reset(self, stock_symbol='sh600260'):
+        '''
+        训练好的模型首先调用reset方法，初始化模型，然后就可以调有run_step方法，得到应该采取的操作，
+        作为强化学习的策略网络来使用
+        '''
+        n_way = 3
+        k_shot = 16
+        q_query = 4
+        test_batches = 4
+        meta_lr = 0.001
+        meta_model = MamlModel(self.in_size, n_way).to(self.device)
+        meta_model.load_state_dict(torch.load(self.chpt_file))
+        optimizer = torch.optim.Adam(meta_model.parameters(), lr = meta_lr)
+        loss_fn = nn.CrossEntropyLoss().to(self.device)
+        return meta_model
 
     def train_batch(self, model, optimizer, xs, ys, n_way, k_shot, 
                 q_query, loss_fn, inner_train_steps= 1, 

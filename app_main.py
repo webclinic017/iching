@@ -23,6 +23,7 @@ from biz.drlt.drlt_app import DrltApp
 from apps.mml.mml_app import MmlApp
 from apps.dmrl.maml.maml_app import MamlApp
 from ann.dmrl.dmrl_app import DmrlApp
+from biz.dmrl.dmrl_main import DmrlMain
 
 # 启动命令行参数默认值
 params = {
@@ -60,6 +61,8 @@ def main(argv={}):
         app = MamlApp()
     elif params['mode'] == 'dmrl':
         app = DmrlApp()
+    elif params['mode'] == 'bizdmrl':
+        app = DmrlMain()
     else:
         app = NupApp()
     app.startup()

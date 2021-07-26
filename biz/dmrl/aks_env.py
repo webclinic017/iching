@@ -8,15 +8,11 @@ class AksEnv(gym.Env):
         super(AksEnv, self).__init__()
         self.action_space = spaces.Box(
             low=np.array([0, 0]), high=np.array([3, 1]), dtype=np.float16)
+        # 现金、仓位，因为净值可以由收盘价*仓位+现金求出，所以不包括在内
+        # 价格按对数收益率表示，交易量按(x-mu)/std，这些值基本都在-1.0到1.0之间
+        self.observation_space = spaces.Box(
+            low=-10000.0, high=10000.0, shape=(50, 7), dtype=np.float16)
 
     def learn(self):
-        self.action_space = spaces.Box(
-            low=np.array([0, 0]), high=np.array([3, 1]), dtype=np.float16)
-        action = self.action_space.sample()
-        print('行动：{0};'.format(action))
-        if action[0] < 1:
-            print('买入：{0}%;'.format(action[1]*100))
-        elif action[0] < 2:
-            print('卖出：{0}%;'.format(action[1]*100))
-        else:
-            print('持有...')
+        obs = self.observation_space.sample()
+        print(obs)

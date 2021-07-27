@@ -37,6 +37,8 @@ class AksUtil(object):
         ds_std = np.std(ds, axis=0)
         return (ds-ds_mu)/ds_std, raw_ds[1:, 0:4]
 
+    DM_MAML = 0 # 用于训练MAML模型
+    DM_RL = 1 # 用于强化学习回测平台
     @staticmethod
     def generate_stock_ds(stock_symbol, ds_mode=0, draw_line=False):
         '''

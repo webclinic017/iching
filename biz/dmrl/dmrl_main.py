@@ -13,7 +13,5 @@ class DmrlMain(object):
         #app.startup()
         # (self, stock_symbol, n_way, k_shot, q_query, ds_mode=0, train_rate=0.0, val_rate=0.0, test_rate=0.0):
         stock_symbol = 'sh600260'
-        X, y = AksUtil.generate_stock_ds(stock_symbol, ds_mode=AksUtil.DM_RL, draw_line=False)
-        print('X: {0}; y: {1};'.format(X.shape, y.shape))
-        #env = AksEnv(stock_symbol)
-        #env.reset()
+        env = AksEnv(stock_symbol)
+        env.reset()

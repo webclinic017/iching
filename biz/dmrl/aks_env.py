@@ -31,8 +31,16 @@ class AksEnv(gym.Env):
         self.market_iter = iter(market_loader)
         return self._next_obs()
 
-    def step(self):
-        pass
+    def step(self, action):
+        self._take_action(action)
+        obs = self._next_obs()
+        reward = 1.0
+        if obs is None:
+            done = True
+        else:
+            done = False
+        info = {}
+        return obs, reward, done, info
 
 
     def _next_obs(self):
@@ -44,6 +52,9 @@ class AksEnv(gym.Env):
         obs[0] = np.append(obs[0], self.position)
         obs[0] = np.append(obs[0], self.net_value)
         return obs
+
+    def _take_action(self, action):
+        pass
 
 
 

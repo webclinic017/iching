@@ -29,7 +29,14 @@ class AksEnv(gym.Env):
             drop_last = True
         )
         self.market_iter = iter(market_loader)
-        obs = self.market_iter.next() # 怎样获得当天收盘价？
+        return self._next_obs()
+
+    def step(self):
+        pass
+
+
+    def _next_obs(self):
+        obs = self.market_iter.next()
         self.balance = AppConfig.rl_env_params['initial_balance']
         self.position = AppConfig.rl_env_params['initial_position']
         self.net_value = 0.0
@@ -37,6 +44,15 @@ class AksEnv(gym.Env):
         obs[0] = np.append(obs[0], self.position)
         obs[0] = np.append(obs[0], self.net_value)
         return obs
+
+
+
+
+
+
+
+
+
 
     def learn(self):
         obs = self.observation_space.sample()

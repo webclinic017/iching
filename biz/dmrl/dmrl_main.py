@@ -15,4 +15,4 @@ class DmrlMain(object):
         stock_symbol = 'sh600260'
         env = AksEnv(stock_symbol)
         obs = env.reset()
-        print('v0.0.1  X: {0}; y: {1}; '.format(obs[0].shape, obs[1].shape))
+        print('v0.0.2  X: {0}; y: {1}; '.format(obs[0].shape, obs[1].shape))

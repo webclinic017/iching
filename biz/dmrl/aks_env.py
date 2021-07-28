@@ -3,6 +3,7 @@ import numpy as np
 import gym
 from gym import spaces
 from torch.utils.data import DataLoader
+from biz.dmrl.app_config import AppConfig
 from biz.dmrl.market import Market
 
 class AksEnv(gym.Env):
@@ -28,8 +29,14 @@ class AksEnv(gym.Env):
             drop_last = True
         )
         self.market_iter = iter(market_loader)
-        obs_raw = self.market_iter.next() # 怎样获得当天收盘价？
-        print('X: {0}; y: {1}; '.format(obs_raw[0].shape, obs_raw[1].shape))
+        obs = self.market_iter.next() # 怎样获得当天收盘价？
+        self.balance = AppConfig.rl_env_params['initial_balance']
+        self.position = AppConfig.rl_env_params['initial_position']
+        self.net_value = 0.0
+        obs[0] = np.append(obs[0], self.balance)
+        obs[0] = np.append(obs[0], self.position)
+        obs[0] = np.append(obs[0], self.net_value)
+        return obs
 
     def learn(self):
         obs = self.observation_space.sample()

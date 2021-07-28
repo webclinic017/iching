@@ -19,3 +19,11 @@ class AppConfig(object):
         'back_window': 10, # 向前10分钟作为一帧样本
         'forward_step': 60 # 向前看1小时来判断市场状态
     }
+
+    # RL环境相关
+    rl_env_params = {
+        'initial_balance': 100000.0, # 初始资金为10万元
+        'initial_position': 0, # 初始仓位为空
+        'buy_cost_rate': 0.005, # 千5的交易成本
+        'sell_cost_rate': 0.005
+    }

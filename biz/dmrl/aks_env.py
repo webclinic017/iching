@@ -32,31 +32,44 @@ class AksEnv(gym.Env):
         self.balance = AppConfig.rl_env_params['initial_balance']
         self.position = AppConfig.rl_env_params['initial_position']
         self.net_value = 0.0
-        return self._next_obs()
+        self.current_step = 1
+        self.obs = self._next_obs()
+        self.render()
+        return self.obs
 
     def step(self, action):
         self._take_action(action)
-        obs = self._next_obs()
+        self.obs = self._next_obs()
         reward = 1.0
-        if obs is None:
+        if self.obs is None:
             done = True
         else:
             done = False
+            self.render()
         info = {}
-        return obs, reward, done, info
+        return self.obs, reward, done, info
+
+    def render(self, mode='human'):
+        print('{0}：bar({1}, {2}, {3}, {4}), state=(余额：{5}, 仓位：{6}, 净值：{7})'.format(
+            self.current_step, self.obs[0][50], self.obs[0][51], self.obs[0][52], self.obs[0][53],
+            self.balance, self.position, self.net_value
+        ))
 
 
     def _next_obs(self):
-        obs = self.market_iter.next()
-        obs[0] = np.append(obs[0], self.balance)
-        obs[0] = np.append(obs[0], self.position)
-        obs[0] = np.append(obs[0], self.net_value)
+        try:
+            obs = self.market_iter.next()
+            obs[0] = np.append(obs[0], self.balance)
+            obs[0] = np.append(obs[0], self.position)
+            obs[0] = np.append(obs[0], self.net_value)
+        except:
+            obs = None
         return obs
 
-    def _take_action(self, obs, action):
+    def _take_action(self, action):
         action_type = action[0]
         action_percent = action[1]
-        price = obs[53] # 取出收盘价
+        price = self.obs[0][53] # 取出收盘价
         #balance = obs[54]
         if action_type < 1:
             # 买入股票
@@ -69,7 +82,7 @@ class AksEnv(gym.Env):
             self.balance -= amount
             self.position += buy_amount
             self.net_value = self.balance + self.position * price
-            print('买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}'.format(
+            print('    买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}'.format(
                 buy_amount, amount, self.balance, self.position, self.net_value
             ))
         elif action_type < 2:
@@ -81,11 +94,11 @@ class AksEnv(gym.Env):
             self.balance += amount
             self.position -= sell_amount
             self.net_value = self.balance + self.position * price
-            print('卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
+            print('    卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
                 sell_amount, amount, self.balance, self.position, self.net_value
             ))
         else:
-            print('持有')
+            print('    持有')
 
     
 

@@ -15,7 +15,7 @@ class DmrlMain(object):
         stock_symbol = 'sh600260'
         env = AksEnv(stock_symbol)
         obs = env.reset()
-        print('v0.0.2  X: {0}; y: {1}; '.format(obs[0].shape, obs[1].shape))
-        action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
-        print('obs: {0}; reward: {1}; done: {2}; info: {3};'.format(obs[0].shape, reward, done, info))
+        done = False
+        while not done:
+            action = env.action_space.sample()
+            obs, reward, done, info = env.step(action)

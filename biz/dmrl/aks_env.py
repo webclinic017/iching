@@ -29,6 +29,9 @@ class AksEnv(gym.Env):
             drop_last = True
         )
         self.market_iter = iter(market_loader)
+        self.balance = AppConfig.rl_env_params['initial_balance']
+        self.position = AppConfig.rl_env_params['initial_position']
+        self.net_value = 0.0
         return self._next_obs()
 
     def step(self, action):
@@ -45,16 +48,46 @@ class AksEnv(gym.Env):
 
     def _next_obs(self):
         obs = self.market_iter.next()
-        self.balance = AppConfig.rl_env_params['initial_balance']
-        self.position = AppConfig.rl_env_params['initial_position']
-        self.net_value = 0.0
         obs[0] = np.append(obs[0], self.balance)
         obs[0] = np.append(obs[0], self.position)
         obs[0] = np.append(obs[0], self.net_value)
         return obs
 
-    def _take_action(self, action):
-        pass
+    def _take_action(self, obs, action):
+        action_type = action[0]
+        action_percent = action[1]
+        price = obs[53] # 取出收盘价
+        #balance = obs[54]
+        if action_type < 1:
+            # 买入股票
+            buy_total = int(self.balance / price)
+            buy_amount = int(buy_total * action_percent)
+            raw_amount = buy_amount * price
+            commission = raw_amount * AppConfig.rl_env_params['buy_commission_rate']
+            amount = raw_amount + commission
+            # 更新账户信息
+            self.balance -= amount
+            self.position += buy_amount
+            self.net_value = self.balance + self.position * price
+            print('买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}'.format(
+                buy_amount, amount, self.balance, self.position, self.net_value
+            ))
+        elif action_type < 2:
+            sell_amount = int(self.position * action_percent)
+            raw_amount = sell_amount * price
+            commission = raw_amount * AppConfig.rl_env_params['sell_commission_rate']
+            amount = raw_amount - commission
+            # 更新账户信息
+            self.balance += amount
+            self.position -= sell_amount
+            self.net_value = self.balance + self.position * price
+            print('卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
+                sell_amount, amount, self.balance, self.position, self.net_value
+            ))
+        else:
+            print('持有')
+
+    
 
 
 

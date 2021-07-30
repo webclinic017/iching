@@ -47,6 +47,7 @@ class AksEnv(gym.Env):
             done = False
             self.render()
         info = {}
+        self.current_step += 1
         return self.obs, reward, done, info
 
     def render(self, mode='human'):
@@ -62,6 +63,7 @@ class AksEnv(gym.Env):
             obs[0] = np.append(obs[0], self.balance)
             obs[0] = np.append(obs[0], self.position)
             obs[0] = np.append(obs[0], self.net_value)
+            obs[0] = np.append(obs[0], obs[1].item())
         except:
             obs = None
         return obs
@@ -75,28 +77,40 @@ class AksEnv(gym.Env):
             # 买入股票
             buy_total = int(self.balance / price)
             buy_amount = int(buy_total * action_percent)
-            raw_amount = buy_amount * price
-            commission = raw_amount * AppConfig.rl_env_params['buy_commission_rate']
-            amount = raw_amount + commission
-            # 更新账户信息
-            self.balance -= amount
-            self.position += buy_amount
-            self.net_value = self.balance + self.position * price
-            print('    买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}'.format(
-                buy_amount, amount, self.balance, self.position, self.net_value
-            ))
+            delta = 0
+            if buy_amount * price*(1+AppConfig.rl_env_params['buy_commission_rate']) > self.balance:
+                for delta in range(buy_amount):
+                    if (buy_amount-delta)*price*(1+AppConfig.rl_env_params['buy_commission_rate']) < self.balance:
+                        break
+            buy_amount -= delta
+            if buy_amount < 10:
+                print('    持有（忽略买入指令）')
+            else:
+                raw_amount = buy_amount * price
+                commission = raw_amount * AppConfig.rl_env_params['buy_commission_rate']
+                amount = raw_amount + commission
+                # 更新账户信息
+                self.balance -= amount
+                self.position += buy_amount
+                self.net_value = self.balance + self.position * price
+                print('    买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}; buy_total={5}; price={6};'.format(
+                    buy_amount, amount, self.balance, self.position, self.net_value, buy_total, price
+                ))
         elif action_type < 2:
             sell_amount = int(self.position * action_percent)
-            raw_amount = sell_amount * price
-            commission = raw_amount * AppConfig.rl_env_params['sell_commission_rate']
-            amount = raw_amount - commission
-            # 更新账户信息
-            self.balance += amount
-            self.position -= sell_amount
-            self.net_value = self.balance + self.position * price
-            print('    卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
-                sell_amount, amount, self.balance, self.position, self.net_value
-            ))
+            if sell_amount < 10:
+                print('    持有（忽略卖出指令）')
+            else:
+                raw_amount = sell_amount * price
+                commission = raw_amount * AppConfig.rl_env_params['sell_commission_rate']
+                amount = raw_amount - commission
+                # 更新账户信息
+                self.balance += amount
+                self.position -= sell_amount
+                self.net_value = self.balance + self.position * price
+                print('    卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
+                    sell_amount, amount, self.balance, self.position, self.net_value
+                ))
         else:
             print('    持有')
 

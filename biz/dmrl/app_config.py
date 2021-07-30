@@ -24,6 +24,6 @@ class AppConfig(object):
     rl_env_params = {
         'initial_balance': 100000.0, # 初始资金为10万元
         'initial_position': 0, # 初始仓位为空
-        'buy_commission_rate': 0.005, # 千5的交易成本
-        'sell_commission_rate': 0.005
+        'buy_commission_rate': 0.003, # 千5的交易成本
+        'sell_commission_rate': 0.003
     }

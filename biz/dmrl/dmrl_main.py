@@ -4,6 +4,7 @@ import torch
 from biz.dmrl.maml_app import MamlApp
 from biz.dmrl.aks_env import AksEnv
 from biz.dmrl.aks_util import AksUtil
+from biz.dmrl.iqtt.iqtt_app import IqttApp
 
 class DmrlMain(object):
     def __init__(self):
@@ -11,8 +12,7 @@ class DmrlMain(object):
 
     def startup(self, args={}):
         print("元强化学习量化交易系统 v0.0.1")
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        mode = 1 # 1-模型训练；2-模型快速学习；3-模型运行
+        mode = 4 # 1-模型训练；2-模型快速学习；3-模型运行
         app = MamlApp()
         if 1 == mode:
             app.startup(mode=MamlApp.R_M_TRAIN)
@@ -20,8 +20,12 @@ class DmrlMain(object):
             app.startup(mode=MamlApp.R_M_RUN_ADAPT_PROCESS)
         elif 3 == mode:
             self.run_model(app=app)
+        elif 4 == mode:
+            app = IqttApp()
+            app.startup()
 
     def run_model(self, app):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = app.reset()
         model.eval()
         stock_symbol = 'sh600260'

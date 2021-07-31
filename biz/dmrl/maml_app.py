@@ -48,7 +48,7 @@ class MamlApp(object):
         inner_lr = 0.4
         meta_lr = 0.001
         meta_batch_size = 8 #32
-        max_epoch = 2 #40
+        max_epoch = 30 #40
         eval_batches = 20
         #Xs, ys = self.load_ds_from_txt(stock_symbols)
         train_loaders, train_iters = [], []

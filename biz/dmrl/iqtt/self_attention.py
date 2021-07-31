@@ -18,9 +18,20 @@ class SelfAttention(nn.Module):
         self.heads = heads
         self.mask = mask
         self.tokeys = nn.Linear(emb, emb * heads, bias=False)
+        self._set_iqtt_weights(self.tokeys) # 限定过去对未来有影响，未来对过去无影响
         self.toqueries = nn.Linear(emb, emb * heads, bias=False)
+        self._set_iqtt_weights(self.toqueries)
         self.tovalues = nn.Linear(emb, emb * heads, bias=False)
+        self._set_iqtt_weights(self.tovalues)
         self.unifyheads = nn.Linear(heads * emb, emb)
+
+    def _set_iqtt_weights(self, linear_layer):
+        org_weight = linear_layer.weight
+        ws = []
+        for i in range(self.heads):
+            w = torch.triu(org_weight[i*self.emb : (i+1)*self.emb])
+            ws.append(w)
+        linear_layer.weight = nn.Parameter(torch.cat(([x for x in ws]), dim=0))
 
     def forward(self, x):
         b, t, e = x.size()

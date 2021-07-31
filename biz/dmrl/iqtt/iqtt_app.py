@@ -9,6 +9,6 @@ class IqttApp(object):
     def startup(self, args={}):
         print('Iching Quantitative Trading Transformer v0.0.1')
         sa = SelfAttention(emb=5, heads=2, mask=False)
-        x = torch.rand(8, 10, 5)
+        x = torch.rand(8, 12, 5)
         y = sa(x)
         print('x: {0}; y: {1};'.format(x.shape, y.shape))

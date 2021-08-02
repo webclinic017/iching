@@ -14,6 +14,7 @@ class IqttApp(object):
 
     def parse_args(self):
         parser = ArgumentParser()
+        parser.add_argument('--mode', dest='run_mode', default='bizdmrl', type=str)
         parser.add_argument("-e", "--num-epochs",
                         dest="num_epochs",
                         help="Number of epochs.",

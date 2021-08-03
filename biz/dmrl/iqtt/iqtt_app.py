@@ -1,16 +1,101 @@
 # 
+import math
 from argparse import ArgumentParser
+import tqdm
 import torch
+from torch import nn
+import torch.nn.functional as F
+import torchtext
+from torchtext.legacy import data, datasets, vocab
 from biz.dmrl.iqtt.self_attention import SelfAttention
+from biz.dmrl.iqtt.iqtt_util import IqttUtil
+from biz.dmrl.iqtt.iqtt_transformer import IqttTransformer
 
 class IqttApp(object):
     def __init__(self):
         self.name = 'biz.dmrl.iqtt.iqtt_app.IqttApp'
 
     def startup(self, args={}):
-        print('Iching Quantitative Trading Transformer v0.0.1')
+        print('Iching Quantitative Trading Transformer v0.0.2')
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
+        # Used for converting between nats and bits
+        LOG2E = math.log2(math.e)
+        TEXT = torchtext.legacy.data.Field(lower=True, include_lengths=True, batch_first=True)
+        LABEL = torchtext.legacy.data.Field(sequential=False)
+        NUM_CLS = 2
+        #tbw = SummaryWriter(log_dir=cmd_args.tb_dir) # Tensorboard logging
+        # load the IMDB data
+        if cmd_args.final:
+            train, test = datasets.IMDB.splits(TEXT, LABEL)
+            TEXT.build_vocab(train, max_size=cmd_args.vocab_size - 2)
+            LABEL.build_vocab(train)
+            train_iter, test_iter = data.BucketIterator.splits((train, test), batch_size=cmd_args.batch_size, device=IqttUtil.d())
+        else:
+            tdata, _ = datasets.IMDB.splits(TEXT, LABEL)
+            train, test = tdata.split(split_ratio=0.8)
+            TEXT.build_vocab(train, max_size=cmd_args.vocab_size - 2) # - 2 to make space for <unk> and <pad>
+            LABEL.build_vocab(train)
+            train_iter, test_iter = data.BucketIterator.splits((train, test), batch_size=cmd_args.batch_size, device=IqttUtil.d())
+        print(f'- nr. of training examples {len(train_iter)}')
+        print(f'- nr. of {"test" if cmd_args.final else "validation"} examples {len(test_iter)}')
+        if cmd_args.max_length < 0:
+            mx = max([input.text[0].size(1) for input in train_iter])
+            mx = mx * 2
+            print(f'- maximum sequence length: {mx}')
+        else:
+            mx = cmd_args.max_length
+        # create the model
+        model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=mx, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                    max_pool=cmd_args.max_pool)
+        if torch.cuda.is_available():
+            model.cuda()
+        opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
+        sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
+        # training loop
+        seen = 0
+        for e in range(cmd_args.num_epochs):
+            print(f'\n epoch {e}')
+            model.train(True)
+            for batch in tqdm.tqdm(train_iter):
+                opt.zero_grad()
+                input = batch.text[0]
+                label = batch.label - 1
+                if input.size(1) > mx:
+                    input = input[:, :mx]
+                out = model(input)
+                loss = F.nll_loss(out, label)
+                loss.backward()
+                # clip gradients
+                # - If the total gradient vector has a length > 1, we clip it back down to 1.
+                if cmd_args.gradient_clipping > 0.0:
+                    nn.utils.clip_grad_norm_(model.parameters(), cmd_args.gradient_clipping)
+                opt.step()
+                sch.step()
+                seen += input.size(0)
+                #tbw.add_scalar('classification/train-loss', float(loss.item()), seen)
+            with torch.no_grad():
+                model.train(False)
+                tot, cor= 0.0, 0.0
+                for batch in test_iter:
+                    input = batch.text[0]
+                    label = batch.label - 1
+                    if input.size(1) > mx:
+                        input = input[:, :mx]
+                    out = model(input).argmax(dim=1)
+                    tot += float(input.size(0))
+                    cor += float((label == out).sum().item())
+                acc = cor / tot
+                print(f'-- {"test" if cmd_args.final else "validation"} accuracy {acc:.3}')
+                #tbw.add_scalar('classification/test-loss', float(loss.item()), e)
+
+
+
+
+
+
+
 
     def parse_args(self):
         parser = ArgumentParser()

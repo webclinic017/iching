@@ -38,10 +38,10 @@ class IqttTransformer(nn.Module):
         :param x: A batch by sequence length integer tensor of token indices.
         :return: predicted log-probability vectors for each token based on the preceding tokens.
         """
-        tokens = self.token_embedding(x)
-        b, t, e = tokens.size()
-        positions = self.pos_embedding(torch.arange(t, device=IqttUtil.d()))[None, :, :].expand(b, t, e)
-        x = tokens + positions
+        #tokens = self.token_embedding(x)
+        #b, t, e = tokens.size()
+        #positions = self.pos_embedding(torch.arange(t, device=IqttUtil.d()))[None, :, :].expand(b, t, e)
+        #x = tokens + positions
         x = self.do(x)
         x = self.tblocks(x)
         x = x.max(dim=1)[0] if self.max_pool else x.mean(dim=1) # pool over the time dimension

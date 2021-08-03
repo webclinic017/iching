@@ -11,8 +11,10 @@ class AksDs(Dataset):
     DS_MODE_VAL = 2
     DS_MODE_TEST = 3
 
-    def __init__(self, stock_symbol, ds_mode=0, train_rate=0.0, val_rate=0.0, test_rate=0.0):
+    def __init__(self, stock_symbol, seq_length=10, embedding_size=5, ds_mode=0, train_rate=0.0, val_rate=0.0, test_rate=0.0):
         self.name = 'apps.dmrl.maml.aks_ds.AksDs'
+        self.seq_length = seq_length
+        self.embedding_size = embedding_size
         X_raw, y_raw = self.load_ds_from_txt(stock_symbol=stock_symbol)
         if ds_mode == AksDs.DS_MODE_FULL: # 全部数据集
             self.X, self.y = X_raw, y_raw
@@ -34,7 +36,7 @@ class AksDs(Dataset):
         return self.X.shape[0]
 
     def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+        return self.X[idx].reshape(self.seq_length, self.embedding_size), self.y[idx]
 
     
     def load_ds_from_txt(self, stock_symbol):
@@ -46,3 +48,14 @@ class AksDs(Dataset):
         y_file = './data/aks_ds/{0}_y.txt'.format(stock_symbol)
         y = np.loadtxt(y_file, delimiter=',', encoding='utf-8')
         return X, y
+
+    @staticmethod
+    def preprocess_ds(stock_symbol):
+        ds_file = './data/aks_ds/{0}_X.txt'.format(stock_symbol)
+        tds_file = './data/aks_ds/{0}_X_t.txt'.format(stock_symbol)
+        with open(tds_file, 'w', encoding='utf-8') as wfd:
+            with open(ds_file, 'r', encoding='utf-8') as fd:
+                for row in fd:
+                    row = row.strip()
+                    arrs = row.split(',')
+                    wfd.write('{0},{1},{2},{3},{4}\n'.format(arrs[-5], arrs[-4], arrs[-3], arrs[-2], arrs[-1]))

@@ -7,9 +7,11 @@ from torch import nn
 import torch.nn.functional as F
 import torchtext
 from torchtext.legacy import data, datasets, vocab
+from torch.utils.data import DataLoader
 from biz.dmrl.iqtt.self_attention import SelfAttention
 from biz.dmrl.iqtt.iqtt_util import IqttUtil
 from biz.dmrl.iqtt.iqtt_transformer import IqttTransformer
+from biz.dmrl.iqtt.aks_ds import AksDs
 
 class IqttApp(object):
     def __init__(self):
@@ -17,6 +19,22 @@ class IqttApp(object):
 
     def startup(self, args={}):
         print('Iching Quantitative Trading Transformer v0.0.2')
+        stock_symbol = 'sh600260'
+        batch_size = 8
+        t1_ds = AksDs(stock_symbol, \
+                    ds_mode=AksDs.DS_MODE_TEST, train_rate=0.98, val_rate=0.0, test_rate=0.02)
+        t1_loader = DataLoader(
+            t1_ds,
+            batch_size = batch_size,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        t1_iter = iter(t1_loader)
+        for Xs, ys in t1_iter:
+            print('Xs: {0}; ys: {1};'.format(Xs.shape, ys.shape))
+
+        exit(0)
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
         # Used for converting between nats and bits

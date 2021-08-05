@@ -9,8 +9,10 @@ class IqttTransformer(nn.Module):
     """
     Transformer for classifying sequences
     """
+    MODE_IMDB = 1
+    MODE_IQT = 2
 
-    def __init__(self, emb, heads, depth, seq_length, num_tokens, num_classes, max_pool=True, dropout=0.0, wide=False):
+    def __init__(self, emb, heads, depth, seq_length, num_tokens, num_classes, max_pool=True, dropout=0.0, wide=False, mode=1):
         """
         :param emb: Embedding dimension
         :param heads: nr. of attention heads
@@ -22,6 +24,7 @@ class IqttTransformer(nn.Module):
                          average pooling.
         """
         super().__init__()
+        self.mode = mode
         self.num_tokens, self.max_pool = num_tokens, max_pool
         self.token_embedding = nn.Embedding(embedding_dim=emb, num_embeddings=num_tokens)
         self.pos_embedding = nn.Embedding(embedding_dim=emb, num_embeddings=seq_length)
@@ -38,10 +41,11 @@ class IqttTransformer(nn.Module):
         :param x: A batch by sequence length integer tensor of token indices.
         :return: predicted log-probability vectors for each token based on the preceding tokens.
         """
-        #tokens = self.token_embedding(x)
-        #b, t, e = tokens.size()
-        #positions = self.pos_embedding(torch.arange(t, device=IqttUtil.d()))[None, :, :].expand(b, t, e)
-        #x = tokens + positions
+        if IqttTransformer.MODE_IMDB == self.mode:
+            tokens = self.token_embedding(x)
+            b, t, e = tokens.size()
+            positions = self.pos_embedding(torch.arange(t, device=IqttUtil.d()))[None, :, :].expand(b, t, e)
+            x = tokens + positions
         x = self.do(x)
         x = self.tblocks(x)
         x = x.max(dim=1)[0] if self.max_pool else x.mean(dim=1) # pool over the time dimension

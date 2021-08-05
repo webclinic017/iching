@@ -15,42 +15,30 @@ from biz.dmrl.iqtt.iqtt_transformer import IqttTransformer
 from biz.dmrl.iqtt.aks_ds import AksDs
 
 class IqttApp(object):
+    DSM_IMDB = 'imdb'
+    DSM_STOCK = 'stock'
+
     def __init__(self):
         self.name = 'biz.dmrl.iqtt.iqtt_app.IqttApp'
+        self.ds_mode = 'IMDB'
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    def startup(self, args={}):
-        print('Iching Quantitative Trading Transformer v0.0.2')
-        stock_symbol = 'sh600260'
-        batch_size = 8
-        train_ds = AksDs(stock_symbol, \
-                    ds_mode=AksDs.DS_MODE_TRAIN, train_rate=0.98, val_rate=0.0, test_rate=0.02)
-        train_loader = DataLoader(
-            train_ds,
-            batch_size = batch_size,
-            num_workers = 0,
-            shuffle = True,
-            drop_last = True
-        )
-        train_iter = iter(train_loader)
-        test_ds = AksDs(stock_symbol, \
-                    ds_mode=AksDs.DS_MODE_TEST, train_rate=0.98, val_rate=0.0, test_rate=0.02)
-        test_loader = DataLoader(
-            test_ds,
-            batch_size = batch_size,
-            num_workers = 0,
-            shuffle = True,
-            drop_last = True
-        )
-        test_iter = iter(test_loader)
-        cmd_args = self.parse_args()
-        print('command line args: {0};'.format(cmd_args))
-        '''
+    def load_dataset(self, ds_mode):
+        if IqttApp.DSM_IMDB == ds_mode:
+            return self.load_imdb_dataset()
+        elif IqttApp.DSM_STOCK == ds_mode:
+            return self.load_stock_dataset()
+        else:
+            print('未知数据源')
+            exit(0)
+
+    def load_imdb_dataset(self, cmd_args):
         # Used for converting between nats and bits
         LOG2E = math.log2(math.e)
         TEXT = torchtext.legacy.data.Field(lower=True, include_lengths=True, batch_first=True)
         LABEL = torchtext.legacy.data.Field(sequential=False)
         NUM_CLS = 2
+        
         #tbw = SummaryWriter(log_dir=cmd_args.tb_dir) # Tensorboard logging
         # load the IMDB data
         if cmd_args.final:
@@ -72,16 +60,54 @@ class IqttApp(object):
             print(f'- maximum sequence length: {mx}')
         else:
             mx = cmd_args.max_length
-        '''
+        seq_length = mx
+        return train_iter, test_iter, NUM_CLS, seq_length, mx
+
+    def load_stock_dataset(self, cmd_args):
+        stock_symbol = 'sh600260'
+        batch_size = 8
+        train_ds = AksDs(stock_symbol, \
+                    ds_mode=AksDs.DS_MODE_TRAIN, train_rate=0.1, val_rate=0.0, test_rate=0.02)
+        train_loader = DataLoader(
+            train_ds,
+            batch_size = batch_size,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        train_iter = iter(train_loader)
+        #test_ds = AksDs(stock_symbol, \
+        #            ds_mode=AksDs.DS_MODE_TEST, train_rate=0.98, val_rate=0.0, test_rate=0.02)
+        test_ds = AksDs(stock_symbol, \
+                    ds_mode=AksDs.DS_MODE_TRAIN, train_rate=0.1, val_rate=0.0, test_rate=0.02)
+        test_loader = DataLoader(
+            test_ds,
+            batch_size = batch_size,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        test_iter = iter(test_loader)
         NUM_CLS = 3
         cmd_args.embedding_size = 5
         seq_length = 10
-        cmd_args.num_heads = 2
-        cmd_args.depth = 3
+        cmd_args.num_heads = 4
+        cmd_args.depth = 2
+        mx = cmd_args.embedding_size
+        return train_iter, test_iter, NUM_CLS, seq_length, mx
+
+    def startup(self, args={}):
+        print('Iching Quantitative Trading Transformer v0.0.2')
+        cmd_args = self.parse_args()
+        print('command line args: {0};'.format(cmd_args))
+        train_iter, test_iter, NUM_CLS, seq_length, mx = self.load_imdb_dataset(cmd_args)
         # create the model
-        model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
-                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
-                    max_pool=cmd_args.max_pool)
+        model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
+                    depth=cmd_args.depth, seq_length=mx, num_tokens=cmd_args.vocab_size, \
+                    num_classes=NUM_CLS, max_pool=cmd_args.max_pool)
+        #model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+        #            seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+        #            max_pool=cmd_args.max_pool, mode=IqttTransformer.MODE_IQT)
         #if torch.cuda.is_available():
         #    model.cuda()
         model.to(self.device)
@@ -89,17 +115,16 @@ class IqttApp(object):
         sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
         # training loop
         seen = 0
-        mx = cmd_args.embedding_size
         for e in range(cmd_args.num_epochs):
             print(f'\n epoch {e}')
             model.train(True)
-            #for batch in tqdm.tqdm(train_iter):
-            for input, label in tqdm.tqdm(train_iter):
+            for batch in tqdm.tqdm(train_iter):
+            #for input, label in tqdm.tqdm(train_iter):
                 opt.zero_grad()
-                input = input.float().to(self.device)
-                label = label.long().to(self.device)
-                #input = batch.text[0]
-                #label = batch.label - 1
+                #input = input.float().to(self.device)
+                #label = label.long().to(self.device)
+                input = batch.text[0]
+                label = batch.label - 1
                 if input.size(1) > mx:
                     input = input[:, :mx]
                 out = model(input)
@@ -113,16 +138,16 @@ class IqttApp(object):
                 sch.step()
                 seen += input.size(0)
                 #tbw.add_scalar('classification/train-loss', float(loss.item()), seen)
-            train_iter = iter(train_loader)
+            #train_iter = iter(train_loader)
             with torch.no_grad():
                 model.train(False)
                 tot, cor= 0.0, 0.0                
-                for input, label in tqdm.tqdm(test_iter):
-                    input = input.float().to(self.device)
-                    label = label.long().to(self.device)
-                #for batch in test_iter:
-                #    input = batch.text[0]
-                #    label = batch.label - 1
+                #for input, label in tqdm.tqdm(test_iter):
+                #    input = input.float().to(self.device)
+                #    label = label.long().to(self.device)
+                for batch in test_iter:
+                    input = batch.text[0]
+                    label = batch.label - 1
                     if input.size(1) > mx:
                         input = input[:, :mx]
                     out = model(input).argmax(dim=1)
@@ -131,7 +156,7 @@ class IqttApp(object):
                 acc = cor / tot
                 print(f'-- {"test" if cmd_args.final else "validation"} accuracy {acc:.3}')
                 #tbw.add_scalar('classification/test-loss', float(loss.item()), e)
-            test_iter = iter(test_loader)
+            #test_iter = iter(test_loader)
 
 
 

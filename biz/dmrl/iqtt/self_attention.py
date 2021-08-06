@@ -3,10 +3,11 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+from biz.dmrl.iqtt.iqtt_config import IqttConfig
 from biz.dmrl.iqtt.iqtt_util import IqttUtil
 
 class SelfAttention(nn.Module):
-    def __init__(self, emb, heads=2, mask=False):
+    def __init__(self, emb, heads=2, mask=False, task_mode=1):
         '''
         参数：
             emb 输入向量维度
@@ -17,12 +18,14 @@ class SelfAttention(nn.Module):
         self.emb = emb
         self.heads = heads
         self.mask = mask
+        self.task_mode = task_mode
         self.tokeys = nn.Linear(emb, emb * heads, bias=False)
-        self._set_iqtt_weights(self.tokeys) # 限定过去对未来有影响，未来对过去无影响
         self.toqueries = nn.Linear(emb, emb * heads, bias=False)
-        self._set_iqtt_weights(self.toqueries)
         self.tovalues = nn.Linear(emb, emb * heads, bias=False)
-        self._set_iqtt_weights(self.tovalues)
+        if IqttConfig.TASK_MODE_TS == self.task_mode:
+            self._set_iqtt_weights(self.tokeys) # 限定过去对未来有影响，未来对过去无影响
+            self._set_iqtt_weights(self.toqueries)
+            self._set_iqtt_weights(self.tovalues)
         self.unifyheads = nn.Linear(heads * emb, emb)
 
     def _set_iqtt_weights(self, linear_layer):

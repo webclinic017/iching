@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torchtext
 from torchtext.legacy import data, datasets, vocab
 from torch.utils.data import DataLoader
+from biz.dmrl.iqtt.iqtt_config import IqttConfig
 from biz.dmrl.iqtt.self_attention import SelfAttention
 from biz.dmrl.iqtt.iqtt_util import IqttUtil
 from biz.dmrl.iqtt.iqtt_transformer import IqttTransformer
@@ -23,32 +24,49 @@ class IqttApp(object):
         self.ds_mode = 'IMDB'
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    def get_stock_batch_sample(self, batch, mx):
+        X = batch[0].float().to(self.device)
+        y = batch[1].long().to(self.device)
+        return X, y
+
+    def get_imdb_batch_sample(self, batch, mx):
+        X = batch.text[0]
+        y = batch.label - 1
+        if X.size(1) > mx:
+            X = X[:, :mx]
+        return X, y
+
+    def build_stock_model(self, cmd_args, seq_length, num_classes):
+        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
+                    max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
+
+    def build_imdb_model(self, cmd_args, seq_length, num_classes):
+        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
+                    depth=cmd_args.depth, seq_length=seq_length, num_tokens=cmd_args.vocab_size, \
+                    num_classes=num_classes, max_pool=cmd_args.max_pool)
+
     def startup(self, args={}):
         print('Iching Quantitative Trading Transformer v0.0.2')
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
-        cmd_args.num_epochs = 1000
-
-
-        
+        # 设置运行环境
+        # IMDB dataset
+        '''
+        load_dataset = self.load_imdb_dataset
+        build_model = self.build_imdb_model
+        get_batch_sample = self.get_imdb_batch_sample
+        '''
+        # Stock dataset
+        load_dataset = self.load_stock_dataset
+        build_model = self.build_stock_model
+        get_batch_sample = self.get_stock_batch_sample
+        # 设置系统参数
+        cmd_args.num_epochs = 2
         cmd_args.num_heads = 8
         cmd_args.depth = 6
-
-
-
-        # M1
-        # train_iter, test_iter, NUM_CLS, seq_length, mx = self.load_imdb_dataset(cmd_args)
-        train_iter, test_iter, NUM_CLS, seq_length, mx = self.load_stock_dataset(cmd_args)
-        # M2
-        # create the model
-        #model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
-        #            depth=cmd_args.depth, seq_length=mx, num_tokens=cmd_args.vocab_size, \
-        #            num_classes=NUM_CLS, max_pool=cmd_args.max_pool)
-        model = IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
-                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
-                    max_pool=cmd_args.max_pool, mode=IqttTransformer.MODE_IQT)
-        #if torch.cuda.is_available():
-        #    model.cuda()
+        train_iter, test_iter, NUM_CLS, seq_length, mx = load_dataset(cmd_args)
+        model = build_model(cmd_args, seq_length, NUM_CLS)
         model.to(self.device)
         opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
         sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
@@ -57,17 +75,9 @@ class IqttApp(object):
         for e in range(cmd_args.num_epochs):
             print(f'\n epoch {e}')
             model.train(True)
-            # M3
-            #for batch in tqdm.tqdm(train_iter):
-            for X, y in tqdm.tqdm(train_iter):
+            for batch in tqdm.tqdm(train_iter):
                 opt.zero_grad()
-                # M4
-                X = X.float().to(self.device)
-                y = y.long().to(self.device)
-                #X = batch.text[0]
-                #y = batch.label - 1
-                if X.size(1) > mx:
-                    X = X[:, :mx]
+                X, y = get_batch_sample(batch, mx)
                 y_hat = model(X)
                 loss = F.nll_loss(y_hat, y)
                 loss.backward()
@@ -80,16 +90,9 @@ class IqttApp(object):
                 seen += X.size(0)
             with torch.no_grad():
                 model.train(False)
-                tot, cor= 0.0, 0.0  
-                # M5              
-                for X, y in tqdm.tqdm(test_iter):
-                    X = X.float().to(self.device)
-                    y = y.long().to(self.device)
-                #for batch in test_iter:
-                #    X = batch.text[0]
-                #    Y = batch.label - 1
-                    if X.size(1) > mx:
-                        X = X[:, :mx]
+                tot, cor= 0.0, 0.0 
+                for batch in tqdm.tqdm(test_iter):
+                    X, y = get_batch_sample(batch, mx)
                     y_hat = model(X).argmax(dim=1)
                     tot += float(X.size(0))
                     cor += float((y == y_hat).sum().item())

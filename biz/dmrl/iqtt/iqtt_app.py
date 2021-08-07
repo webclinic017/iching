@@ -27,47 +27,25 @@ class IqttApp(object):
 
     def startup(self, args={}):
         print('Iching Quantitative Trading Transformer v0.0.2')
-        args['continue'] = True
-        self.train(args)
-
-    
-
-    def build_stock_model(self, cmd_args, seq_length, num_classes):
-        # 设置系统参数
-        cmd_args.num_heads = 8
-        cmd_args.depth = 6
-        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
-                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
-                    max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
-
-    def build_imdb_model(self, cmd_args, seq_length, num_classes):
-        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
-                    depth=cmd_args.depth, seq_length=seq_length, num_tokens=cmd_args.vocab_size, \
-                    num_classes=num_classes, max_pool=cmd_args.max_pool) 
+        #args['continue'] = True
+        #self.train(args)
+        self.predict()
 
     def predict(self):
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
-        model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env()
+        model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env(cmd_args)
         model.to(self.device)
         e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
         model.load_state_dict(model_dict)
-
-    def load_env(self, cmd_args):
-        # 设置运行环境
-        # IMDB dataset
-        '''
-        load_dataset = self.load_imdb_dataset
-        build_model = self.build_imdb_model
-        get_batch_sample = self.get_imdb_batch_sample
-        '''
-        # Stock dataset
-        load_dataset = self.load_stock_dataset
-        build_model = self.build_stock_model
-        get_batch_sample = self.get_stock_batch_sample
-        train_iter, test_iter, NUM_CLS, seq_length, mx = load_dataset(cmd_args)
-        model = build_model(cmd_args, seq_length, NUM_CLS)
-        return model, train_iter, test_iter, get_batch_sample, mx
+        # 获取测试样本
+        batch = iter(test_iter).next()
+        batch_X, batch_y = get_batch_sample(batch, max_seq_length)
+        X = batch_X[:1, :, :]
+        y = batch_y[:1]
+        print('X: {0}; y: {1};'.format(X.shape, y.shape))
+        y_hat = model(X).argmax(dim=1)
+        print('y_hat: {0}; y: {1};'.format(y_hat.item(), y.item()))
 
     def train(self, args={}):
         cmd_args = self.parse_args()
@@ -284,6 +262,35 @@ class IqttApp(object):
         if X.size(1) > mx:
             X = X[:, :mx]
         return X, y
+        
+    def build_stock_model(self, cmd_args, seq_length, num_classes):
+        # 设置系统参数
+        cmd_args.num_heads = 8
+        cmd_args.depth = 6
+        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
+                    max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
+
+    def build_imdb_model(self, cmd_args, seq_length, num_classes):
+        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
+                    depth=cmd_args.depth, seq_length=seq_length, num_tokens=cmd_args.vocab_size, \
+                    num_classes=num_classes, max_pool=cmd_args.max_pool) 
+
+    def load_env(self, cmd_args):
+        # 设置运行环境
+        # IMDB dataset
+        '''
+        load_dataset = self.load_imdb_dataset
+        build_model = self.build_imdb_model
+        get_batch_sample = self.get_imdb_batch_sample
+        '''
+        # Stock dataset
+        load_dataset = self.load_stock_dataset
+        build_model = self.build_stock_model
+        get_batch_sample = self.get_stock_batch_sample
+        train_iter, test_iter, NUM_CLS, seq_length, mx = load_dataset(cmd_args)
+        model = build_model(cmd_args, seq_length, NUM_CLS)
+        return model, train_iter, test_iter, get_batch_sample, mx
 
 
 

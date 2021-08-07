@@ -23,20 +23,19 @@ class IqttApp(object):
         self.name = 'biz.dmrl.iqtt.iqtt_app.IqttApp'
         self.ds_mode = 'IMDB'
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.ckpt_file = './work/iqtt_v1.ckpt'
 
-    def get_stock_batch_sample(self, batch, mx):
-        X = batch[0].float().to(self.device)
-        y = batch[1].long().to(self.device)
-        return X, y
+    def startup(self, args={}):
+        print('Iching Quantitative Trading Transformer v0.0.2')
+        args['continue'] = True
+        self.train(args)
 
-    def get_imdb_batch_sample(self, batch, mx):
-        X = batch.text[0]
-        y = batch.label - 1
-        if X.size(1) > mx:
-            X = X[:, :mx]
-        return X, y
+    
 
     def build_stock_model(self, cmd_args, seq_length, num_classes):
+        # 设置系统参数
+        cmd_args.num_heads = 8
+        cmd_args.depth = 6
         return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
                     seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
                     max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
@@ -44,12 +43,17 @@ class IqttApp(object):
     def build_imdb_model(self, cmd_args, seq_length, num_classes):
         return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, \
                     depth=cmd_args.depth, seq_length=seq_length, num_tokens=cmd_args.vocab_size, \
-                    num_classes=num_classes, max_pool=cmd_args.max_pool)
+                    num_classes=num_classes, max_pool=cmd_args.max_pool) 
 
-    def startup(self, args={}):
-        print('Iching Quantitative Trading Transformer v0.0.2')
+    def predict(self):
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
+        model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env()
+        model.to(self.device)
+        e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+        model.load_state_dict(model_dict)
+
+    def load_env(self, cmd_args):
         # 设置运行环境
         # IMDB dataset
         '''
@@ -61,23 +65,36 @@ class IqttApp(object):
         load_dataset = self.load_stock_dataset
         build_model = self.build_stock_model
         get_batch_sample = self.get_stock_batch_sample
-        # 设置系统参数
-        cmd_args.num_epochs = 2
-        cmd_args.num_heads = 8
-        cmd_args.depth = 6
         train_iter, test_iter, NUM_CLS, seq_length, mx = load_dataset(cmd_args)
         model = build_model(cmd_args, seq_length, NUM_CLS)
+        return model, train_iter, test_iter, get_batch_sample, mx
+
+    def train(self, args={}):
+        cmd_args = self.parse_args()
+        print('command line args: {0};'.format(cmd_args))
+        model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env(cmd_args)
         model.to(self.device)
         opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
         sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
+        if args['continue']:
+            e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+            model.load_state_dict(model_dict)
+            opt.load_state_dict(optimizer_dict)
         # training loop
+        cmd_args.num_epochs = 2
         seen = 0
-        for e in range(cmd_args.num_epochs):
-            print(f'\n epoch {e}')
+        # early stopping参数
+        best_acc = -1
+        acc_up = 0.0
+        min_acc_up = 0.000001 # 识别为精度提高的最小阈值
+        non_acc_up_epochs = 0 # 目前多少个epoch精度未提高
+        max_no_acc_up_epochs = 50 # 如果精度在这些epoch后还没提高则终止训练过程
+        for epoch in range(cmd_args.num_epochs):
+            print(f'\n epoch {epoch}')
             model.train(True)
             for batch in tqdm.tqdm(train_iter):
                 opt.zero_grad()
-                X, y = get_batch_sample(batch, mx)
+                X, y = get_batch_sample(batch, max_seq_length)
                 y_hat = model(X)
                 loss = F.nll_loss(y_hat, y)
                 loss.backward()
@@ -92,12 +109,37 @@ class IqttApp(object):
                 model.train(False)
                 tot, cor= 0.0, 0.0 
                 for batch in tqdm.tqdm(test_iter):
-                    X, y = get_batch_sample(batch, mx)
+                    X, y = get_batch_sample(batch, max_seq_length)
                     y_hat = model(X).argmax(dim=1)
                     tot += float(X.size(0))
                     cor += float((y == y_hat).sum().item())
                 acc = cor / tot
+                # 获取当前最佳测试集精度，并保存对应的模型
+                if best_acc < acc:
+                    acc_up = acc - best_acc
+                    if acc_up > min_acc_up:
+                        best_acc = acc
+                        non_acc_up_epochs = 0
+                        print('保存模型参数')
+                        self.save_ckpt(self.ckpt_file, epoch, model, opt)
+                else:
+                    non_acc_up_epochs += 1
+                    if non_acc_up_epochs > max_no_acc_up_epochs:
+                        print('模型已经处于饱合状态，停止训练过程')
+                        break
                 print(f'-- {"test" if cmd_args.final else "validation"} accuracy {acc:.3}')
+
+    def save_ckpt(self, ckpt_file, epoch, model, optimizer):
+        data = {
+            'epoch': epoch+1,
+            'model_dict': model.state_dict(),
+            'optimizer_dict': optimizer.state_dict()
+        }
+        torch.save(data, ckpt_file)
+
+    def load_ckpt(self, ckpt_file):
+        ckpt_obj = torch.load(ckpt_file)
+        return ckpt_obj['epoch'], ckpt_obj['model_dict'], ckpt_obj['optimizer_dict']
 
 
 
@@ -230,6 +272,18 @@ class IqttApp(object):
         cmd_args.depth = 2
         mx = cmd_args.embedding_size
         return train_iter, test_iter, NUM_CLS, seq_length, mx
+
+    def get_stock_batch_sample(self, batch, mx):
+        X = batch[0].float().to(self.device)
+        y = batch[1].long().to(self.device)
+        return X, y
+
+    def get_imdb_batch_sample(self, batch, mx):
+        X = batch.text[0]
+        y = batch.label - 1
+        if X.size(1) > mx:
+            X = X[:, :mx]
+        return X, y
 
 
 

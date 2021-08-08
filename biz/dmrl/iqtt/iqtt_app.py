@@ -32,6 +32,9 @@ class IqttApp(object):
         self.predict()
 
     def reset_rl(self):
+        '''
+        强化学习环境Reset中需要调用本函数，初始化模型
+        '''
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))
         self.model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env(cmd_args)
@@ -39,7 +42,10 @@ class IqttApp(object):
         e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
         self.model.load_state_dict(model_dict)
 
-    def step_rl(self, X):
+    def choose_action(self, X):
+        '''
+        强化学习env类的step方法中，需要调用本函数根据行情选择参数, X为(1, 10, 5)格式
+        '''
         y_hat = self.model(X).argmax(dim=1)
         return y_hat.item()
 

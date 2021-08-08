@@ -31,6 +31,18 @@ class IqttApp(object):
         #self.train(args)
         self.predict()
 
+    def reset_rl(self):
+        cmd_args = self.parse_args()
+        print('command line args: {0};'.format(cmd_args))
+        self.model, train_iter, test_iter, get_batch_sample, max_seq_length = self.load_env(cmd_args)
+        self.model.to(self.device)
+        e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+        self.model.load_state_dict(model_dict)
+
+    def step_rl(self, X):
+        y_hat = self.model(X).argmax(dim=1)
+        return y_hat.item()
+
     def predict(self):
         cmd_args = self.parse_args()
         print('command line args: {0};'.format(cmd_args))

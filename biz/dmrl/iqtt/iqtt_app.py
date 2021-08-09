@@ -27,18 +27,33 @@ class IqttApp(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.ckpt_file = './work/iqtt_v1.ckpt'
 
+    def get_model_X(self, obs):
+        return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
+
     def startup(self, args={}):
         print('Iching Quantitative Trading Transformer v0.0.2')
         #args['continue'] = True
         #self.train(args)
         #self.predict()
+        model = self.reset_rl()
         stock_symbol = 'sh600260'
         env = AksEnv(stock_symbol)
-        obs = env.reset()
-        done = False
-        action = env.action_space.sample()
+        obs = env.reset()        
+        done = False 
+        action = env.action_space.sample() 
         while not done:
-            action = env.action_space.sample()
+            X = self.get_model_X(obs)
+            quotation_state = self.get_quotation_state(X)
+            if quotation_state == 0:
+                # 买入
+                action[0] = 0.5
+                action[1] = 1.0
+            elif quotation_state == 1:
+                action[0] = 1.5
+                action[1] = 1.0
+            else:
+                action[0] = 2.5
+                action[1] = 0.5
             obs, reward, done, info = env.step(action)
 
     def reset_rl(self):
@@ -51,8 +66,9 @@ class IqttApp(object):
         self.model.to(self.device)
         e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
         self.model.load_state_dict(model_dict)
+        return self.model
 
-    def choose_action(self, X):
+    def get_quotation_state(self, X):
         '''
         强化学习env类的step方法中，需要调用本函数根据行情选择参数, X为(1, 10, 5)格式
         '''

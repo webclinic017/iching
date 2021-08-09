@@ -9,6 +9,8 @@ import torch.nn.functional as F
 import torchtext
 from torchtext.legacy import data, datasets, vocab
 from torch.utils.data import DataLoader
+#
+from biz.dmrl.aks_env import AksEnv
 from biz.dmrl.iqtt.iqtt_config import IqttConfig
 from biz.dmrl.iqtt.self_attention import SelfAttention
 from biz.dmrl.iqtt.iqtt_util import IqttUtil
@@ -29,7 +31,15 @@ class IqttApp(object):
         print('Iching Quantitative Trading Transformer v0.0.2')
         #args['continue'] = True
         #self.train(args)
-        self.predict()
+        #self.predict()
+        stock_symbol = 'sh600260'
+        env = AksEnv(stock_symbol)
+        obs = env.reset()
+        done = False
+        action = env.action_space.sample()
+        while not done:
+            action = env.action_space.sample()
+            obs, reward, done, info = env.step(action)
 
     def reset_rl(self):
         '''

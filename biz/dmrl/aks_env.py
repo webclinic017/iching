@@ -5,11 +5,22 @@ from gym import spaces
 from torch.utils.data import DataLoader
 from biz.dmrl.app_config import AppConfig
 from biz.dmrl.market import Market
+from biz.dmrl.iqtt.iqtt_text_render import IqttTextRender
+from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
 
 class AksEnv(gym.Env):
-    def __init__(self, stock_symbol):
+    RENDER_MODE_TEXT = 'text'
+    RENDER_MODE_HUMAN = 'human'
+
+    def __init__(self, stock_symbol, mode='human'):
         super(AksEnv, self).__init__()
         self.stock_symbol = stock_symbol
+        if AksEnv.RENDER_MODE_TEXT == mode:
+            self.renderer = IqttTextRender()
+        elif AksEnv.RENDER_MODE_HUMAN == mode:
+            self.renderer = IqttHumanRender()
+        else:
+            self.renderer = IqttTextRender()
         self.market = Market(stock_symbol)
         # self.aks_iter.next() raise StopIteration exception when end
         self.batch_size = 1
@@ -50,11 +61,18 @@ class AksEnv(gym.Env):
         self.current_step += 1
         return self.obs, reward, done, info
 
-    def render(self, mode='human'):
-        print('{0}：bar({1}, {2}, {3}, {4}), state=(余额：{5}, 仓位：{6}, 净值：{7})'.format(
-            self.current_step, self.obs[0][50], self.obs[0][51], self.obs[0][52], self.obs[0][53],
-            self.balance, self.position, self.net_value
-        ))
+    def render(self):
+        '''
+        显示交易信息，mode=text时将信息打印到后台窗口；mode=human以Matplotlib动画方式显示
+        '''
+        trades = {}
+        trades['info'] = {}
+        trades['info']['current_step'] = self.current_step
+        trades['info']['balance'] = self.balance
+        trades['info']['position'] = self.position
+        trades['info']['net_value'] = self.net_value
+        trades['obs'] = self.obs
+        self.renderer.render(trades)
 
 
     def _next_obs(self):

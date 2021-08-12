@@ -17,6 +17,10 @@ from biz.dmrl.iqtt.iqtt_util import IqttUtil
 from biz.dmrl.iqtt.iqtt_transformer import IqttTransformer
 from biz.dmrl.iqtt.aks_ds import AksDs
 
+
+
+from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
+
 class IqttApp(object):
     DSM_IMDB = 'imdb'
     DSM_STOCK = 'stock'
@@ -31,6 +35,11 @@ class IqttApp(object):
         return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
 
     def startup(self, args={}):
+        i_debug = 1
+        if 1 == i_debug:
+            render = IqttHumanRender()
+            render.exp()
+            return
         print('Iching Quantitative Trading Transformer v0.0.2')
         #args['continue'] = True
         #self.train(args)

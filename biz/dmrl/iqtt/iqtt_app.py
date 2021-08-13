@@ -38,7 +38,7 @@ class IqttApp(object):
 
     def t(self):
         print('test')
-        
+
     def startup(self, args={}):
         stock_symbol = 'sh600260'
         #args['continue'] = True
@@ -63,6 +63,8 @@ class IqttApp(object):
                 action[0] = 2.5
                 action[1] = 0.5
             obs, reward, done, info = env.step(action)
+            if env.current_step > 50:
+                done = True
 
     def reset_rl(self):
         '''

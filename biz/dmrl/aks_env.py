@@ -26,7 +26,7 @@ class AksEnv(gym.Env):
             self.renderer = IqttHumanRender()
         else:
             self.renderer = IqttTextRender()
-        self.window_size = 40 # 绘制40个交易日的图像
+        self.window_size = 50 # 绘制50个交易日的图像
         self.trades = {}
         # 初始化交易历史信息
         self.trades['current_step'] = 1
@@ -108,7 +108,7 @@ class AksEnv(gym.Env):
         self.trades['quant'] = self.quant
         self.trades['net_value'] = self.net_value
         # 历史信息
-        self.shift_append(self.window_size, self.trades['trade_dates'], self.market.get_trade_date(self.current_step))
+        self.shift_append(self.window_size, self.trades['trade_dates'], self.market.get_trade_date(self.current_step)[0])
         self.shift_append(self.window_size, self.trades['balances'], self.balance)
         self.shift_append(self.window_size, self.trades['positions'], self.price)
         self.shift_append(self.window_size, self.trades['prices'], self.price)
@@ -160,16 +160,6 @@ class AksEnv(gym.Env):
                 self.trade_type = AksEnv.TRADE_MODE_BUY
                 self.price = price
                 self.quant = buy_amount
-                # ????????????????????????????????????????????????????????????????????????????????????
-                self.trades['history'].append({
-                    'type': 0,
-                    'price': price,
-                    'quant': buy_amount,
-                    'amount': amount,
-                    'position': self.position,
-                    'balance': self.balance,
-                    'net_value': self.net_value
-                })
         elif action_type < 2:
             sell_amount = int(self.position * action_percent)
             if sell_amount < 10:
@@ -188,30 +178,10 @@ class AksEnv(gym.Env):
                 self.trade_type = AksEnv.TRADE_MODE_SELL
                 self.price = price
                 self.quant = sell_amount
-                # ??????????????????????????????????????????????????????????????????
-                self.trades['history'].append({
-                    'type': 1,
-                    'price': price,
-                    'quant': sell_amount,
-                    'amount': amount,
-                    'position': self.position,
-                    'balance': self.balance,
-                    'net_value': self.net_value
-                })
         else:
             self.trade_type = AksEnv.TRADE_MODE_HOLD
             self.price = 0.0
             self.quant = 0
-            # ????????????????????????????????????????????????????????????????????????????????
-            self.trades['history'].append({
-                'type': 0,
-                'price': 0.0,
-                'quant': 0,
-                'amount': 0.0,
-                'position': self.position,
-                'balance': self.balance,
-                'net_value': self.net_value
-            })
 
 
     

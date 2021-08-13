@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.pyplot import MultipleLocator
 
 import time
 from datetime import datetime
@@ -27,23 +28,51 @@ class IqttHumanRender(object):
 
     def render(self, trades={}):
         print('### ^_^ ### {0}：bar({1}, {2}, {3}, {4}), state=(余额：{5}, 仓位：{6}, 净值：{7})'.format(
-                trades['info']['current_step'], trades['obs'][0][50], trades['obs'][0][51], trades['obs'][0][52], trades['obs'][0][53],
-                trades['info']['balance'], trades['info']['position'], trades['info']['net_value']
+                trades['current_step'], trades['obs'][0][50], trades['obs'][0][51], trades['obs'][0][52], trades['obs'][0][53],
+                trades['balance'], trades['position'], trades['net_value']
             ))
+        self._render_net_value(trades)
         plt.pause(0.001)
         
 
     def date2num(self, date):
-        return date
         '''
         org_dtf = '%Y-%m-%d'
         dst_dtf = '%Y-%m-%d'
         return datetime.strptime(date, org_dtf).strftime(dst_dtf)
         '''
+        return date
 
-    def _render_net_value(self):
-        pass
-
+    def _render_net_value(self, trades):
+        # Clear the frame rendered last step
+        self.net_value_ax.clear()
+        # Plot net worths
+        self.net_value_ax.plot_date(trades['trade_dates'], np.array(trades['net_values']), '-', label='Net Worth')
+        plt.gcf().autofmt_xdate()
+        ax=plt.gca()
+        #ax为两条坐标轴的实例
+        ax.xaxis.set_major_locator(MultipleLocator(5))
+        #date_format = mpl_dates.DateFormatter('%b, %d %Y')
+        #plt.gca().xaxis.set_major_formatter(date_format)
+        # Show legend, which uses the label we defined for the plot above
+        self.net_value_ax.legend()
+        legend = self.net_value_ax.legend(loc=2, ncol=2, prop={'size': 8})
+        legend.get_frame().set_alpha(0.4)
+        last_date = trades['trade_dates'][-1]
+        last_net_value = trades['net_values'][-1]
+        # Annotate the current net worth on the net worth graph
+        self.net_value_ax.annotate(
+            '{0:.2f}'.format(trades['net_value']),     
+            (last_date, last_net_value),
+            xytext=(last_date, last_net_value),
+            bbox=dict(boxstyle='round', fc='w', ec='k', lw=1),
+            color="black",
+            fontsize="small"
+        )
+        # Add space above and below min/max net worth
+        self.net_value_ax.set_ylim(
+            min(trades['net_values']) / 1.25,    
+            max(trades['net_values']) * 1.25)
     
 
 

@@ -23,4 +23,4 @@ class Market(Dataset):
         '''
         获取当前交易点的日期字符串
         '''
-        return self.trade_dates(current_step - 1)
+        return self.trade_dates[current_step - 1]

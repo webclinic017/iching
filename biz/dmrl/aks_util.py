@@ -61,7 +61,7 @@ class AksUtil(object):
         X1_raw = []
         y1_raw = []
         for idx in range(AppConfig.mdp_params['back_window'], total_samples - AppConfig.mdp_params['forward_step']):
-            print('第{0}步：...'.format(idx-AppConfig.mdp_params['back_window']+1))
+            # print('第{0}步：...'.format(idx-AppConfig.mdp_params['back_window']+1))
             raw_data = s1_ds[idx - AppConfig.mdp_params['back_window'] : idx]
             prices_data = prices[idx]
             sample = raw_data.reshape((raw_data.shape[0]*raw_data.shape[1], ))

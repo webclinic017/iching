@@ -172,9 +172,6 @@ class AksEnv(gym.Env):
     def _take_action(self, action):
         action_type = action[0]
         action_percent = action[1]
-        if self.current_step > 50 and self.current_step % 5 == 0:
-            action_type = 1.5
-            action_percent = 0.01
         price = self.obs[0][53] # 取出收盘价
         #balance = obs[54]
         if action_type < 1:

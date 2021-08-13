@@ -37,22 +37,8 @@ class IqttApp(object):
 
 
     def t(self):
-        self.t003()
-
-    def t003(self):
-        stock_symbol = 'sh600260'
-        env = AksEnv(stock_symbol=stock_symbol)
-        env.reset()
-
-    def t001(self):
-        render = IqttHumanRender()
-        render.exp()
-
-    def t002(self):
-        stock_symbol = 'sh600260'
-        s1_ds, prices, trade_dates = AksUtil.load_minute_bar_ds(stock_symbol)
-        print('s1_ds: {0}; prices: {1}; rows: {2}; size={3};'.format(s1_ds.shape, prices.shape, trade_dates[0], len(trade_dates)))
-
+        print('test')
+        
     def startup(self, args={}):
         stock_symbol = 'sh600260'
         #args['continue'] = True

@@ -197,6 +197,21 @@ class AksEnv(gym.Env):
                 'net_value': self.net_value
             })
 
+
+    
+
+    def shift_append(self, window_size, list_obj, val):
+        '''
+        如果列表长度小于window_size时，直接将val添加到列表最后，如果长度大于等于window_size时，则
+        去掉列表第一个元素，然后将val添加到列表最后
+        '''
+        if len(list_obj) < window_size:
+            list_obj.append(val)
+        else:
+            list_obj = list_obj[1:]
+            list_obj.append(val)
+        return list_obj
+
     
 
 

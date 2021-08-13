@@ -26,6 +26,7 @@ class AksEnv(gym.Env):
             self.renderer = IqttHumanRender()
         else:
             self.renderer = IqttTextRender()
+        self.window_size = 40 # 绘制40个交易日的图像
         self.trades = {}
         # 初始化交易历史信息
         self.trades['current_step'] = 1
@@ -66,6 +67,20 @@ class AksEnv(gym.Env):
         self.price = 0.0 # 交易价格
         self.quant = 0 # 产易量
         self.obs = self._next_obs()
+        # 初始化交易历史信息
+        self.trades = {}
+        self.trades['current_step'] = 1
+        self.trades['balance'] = 0.0
+        self.trades['position'] = 0
+        self.trades['price'] = 0.0
+        self.trades['quant'] = 0
+        self.trades['net_value'] = 0.0
+        self.trades['trade_dates'] = []
+        self.trades['balances'] = []
+        self.trades['positions'] = []
+        self.trades['prices'] = []
+        self.trades['net_values'] = []
+        # 绘制图像
         self.render()
         return self.obs
 
@@ -89,14 +104,15 @@ class AksEnv(gym.Env):
         self.trades['current_step'] = self.current_step
         self.trades['balance'] = self.balance
         self.trades['position'] = self.position
-        self.trades['price'] = self.obs[0][53] # 收盘价
-        self.trades['quant'] = 0
+        self.trades['price'] = self.price
+        self.trades['quant'] = self.quant
         self.trades['net_value'] = self.net_value
-
-        self.trades['info']['current_step'] = self.current_step
-        self.trades['info']['balance'] = self.balance
-        self.trades['info']['position'] = self.position
-        self.trades['info']['net_value'] = self.net_value
+        # 历史信息
+        self.shift_append(self.window_size, self.trades['trade_dates'], self.market.get_trade_date(self.current_step))
+        self.shift_append(self.window_size, self.trades['balances'], self.balance)
+        self.shift_append(self.window_size, self.trades['positions'], self.price)
+        self.shift_append(self.window_size, self.trades['prices'], self.price)
+        self.shift_append(self.window_size, self.trades['net_values'], self.net_value)
         self.trades['obs'] = self.obs
         self.renderer.render(self.trades)
 

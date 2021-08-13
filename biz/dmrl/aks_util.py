@@ -24,18 +24,20 @@ class AksUtil(object):
                 if len(row)<=0 or arrs0[1]=='' or arrs0[2]=='' or arrs0[3]=='' or arrs0[4]=='' or arrs0[5]=='':
                     break
                 item = []
+                item.append(str(arrs0[0]))
                 item.append(float(arrs0[1]))
                 item.append(float(arrs0[2]))
                 item.append(float(arrs0[3]))
                 item.append(float(arrs0[4]))
                 item.append(float(arrs0[5]))
                 items.append(item)
-        raw_ds = np.array(items, dtype=np.float32)
+        raw_ds = np.array([x[1:] for x in items], dtype=np.float32)
+        print('raw_ds: {0};'.format(raw_ds.shape))
         log_ds = np.log(raw_ds)
         ds = np.diff(log_ds, n=1, axis=0)
         ds_mu = np.mean(ds, axis=0)
         ds_std = np.std(ds, axis=0)
-        return (ds-ds_mu)/ds_std, raw_ds[1:, 0:4]
+        return (ds-ds_mu)/ds_std, raw_ds[1:, :], [x[:1] for x in items[1:]]
 
     DM_MAML = 0 # 用于训练MAML模型
     DM_RL = 1 # 用于强化学习回测平台
@@ -52,7 +54,7 @@ class AksUtil(object):
         if draw_line:
             plt.ion()
             fig, axes = plt.subplots(1, 1, figsize=(8, 4))
-        s1_ds, prices = AksUtil.load_minute_bar_ds(stock_symbol)
+        s1_ds, prices, trade_dates = AksUtil.load_minute_bar_ds(stock_symbol)
         total_samples = len(s1_ds) # total_samples = idx + forward_step
         # 生成第一个样本
         idx = AppConfig.mdp_params['back_window']
@@ -73,7 +75,7 @@ class AksUtil(object):
         y1 = np.array(y1_raw)
         if draw_line:
             plt.show(block=True)
-        return X1, y1
+        return X1, y1, trade_dates
 
         
     @staticmethod

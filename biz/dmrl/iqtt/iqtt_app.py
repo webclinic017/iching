@@ -20,6 +20,7 @@ from biz.dmrl.iqtt.aks_ds import AksDs
 
 
 from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
+from biz.dmrl.aks_util import AksUtil
 
 class IqttApp(object):
     DSM_IMDB = 'imdb'
@@ -34,18 +35,30 @@ class IqttApp(object):
     def get_model_X(self, obs):
         return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
 
+
+    def t(self):
+        self.t003()
+
+    def t003(self):
+        stock_symbol = 'sh600260'
+        env = AksEnv(stock_symbol=stock_symbol)
+        env.reset()
+
+    def t001(self):
+        render = IqttHumanRender()
+        render.exp()
+
+    def t002(self):
+        stock_symbol = 'sh600260'
+        s1_ds, prices, trade_dates = AksUtil.load_minute_bar_ds(stock_symbol)
+        print('s1_ds: {0}; prices: {1}; rows: {2}; size={3};'.format(s1_ds.shape, prices.shape, trade_dates[0], len(trade_dates)))
+
     def startup(self, args={}):
-        i_debug = 1
-        if 1 == i_debug:
-            render = IqttHumanRender()
-            render.exp()
-            return
-        print('Iching Quantitative Trading Transformer v0.0.2')
+        stock_symbol = 'sh600260'
         #args['continue'] = True
         #self.train(args)
         #self.predict()
         model = self.reset_rl()
-        stock_symbol = 'sh600260'
         env = AksEnv(stock_symbol)
         obs = env.reset()        
         done = False 

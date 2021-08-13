@@ -11,10 +11,15 @@ from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
 class AksEnv(gym.Env):
     RENDER_MODE_TEXT = 'text'
     RENDER_MODE_HUMAN = 'human'
+    # 交易类型
+    TRADE_MODE_BUY = 1
+    TRADE_MODE_SELL = 2
+    TRADE_MODE_HOLD = 3
 
     def __init__(self, stock_symbol, mode='human'):
         super(AksEnv, self).__init__()
         self.stock_symbol = stock_symbol
+        self.current_step = 0
         if AksEnv.RENDER_MODE_TEXT == mode:
             self.renderer = IqttTextRender()
         elif AksEnv.RENDER_MODE_HUMAN == mode:
@@ -22,8 +27,18 @@ class AksEnv(gym.Env):
         else:
             self.renderer = IqttTextRender()
         self.trades = {}
-        self.trades['info'] = {}
-        self.trades['history'] = []
+        # 初始化交易历史信息
+        self.trades['current_step'] = 1
+        self.trades['balance'] = 0.0
+        self.trades['position'] = 0
+        self.trades['price'] = 0.0
+        self.trades['quant'] = 0
+        self.trades['net_value'] = 0.0
+        self.trades['trade_dates'] = []
+        self.trades['balances'] = []
+        self.trades['positions'] = []
+        self.trades['prices'] = []
+        self.trades['net_values'] = []
         self.market = Market(stock_symbol)
         # self.aks_iter.next() raise StopIteration exception when end
         self.batch_size = 1
@@ -47,12 +62,16 @@ class AksEnv(gym.Env):
         self.position = AppConfig.rl_env_params['initial_position']
         self.net_value = 0.0
         self.current_step = 1
+        self.trade_type = AksEnv.TRADE_MODE_HOLD
+        self.price = 0.0 # 交易价格
+        self.quant = 0 # 产易量
         self.obs = self._next_obs()
         self.render()
         return self.obs
 
     def step(self, action):
         self._take_action(action)
+        self.current_step += 1
         self.obs = self._next_obs()
         reward = 1.0
         if self.obs is None:
@@ -61,13 +80,19 @@ class AksEnv(gym.Env):
             done = False
             self.render()
         info = {}
-        self.current_step += 1
         return self.obs, reward, done, info
 
     def render(self):
         '''
         显示交易信息，mode=text时将信息打印到后台窗口；mode=human以Matplotlib动画方式显示
         '''
+        self.trades['current_step'] = self.current_step
+        self.trades['balance'] = self.balance
+        self.trades['position'] = self.position
+        self.trades['price'] = self.obs[0][53] # 收盘价
+        self.trades['quant'] = 0
+        self.trades['net_value'] = self.net_value
+
         self.trades['info']['current_step'] = self.current_step
         self.trades['info']['balance'] = self.balance
         self.trades['info']['position'] = self.position
@@ -79,6 +104,7 @@ class AksEnv(gym.Env):
     def _next_obs(self):
         try:
             obs = self.market_iter.next()
+            print('s1: {0}; {1}; {2};'.format(obs[0].shape, obs[1].shape, obs[2][0][0]))
             obs[0] = np.append(obs[0], self.balance)
             obs[0] = np.append(obs[0], self.position)
             obs[0] = np.append(obs[0], self.net_value)
@@ -103,6 +129,9 @@ class AksEnv(gym.Env):
                         break
             buy_amount -= delta
             if buy_amount < 10:
+                self.trade_type = AksEnv.TRADE_MODE_HOLD
+                self.price = 0.0
+                self.quant = 0
                 print('    持有（忽略买入指令）')
             else:
                 raw_amount = buy_amount * price
@@ -112,9 +141,10 @@ class AksEnv(gym.Env):
                 self.balance -= amount
                 self.position += buy_amount
                 self.net_value = self.balance + self.position * price
-                #print('    买入：数量：{0}; 金额：{1}；余额：{2}；仓位：{3}；净值：{4}; buy_total={5}; price={6};'.format(
-                #    buy_amount, amount, self.balance, self.position, self.net_value, buy_total, price
-                #))
+                self.trade_type = AksEnv.TRADE_MODE_BUY
+                self.price = price
+                self.quant = buy_amount
+                # ????????????????????????????????????????????????????????????????????????????????????
                 self.trades['history'].append({
                     'type': 0,
                     'price': price,
@@ -127,6 +157,9 @@ class AksEnv(gym.Env):
         elif action_type < 2:
             sell_amount = int(self.position * action_percent)
             if sell_amount < 10:
+                self.trade_type = AksEnv.TRADE_MODE_HOLD
+                self.price = 0.0
+                self.quant = 0
                 print('    持有（忽略卖出指令）')
             else:
                 raw_amount = sell_amount * price
@@ -136,9 +169,10 @@ class AksEnv(gym.Env):
                 self.balance += amount
                 self.position -= sell_amount
                 self.net_value = self.balance + self.position * price
-                print('    卖出：数量：{0}；金额：{1}；余额：{2}；仓位：{3}；净值：{4}；'.format(
-                    sell_amount, amount, self.balance, self.position, self.net_value
-                ))
+                self.trade_type = AksEnv.TRADE_MODE_SELL
+                self.price = price
+                self.quant = sell_amount
+                # ??????????????????????????????????????????????????????????????????
                 self.trades['history'].append({
                     'type': 1,
                     'price': price,
@@ -149,6 +183,10 @@ class AksEnv(gym.Env):
                     'net_value': self.net_value
                 })
         else:
+            self.trade_type = AksEnv.TRADE_MODE_HOLD
+            self.price = 0.0
+            self.quant = 0
+            # ????????????????????????????????????????????????????????????????????????????????
             self.trades['history'].append({
                 'type': 0,
                 'price': 0.0,

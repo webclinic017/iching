@@ -21,6 +21,10 @@ from biz.dmrl.iqtt.aks_ds import AksDs
 
 from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
 from biz.dmrl.aks_util import AksUtil
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import mplfinance as mpf
 
 class IqttApp(object):
     DSM_IMDB = 'imdb'
@@ -38,6 +42,25 @@ class IqttApp(object):
 
     def t(self):
         print('test')
+        self.trades = {}
+        self.trades['bars'] = {}
+        self.trades['bars']['trade_dates'] = ['2021-08-01', '2021-08-02', '2021-08-03', '2021-08-04', '2021-08-05']
+        self.trades['bars']['Open'] = [1.1, 1.2, 1.3, 1.4, 1.5]
+        self.trades['bars']['High'] = [2.1, 2.2, 2.3, 2.4, 2.5]
+        self.trades['bars']['Low'] = [0.9, 3.2, 3.3, 3.4, 3.5]
+        self.trades['bars']['Close'] = [1.5, 4.2, 4.3, 4.4, 4.5]
+        self.trades['bars']['Volume'] = [5.1, 5.2, 5.3, 5.4, 5.5]
+        trades = self.trades
+        volume = np.array(trades['bars']['Volume'])
+        print('volume: {0};'.format(volume))
+        pos = (np.array(trades['bars']['Open']) - np.array(trades['bars']['Close'])) < 0
+        neg = (np.array(trades['bars']['Open']) - np.array(trades['bars']['Close'])) >= 0
+        print('pos: {0}; {1};'.format(type(pos), pos))
+        print('pos: {0}; {1};'.format(type(neg), neg))
+        v1 = np.argwhere(pos)
+        print(v1)
+
+
 
     def startup(self, args={}):
         stock_symbol = 'sh600260'
@@ -63,7 +86,7 @@ class IqttApp(object):
                 action[0] = 2.5
                 action[1] = 0.5
             obs, reward, done, info = env.step(action)
-            if env.current_step > 50:
+            if env.current_step > 200:
                 done = True
 
     def reset_rl(self):

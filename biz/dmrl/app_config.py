@@ -5,6 +5,10 @@ class AppConfig(object):
     MR_VIBRATE = 0 # 震荡行情
     MR_BULL = 1 # 上涨
     MR_BEAR = 2 # 下跌
+    # 交易类型
+    TRADE_MODE_BUY = 1
+    TRADE_MODE_SELL = 2
+    TRADE_MODE_HOLD = 3
 
     # 决定市场涨跌的参数
     mr_params = {

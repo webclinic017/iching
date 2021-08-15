@@ -40,33 +40,11 @@ class IqttApp(object):
         return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
 
 
-    def t(self):
-        print('test')
-        self.trades = {}
-        self.trades['bars'] = {}
-        self.trades['bars']['trade_dates'] = ['2021-08-01', '2021-08-02', '2021-08-03', '2021-08-04', '2021-08-05']
-        self.trades['bars']['Open'] = [1.1, 1.2, 1.3, 1.4, 1.5]
-        self.trades['bars']['High'] = [2.1, 2.2, 2.3, 2.4, 2.5]
-        self.trades['bars']['Low'] = [0.9, 3.2, 3.3, 3.4, 3.5]
-        self.trades['bars']['Close'] = [1.5, 4.2, 4.3, 4.4, 4.5]
-        self.trades['bars']['Volume'] = [5.1, 5.2, 5.3, 5.4, 5.5]
-        trades = self.trades
-        volume = np.array(trades['bars']['Volume'])
-        print('volume: {0};'.format(volume))
-        pos = (np.array(trades['bars']['Open']) - np.array(trades['bars']['Close'])) < 0
-        neg = (np.array(trades['bars']['Open']) - np.array(trades['bars']['Close'])) >= 0
-        print('pos: {0}; {1};'.format(type(pos), pos))
-        print('pos: {0}; {1};'.format(type(neg), neg))
-        v1 = np.argwhere(pos)
-        print(v1)
-
-
-
     def startup(self, args={}):
         stock_symbol = 'sh600260'
         #args['continue'] = True
-        #self.train(args)
-        #self.predict()
+        #self.train(args) # 模型训练
+        #self.predict() # 模型预测
         model = self.reset_rl()
         env = AksEnv(stock_symbol)
         obs = env.reset()        

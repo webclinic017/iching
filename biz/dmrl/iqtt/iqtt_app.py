@@ -36,10 +36,6 @@ class IqttApp(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.ckpt_file = './work/iqtt_v1.ckpt'
 
-    def get_model_X(self, obs):
-        return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
-
-
     def startup(self, args={}):
         stock_symbol = 'sh600260'
         #args['continue'] = True
@@ -234,6 +230,9 @@ class IqttApp(object):
                         default=1.0, type=float)
         return parser.parse_args()
 
+
+    def get_model_X(self, obs):
+        return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
         
 
     def load_dataset(self, ds_mode):

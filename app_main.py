@@ -1,8 +1,9 @@
 #
-from apps.nup_app import NupApp
 import sys
 import getopt
 import numpy as np
+from argparse import ArgumentParser
+from apps.nup_app import NupApp
 '''
 #from apps.tp.tp_app import TpApp
 from apps.rxgb.rxgb_app import RxgbApp
@@ -24,6 +25,7 @@ from apps.mml.mml_app import MmlApp
 from apps.dmrl.maml.maml_app import MamlApp
 from ann.dmrl.dmrl_app import DmrlApp
 from biz.dmrl.dmrl_main import DmrlMain
+from apps.fmts.fmts_app import FmtsApp
 
 # 启动命令行参数默认值
 params = {
@@ -31,41 +33,43 @@ params = {
     'mode': '1',
     'exp': ''
 }
+    
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument('--mode', dest='run_mode', default='nup', type=str)
+    parser.add_argument("-e", "--num-epochs",
+                    dest="num_epochs",
+                    help="Number of epochs.",
+                    default=80, type=int)
+    return vars(parser.parse_args())
 
 def main(argv={}):
     # 解析命令行参数
-    opts, args = getopt.getopt(argv, 'v:i', ['mode=', 'exp=']) # args是未加选项的字符串列表
-    for opt, val in opts:
-        if opt=='-i':
-            print('易经量化交易平台')
-        elif opt=='-v':
-            params['version'] = val
-        elif opt=='--mode':
-            params['mode'] = val
-        elif opt=='--exp':
-            params['exp'] = val
+    args = parse_args()
     # 根据mode选项相应的应用
-    if params['mode'] == 'ots': # 期权交易系统
+    if args['run_mode'] == 'ots': # 期权交易系统
         app = OtsApp()
-    elif params['mode'] == 'drl': # 深度强化学习理论学习
+    elif args['run_mode'] == 'drl': # 深度强化学习理论学习
         app = DrlApp()
     #elif params['mode'] == 'dct':
     #    app = DctApp()
-    elif params['mode'] == 'fxcm': # Python for finance
+    elif args['run_mode'] == 'fxcm': # Python for finance
         app = FxcmApp()
-    elif params['mode'] == 'drlt': # DQN用于量化交易
+    elif args['run_mode'] == 'drlt': # DQN用于量化交易
         app = DrltApp()
-    elif params['mode'] == 'mml': # 机器学习中的数学
+    elif args['run_mode'] == 'mml': # 机器学习中的数学
         app = MmlApp()
-    elif params['mode'] == 'maml':
+    elif args['run_mode'] == 'maml':
         app = MamlApp()
-    elif params['mode'] == 'dmrl':
+    elif args['run_mode'] == 'dmrl':
         app = DmrlApp()
-    elif params['mode'] == 'bizdmrl':
+    elif args['run_mode'] == 'bizdmrl':
         app = DmrlMain()
+    elif args['run_mode'] == 'fmts':
+        app = FmtsApp()
     else:
         app = NupApp()
-    app.startup()
+    app.startup(args)
 
 if '__main__' == __name__:
     '''

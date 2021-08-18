@@ -6,5 +6,6 @@ class TAkshareDataSource(unittest.TestCase):
     def test_get_minute_bars_001(self):
         stock_symbol = 'sh600260'
         data = AkshareDataSource.get_minute_bars(stock_symbol)
-        print(data)
+        for item in data:
+            print(item)
         self.assertTrue(1>0)

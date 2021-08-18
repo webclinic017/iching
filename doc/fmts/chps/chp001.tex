@@ -1,11 +1,21 @@
 \newpage
 \maketitle
 \begin{center}
-\Large \textbf{第1章 导论} \quad 
+\Large \textbf{第1章 行情数据处理} \quad 
 \end{center}
 \begin{abstract}
-在本章中我们将讨论概率机器学习的初步知识。
+在本章中我们将通过AKshare库，获取A股分钟级行情数据，并将其进行预处理，变为深度学习可用的数据集。
 \end{abstract}
-\section{导论概述}
-机器学习可以定义为：在某些种类任务T中，以某种性能评价标准P，计算机程序可以从经验E中进行学习，并且在任务T中，以性能评价指标P来衡量，可以通过经验E得到提高，我们就说
-计算机程序具有学习能力。
+\section{行情数据处理概述}
+\subsection{获取原始行情数据}
+我们首先通过apps.fmts.ds.akshare\_data\_source.AkshareDataSource获取原始的行情数据，-将其保存到csv文件中。如果存在该csv文件，则
+直接从该文件中读出数据并返回。数据格式为：
+\lstset{language=PYTHON, caption={行情数据格式}, label={c001-quotation-1-minute-bar}}
+\begin{lstlisting}
+......
+['2021-08-17 14:55:00', 30.339999999999996, 30.339999999999996, 30.339999999999996, 30.339999999999996, 200.0]
+['', 30.339999999999996, 30.339999999999996, 30.339999999999996, 30.339999999999996, 200.0]
+......
+\end{lstlisting}
+\subsection[行情数据预处理]
+我们以收盘价为例，收盘价的折线图如下所示：

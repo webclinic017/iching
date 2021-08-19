@@ -1,5 +1,6 @@
 # Akshare数据下载和处理程序
 import os
+from typing import List
 import akshare as ak
 import numpy as np
 
@@ -9,10 +10,17 @@ class AkshareDataSource(object):
         self.name = 'apps.fmts.ds.akshare_data_source.AkshareDataSource'
 
     @staticmethod
-    def get_minute_bars(stock_symbol, period='1', adjust='hfq'):
+    def get_minute_bars(stock_symbol: str, period='1', adjust='hfq') -> List[List]:
         '''
         调用AkshareDataSource接口，默认为1分钟，复权后数据，保持历史价格不变，当配股、分拆、合并、派发股息后价格会变化，
         这种方式虽然不利于看盘，但是能反映真实收益率，量化交易研究中通常采用。
+        参数：
+            stock_symbol
+            period 1-1分钟；5-5分钟；15-15分钟；60-60分钟；
+        返回值：list 
+            [
+                ['2021-08-19 15:00:00', 1.1, 1.5, 1.0, 1.2, 1000],
+            ]
         '''
         data_file = '{0}{1}_1m.csv'.format(AkshareDataSource.DATA_FOLDER, stock_symbol)
         if not os.path.exists(data_file):

@@ -28,6 +28,27 @@ class OhlcvProcessor(object):
         else:
             OhlcvProcessor._draw_tick_price_curve(y)
 
+    @staticmethod
+    def gen_1d_log_diff_norm(stock_symbol, items):
+        datas = np.array([x[1:] for x in items])
+        log_ds = np.log(datas)
+        log_diff = np.diff(log_ds, n=1, axis=0)
+        log_diff_mu = np.mean(log_diff, axis=0)
+        log_diff_std = np.std(log_diff, axis=0)
+        ld_ds = (log_diff - log_diff_mu) / log_diff_std
+        # 保存原始信息
+        raw_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
+        with open(raw_file, 'w', encoding='utf-8') as fd:
+            for item in items[1:]:
+                fd.write('{0},{1},{2},{3},{4},{5}\n'.format(item[0], item[1], item[2], item[3], item[4], item[5]))
+        # 保存规整化后数据
+        ld_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
+        np.savetxt(ld_file, ld_ds)
+
+
+
+
+
     def _draw_date_price_curve(x: List, y: List) -> None:
         x = [datetime.datetime.strptime(di, '%Y-%m-%d %H:%M:%S') for di in x]
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))

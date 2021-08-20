@@ -30,6 +30,10 @@ class OhlcvProcessor(object):
 
     @staticmethod
     def gen_1d_log_diff_norm(stock_symbol, items):
+        '''
+        从原始行情数据，求出一阶对数收益率log(day2)-log(day1)，然后求出每列均值和标准差，利用
+        (x-mu)/std进行标准化，分别保存原始信息和归整后信息
+        '''
         datas = np.array([x[1:] for x in items])
         log_ds = np.log(datas)
         log_diff = np.diff(log_ds, n=1, axis=0)

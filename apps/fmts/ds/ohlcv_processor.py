@@ -49,11 +49,26 @@ class OhlcvProcessor(object):
         ld_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
         np.savetxt(ld_file, ld_ds)
 
+    @staticmethod
+    def get_ds_raw_data(stock_symbol, window_size=10):
+        '''
+        获取数据集所需数据
+        stock_symbol 股票代码
+        window_size 从当前时间点向前看多少个时间点
+        返回值 
+            X 连续11个时间点的OHLCV的数据，形状为n*55
+            y 某个时间点及其前10个时间点行情数据组成的shapelet对应的行情（按Box方式确定）：0-震荡；1-上升；2-下跌；
+        '''
+        print('获取数据集数据')
+
 
 
 
 
     def _draw_date_price_curve(x: List, y: List) -> None:
+        '''
+        给制横轴为时间的价格变化折线图
+        '''
         x = [datetime.datetime.strptime(di, '%Y-%m-%d %H:%M:%S') for di in x]
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
@@ -70,6 +85,9 @@ class OhlcvProcessor(object):
         plt.show()
     
     def _draw_tick_price_curve(y: List) -> None:
+        '''
+        绘制横轴为行情数据序号的价格变化折线图
+        '''
         x = range(len(y))
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签

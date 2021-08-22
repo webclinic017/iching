@@ -16,3 +16,7 @@ class TOhlcvProcessor(unittest.TestCase):
         stock_symbol = 'sh600260'
         items = AkshareDataSource.get_minute_bars(stock_symbol=stock_symbol)
         OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)
+
+    def test_get_ds_raw_data(self):
+        stock_symbol = 'sh600260'
+        OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10)

@@ -56,10 +56,23 @@ class OhlcvProcessor(object):
         stock_symbol 股票代码
         window_size 从当前时间点向前看多少个时间点
         返回值 
-            X 连续11个时间点的OHLCV的数据，形状为n*55
+            X 连续11个时间点的OHLCV的数据，形状为n*55，一阶Log差分形式
             y 某个时间点及其前10个时间点行情数据组成的shapelet对应的行情（按Box方式确定）：0-震荡；1-上升；2-下跌；
+            info 当前时间刻行情的真实值
         '''
         print('获取数据集数据')
+        log_1d_datas = []
+        log_1d_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
+        with open(log_1d_file, 'r', encoding='utf-8') as fd:
+            for row in fd:
+                row = row.strip()
+                arrs = row.split(' ')
+                item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4]]
+                print('item: {0};'.format(item))
+                log_1d_datas.append(item)
+        print('num={0};'.format(len(log_1d_datas)))
+
+                
 
 
 

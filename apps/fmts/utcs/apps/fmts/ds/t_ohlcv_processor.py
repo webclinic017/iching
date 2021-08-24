@@ -26,3 +26,25 @@ class TOhlcvProcessor(unittest.TestCase):
         print('X: {0};'.format(X.shape))
         print('y: {0};'.format(y.shape))
         print('info: {0};'.format(len(info)))
+
+    def test_t001(self):
+        window_size = 3
+        log_1d_datas = [
+            [1.1, 1.2, 1.3, 1.4, 1.5],
+            [2.1, 2.2, 2.3, 2.4, 2.5],
+            [3.1, 3.2, 3.3, 3.4, 3.5],
+            [4.1, 4.2, 4.3, 4.4, 4.5],
+            [5.1, 5.2, 5.3, 5.4, 5.5],
+            [6.1, 6.2, 6.3, 6.4, 6.5],
+            [7.1, 7.2, 7.3, 7.4, 7.5]
+        ]
+        ldd_size = len(log_1d_datas)
+        print('ldd_size: {0};'.format(ldd_size))
+        X_raw = []
+        for pos in range(window_size, ldd_size, 1):
+            item = []
+            for idx in range(pos-window_size, pos):
+                item += log_1d_datas[idx]
+            item += log_1d_datas[pos]
+            X_raw.append(item)
+        print(X_raw)

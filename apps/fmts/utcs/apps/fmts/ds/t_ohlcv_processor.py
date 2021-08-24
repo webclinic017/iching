@@ -19,4 +19,7 @@ class TOhlcvProcessor(unittest.TestCase):
 
     def test_get_ds_raw_data(self):
         stock_symbol = 'sh600260'
-        OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10)
+        X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10)
+        print('X: {0};'.format(X.shape))
+        print('y: {0};'.format(y))
+        print('info: {0};'.format(info))

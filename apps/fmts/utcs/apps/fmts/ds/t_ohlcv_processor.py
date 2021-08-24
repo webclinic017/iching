@@ -19,7 +19,10 @@ class TOhlcvProcessor(unittest.TestCase):
 
     def test_get_ds_raw_data(self):
         stock_symbol = 'sh600260'
+        # 准备全量数据集
+        items = AkshareDataSource.get_minute_bars(stock_symbol=stock_symbol)
+        OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)
         X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10)
         print('X: {0};'.format(X.shape))
-        print('y: {0};'.format(y))
-        print('info: {0};'.format(info))
+        print('y: {0};'.format(y.shape))
+        print('info: {0};'.format(len(info)))

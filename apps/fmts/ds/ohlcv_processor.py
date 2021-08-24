@@ -61,6 +61,7 @@ class OhlcvProcessor(object):
             info 当前时间刻行情的真实值
         '''
         print('获取数据集数据')
+        # 获取归整化行情数据
         log_1d_datas = []
         log_1d_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
         with open(log_1d_file, 'r', encoding='utf-8') as fd:
@@ -68,9 +69,18 @@ class OhlcvProcessor(object):
                 row = row.strip()
                 arrs = row.split(' ')
                 item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4]]
-                print('item: {0};'.format(item))
                 log_1d_datas.append(item)
-        print('num={0};'.format(len(log_1d_datas)))
+        X = np.array(log_1d_datas)
+        print('X: {0};'.format(X.shape))
+        # 获取日期和真实行情数值
+        raw_datas = []
+        raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
+        with open(raw_data_file, 'r', encoding='utf-8') as fd:
+            for row in fd:
+                row = row.strip()
+                arrs = row.split(' ')
+                raw_datas.append(arrs[0])
+        print('日期：{0};'.format(raw_datas))
 
                 
 

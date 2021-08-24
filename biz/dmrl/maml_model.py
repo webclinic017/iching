@@ -20,6 +20,7 @@ def LinearBlockFunction(x, w, b, w_bn, b_bn):
 class MamlModel(nn.Module):
     def __init__(self, in_size, n_way):
         super(MamlModel, self).__init__()
+        self.in_size = in_size
         self.linear1 = LinearBlock(in_size, 64)
         self.linear2 = LinearBlock(64, 32)
         self.linear3 = LinearBlock(32, 16)

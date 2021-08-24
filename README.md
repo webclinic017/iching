@@ -1,5 +1,5 @@
 Notes: chinese version at the bottom. The chinese version ebook of this project can be found at doc/iching folder. ^_^
-# iching v0.1.0
+# iching v0.1.2 001
 Iching is a deep meta reinforcement learning quantitative trading platform.
 ## Why iching
 Iching project is inspired by I ching or The Change of Book - an ancient chinese book to predict the future. It is the first book to use binary sysntem in the world about 5000 years ago. It propose that Tai Chi generate Yin-Yang. Yin-Yang generate Eight Diagrams. Two Eight Diagrams have 64 states. There has a Change Diagrams which has 6 states. In all there has 384 state. Ancient chinese people use this 384 states to predict everything faithfully.
@@ -13,7 +13,7 @@ Because this project is on the very early stage you can't install it with pip. y
 git clone https://github.com/yt7589/iching.git
 ```
 You have to email yt7589#qq.com to get the dataset and check point files. After you receive the zip file you should unzip it then copy the data, work, logs folder to iching folder.
-Before you start please install python3.7 and pytorch 1.4 first.
+Before you start please install python3.7 and pytorch 1.7 first.
 Run this program is very easy. Go to the iching folder and run:
 ```
 python app_main.py
@@ -71,3 +71,5 @@ apps/tp：在A股日K线数据集上的交易对应用示例；
 
 
 闫涛 2021.02.05  
+
+2021.08.01 v0.0.3 002 windows vscode remote

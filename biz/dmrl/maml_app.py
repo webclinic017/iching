@@ -7,12 +7,15 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.utils.data import DataLoader #, Dataset
 from collections import OrderedDict
-from apps.dmrl.maml.omniglot_ds import OmniglotDs
-from apps.dmrl.maml.maml_model import MamlModel
-from apps.dmrl.maml.aks_ds import AksDs
-from apps.dmrl.maml.app_config import AppConfig
+from biz.dmrl.maml_model import MamlModel
+from biz.dmrl.aks_ds import AksDs
 
 class MamlApp(object):
+    R_M_PREPARE_DS = 1
+    R_M_TRAIN = 2
+    R_M_EVALUATE_ON_TEST_DS = 3
+    R_M_RUN_ADAPT_PROCESS = 4
+
     def __init__(self):
         self.name = 'apps.dmrl.maml.MamlApp'
         self.chpt_file = './work/maml.pkl'
@@ -20,9 +23,8 @@ class MamlApp(object):
         self.fixed_weights = [] # 需要固定的权值名称列表
         self.in_size = 50 # 每个行情包括之前10天（包括今天），每天有开盘、最高、最低、收盘、交易量这5个值
 
-    def startup(self):
+    def startup(self, mode=1):
         print('MAML算法 v0.0.2')
-        mode = 4
         stock_symbols = ['sh600260', 'sh600487', 'sh600728']
         if 1 == mode:
             self.prepare_ds(stock_symbols)
@@ -46,7 +48,7 @@ class MamlApp(object):
         inner_lr = 0.4
         meta_lr = 0.001
         meta_batch_size = 8 #32
-        max_epoch = 2 #40
+        max_epoch = 30 #40
         eval_batches = 20
         #Xs, ys = self.load_ds_from_txt(stock_symbols)
         train_loaders, train_iters = [], []

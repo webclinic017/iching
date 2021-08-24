@@ -7,7 +7,11 @@ __pycache__/
 # C extensions
 *.so
 
+#
+apps/fmts/data
+
 # Distribution / packaging
+.data/
 .Python
 runs/
 data/

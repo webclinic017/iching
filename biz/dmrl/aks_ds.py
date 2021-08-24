@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset
 import akshare as ak
 #
-from apps.dmrl.maml.app_config import AppConfig
+from biz.dmrl.app_config import AppConfig
 
 class AksDs(Dataset):
     DS_MODE_FULL = 0

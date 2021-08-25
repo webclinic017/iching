@@ -70,17 +70,30 @@ class OhlcvProcessor(object):
                 arrs = row.split(' ')
                 item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4]]
                 log_1d_datas.append(item)
-        X = np.array(log_1d_datas)
-        print('X: {0};'.format(X.shape))
+        # 
+        ldd_size = len(log_1d_datas)
+        X_raw = []
+        for pos in range(window_size, ldd_size, 1):
+            item = []
+            for idx in range(pos-window_size, pos):
+                item += log_1d_datas[idx]
+            item += log_1d_datas[pos]
+            X_raw.append(item)
+        X = np.array(X_raw)
+        # 获取行情状态
+        y = np.zeros((X.shape[0],))
         # 获取日期和真实行情数值
         raw_datas = []
         raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
+        seq = 0
         with open(raw_data_file, 'r', encoding='utf-8') as fd:
             for row in fd:
-                row = row.strip()
-                arrs = row.split(' ')
-                raw_datas.append(arrs[0])
-        print('日期：{0};'.format(raw_datas))
+                if seq >= window_size:
+                    row = row.strip()
+                    arrs = row.split(' ')
+                    raw_datas.append(arrs[0])
+                seq += 1
+        return X, y, raw_datas
 
                 
 

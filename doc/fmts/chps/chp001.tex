@@ -18,6 +18,7 @@
 ......
 \end{lstlisting}
 \subsection{行情数据预处理}
+\subsubsection{价格折线图}
 我们以收盘价为例，收盘价的折线图绘制程序如下所示：
 \lstset{language=PYTHON, caption={收盘价折线图}, label={c001-close-price-curve-001}, basicstyle = \ttfamily}
 \begin{lstlisting}
@@ -101,7 +102,8 @@
 \end{figure}
 如\ref{f000001}所示，图中每天收盘到第二天开盘间没有行情数据，所以图形不太好看出规律，而图\ref{f000002}则可以较好的反映价格的变化规律，因此
 我们在通常情况下，选择图\ref{f000002}的形式。
-
+\subsubsection{对数差分序列}
+我们都知道，原始的行情数据，不具备平稳性，即无法通过历史数据来预测未来，而对数差分序列则具有平稳性，可以用来进行预测。
 
 
 

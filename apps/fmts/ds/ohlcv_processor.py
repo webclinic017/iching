@@ -79,7 +79,9 @@ class OhlcvProcessor(object):
                 item += log_1d_datas[idx]
             item += log_1d_datas[pos]
             X_raw.append(item)
-        X = np.array(X_raw)
+        X = np.array(X_raw, dtype=np.float32)
+        ds_X_csv = './apps/fmts/data/{0}_1m_X.csv'.format(stock_symbol)
+        np.savetxt(ds_X_csv, X, delimiter=',')
         # 获取行情状态
         y = np.zeros((X.shape[0],))
         # 获取日期和真实行情数值

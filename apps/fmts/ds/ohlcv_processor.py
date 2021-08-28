@@ -1,6 +1,7 @@
 # 处理OHLCV数据，供OhlcvDataset类使用
 import datetime
 from typing import List
+from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
@@ -50,17 +51,20 @@ class OhlcvProcessor(object):
         np.savetxt(ld_file, ld_ds)
 
     @staticmethod
-    def get_ds_raw_data(stock_symbol, window_size=10):
+    def get_ds_raw_data(stock_symbol: str, window_size: int=10, forward_size: int=100) -> Tuple[np.ndarray, np.ndarray, List[str]]:
         '''
         获取数据集所需数据
         stock_symbol 股票代码
         window_size 从当前时间点向前看多少个时间点
+        forward_size 向后看多少个时间点确定市场行情是上涨、下跌和震荡
         返回值 
             X 连续11个时间点的OHLCV的数据，形状为n*55，一阶Log差分形式
             y 某个时间点及其前10个时间点行情数据组成的shapelet对应的行情（按Box方式确定）：0-震荡；1-上升；2-下跌；
             info 当前时间刻行情的真实值
         '''
         print('获取数据集数据')
+        # 获取行情数据
+        quotations = OhlcvProcessor.get_quotations(stock_symbol)
         # 获取归整化行情数据
         log_1d_datas = []
         log_1d_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
@@ -71,7 +75,7 @@ class OhlcvProcessor(object):
                 item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4]]
                 log_1d_datas.append(item)
         # 
-        ldd_size = len(log_1d_datas)
+        ldd_size = len(log_1d_datas) - forward_size
         X_raw = []
         for pos in range(window_size, ldd_size, 1):
             item = []
@@ -83,20 +87,50 @@ class OhlcvProcessor(object):
         ds_X_csv = './apps/fmts/data/{0}_1m_X.csv'.format(stock_symbol)
         np.savetxt(ds_X_csv, X, delimiter=',')
         # 获取行情状态
-        y = np.zeros((X.shape[0],))
+        y = np.zeros((X.shape[0],), dtype=np.int64)
         # 获取日期和真实行情数值
         raw_datas = []
         raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
         seq = 0
         with open(raw_data_file, 'r', encoding='utf-8') as fd:
             for row in fd:
-                if seq >= window_size:
+                if seq >= window_size and seq<ldd_size:
                     row = row.strip()
                     arrs = row.split(' ')
                     raw_datas.append(arrs[0])
                 seq += 1
         return X, y, raw_datas
 
+    @staticmethod
+    def get_quotations(stock_symbol: str) -> np.ndarray:
+        '''
+        获取原始行情数据，格式：[..., [open, high, low, close, volume], ...]，并以numpy数组形式返回
+        '''
+        raw_data = AkshareDataSource.get_minute_bars(stock_symbol)
+        q_data = [x[1:] for x in raw_data]
+        return np.array(q_data, dtype=np.float32)
+
+    @staticmethod
+    def get_market_state(y: np.ndarray, quotation: np.ndarray, window_size: int, forward_size: int) -> None:
+        '''
+        针对收盘价，从window_size处开始，向后看forward_size条记录，上限为当前收盘价*1.01，下限为当前收盘价*0.95，当
+        在forward_size窗口内收盘价高于上限时返回0表示上升行情需要买入，低于下限时返回1表示下跌行情需要卖出，
+        否则返回2表示震荡行情，将该值写入y中
+        '''
+        cnt = y.shape[0]
+        q_cnt = quotation.shape[0]
+        for idx in range(0, cnt, 1):
+            curr_price = quotation[idx+window_size][3]
+            high_limit = curr_price * 1.01
+            low_limit = curr_price * 0.995
+            market_regime = 2
+            for pos in range(idx+window_size+1, idx+window_size+1+forward_size, 1):
+                future_price = quotation[pos][3]
+                if future_price >= high_limit:
+                    market_regime = 0
+                elif future_price <= low_limit:
+                    market_regime = 1
+            y[idx] = market_regime
                 
 
 

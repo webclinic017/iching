@@ -64,6 +64,11 @@ class TOhlcvProcessor(unittest.TestCase):
         print('y: {0}; {1};'.format(y.shape, y))
 
     def test_get_market_state002(self):
+        msg = input('please input msg:')
+        print('msg: {0};'.format(msg))
+        i_debug = 1
+        if 1==i_debug:
+            return
         random.seed(1.0)
         y = np.zeros((10,), dtype=np.int64)
         quotation_raw = []
@@ -82,3 +87,4 @@ class TOhlcvProcessor(unittest.TestCase):
         quotation = np.array(quotation_raw)
         OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
         print('y: {0}; {1};'.format(y.shape, y))
+        x = range(cnt)

@@ -1,4 +1,5 @@
 #
+import random
 import numpy as np
 import unittest
 from apps.fmts.ds.akshare_data_source import AkshareDataSource
@@ -59,5 +60,25 @@ class TOhlcvProcessor(unittest.TestCase):
         ])
         window_size = 3
         forward_size = 4
+        OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
+        print('y: {0}; {1};'.format(y.shape, y))
+
+    def test_get_market_state002(self):
+        random.seed(1.0)
+        y = np.zeros((10,), dtype=np.int64)
+        quotation_raw = []
+        cnt_y = 10
+        curr_price = 5.36
+        high_delta = 1.01
+        low_delta = 0.995
+        window_size = 3
+        forward_size = 4
+        cnt = cnt_y+window_size+forward_size-1
+        for idx in range(cnt):
+            close_price = random.uniform(curr_price*low_delta, curr_price*high_delta)
+            item = [0.01, 0.02, 0.03, close_price, 0.04]
+            quotation_raw.append(item)
+        print('quotation_raw: {0}: {1};'.format(len(quotation_raw), quotation_raw))
+        quotation = np.array(quotation_raw)
         OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
         print('y: {0}; {1};'.format(y.shape, y))

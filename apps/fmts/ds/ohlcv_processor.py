@@ -124,7 +124,7 @@ class OhlcvProcessor(object):
             high_limit = curr_price * 1.01
             low_limit = curr_price * 0.995
             market_regime = 2
-            for pos in range(idx+window_size+1, idx+window_size+1+forward_size, 1):
+            for pos in range(idx+window_size+1, idx+window_size+1+forward_size-1, 1):
                 future_price = quotation[pos][3]
                 if future_price >= high_limit:
                     market_regime = 0

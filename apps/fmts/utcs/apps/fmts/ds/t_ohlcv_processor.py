@@ -33,9 +33,31 @@ class TOhlcvProcessor(unittest.TestCase):
         quotation = OhlcvProcessor.get_quotations(stock_symbol)
         print('v0.0.1 quotation: {0};'.format(quotation.shape))
 
-    def test_get_market_state(self):
+    def test_get_market_state001(self):
+        '''
+        测试上涨行情识别
+        '''
         print('test get market state method')
         y = np.zeros((10,), dtype=np.int64)
-        quotation = np.array([1., 2.])
+        quotation = np.array([
+            [0.01, 0.02, 0.03, 3.1, 0.04], 
+            [0.01, 0.02, 0.03, 3.16, 0.04], 
+            [0.01, 0.02, 0.03, 3.16, 0.04], 
+            [0.01, 0.02, 0.03, 3.17, 0.04], 
+            [0.01, 0.02, 0.03, 3.18, 0.04], 
+            [0.01, 0.02, 0.03, 3.185, 0.04], 
+            [0.01, 0.02, 0.03, 3.19, 0.04], 
+            [0.01, 0.02, 0.03, 3.22, 0.04], 
+            [0.01, 0.02, 0.03, 3.21, 0.04], 
+            [0.01, 0.02, 0.03, 3.2, 0.04], 
+            [0.01, 0.02, 0.03, 3.19, 0.04], 
+            [0.01, 0.02, 0.03, 3.18, 0.04], 
+            [0.01, 0.02, 0.03, 3.181, 0.04], 
+            [0.01, 0.02, 0.03, 3.186, 0.04], 
+            [0.01, 0.02, 0.03, 3.179, 0.04], 
+            [0.01, 0.02, 0.03, 3.183, 0.04]
+        ])
         window_size = 3
         forward_size = 4
+        OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
+        print('y: {0}; {1};'.format(y.shape, y))

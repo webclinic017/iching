@@ -1,4 +1,5 @@
 #
+import numpy as np
 import unittest
 from apps.fmts.ds.akshare_data_source import AkshareDataSource
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
@@ -31,3 +32,10 @@ class TOhlcvProcessor(unittest.TestCase):
         stock_symbol = 'sh600260'
         quotation = OhlcvProcessor.get_quotations(stock_symbol)
         print('v0.0.1 quotation: {0};'.format(quotation.shape))
+
+    def test_get_market_state(self):
+        print('test get market state method')
+        y = np.zeros((10,), dtype=np.int64)
+        quotation = np.array([1., 2.])
+        window_size = 3
+        forward_size = 4

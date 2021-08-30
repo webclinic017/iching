@@ -15,10 +15,8 @@ class OhlcvDataset(Dataset):
         self.y = y
         self.info = info
 
-    @overrides
     def __len__(self):
         return self.X.shape[0]
 
-    @overrides
-    def __item__(self, idx):
+    def __getitem__(self, idx):
         return self.X[idx], self.y[idx], self.info[idx]

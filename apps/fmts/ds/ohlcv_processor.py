@@ -88,7 +88,7 @@ class OhlcvProcessor(object):
         np.savetxt(ds_X_csv, X, delimiter=',')
         # 获取行情状态
         y = np.zeros((X.shape[0],), dtype=np.int64)
-        #OhlcvProcessor.get_market_state(y, quotations, window_size, forward_size)
+        OhlcvProcessor.get_market_state(y, quotations, window_size, forward_size)
         # 获取日期和真实行情数值
         raw_datas = []
         raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)

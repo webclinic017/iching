@@ -93,23 +93,23 @@ class TOhlcvProcessor(unittest.TestCase):
             # 绘制价格变化曲线
             x = range(cnt)
             close_prices = [ix[3] for ix in quotation]
-            plt.plot(x, close_prices, marker='*')
+            plt.plot(x, close_prices, color='goldenrod', marker='*')
             # 绘制最左侧竖线
             low_limit = quotation[idx+window_size][3]*low_delta
             high_limit = quotation[idx+window_size][3]*high_delta
             x1 = np.array([idx+window_size, idx+window_size])
             y1 = np.array([low_limit, high_limit])
-            plt.plot(x1, y1, marker='*')
+            plt.plot(x1, y1, color='darkblue', marker='o')
             # 绘制上限
             x2 = np.array([idx+window_size, idx+window_size+forward_size-1])
             y2 = np.array([high_limit, high_limit])
-            plt.plot(x2, y2)
+            plt.plot(x2, y2, color='darkblue', marker='o')
             # 绘制下限
             x3 = np.array([idx+window_size, idx+window_size+forward_size-1])
             y3 = np.array([low_limit, low_limit])
-            plt.plot(x3, y3)
+            plt.plot(x3, y3, color='darkblue', marker='o')
             # 绘制右侧竖线
             x4 = np.array([idx+window_size+forward_size-1, idx+window_size+forward_size-1])
             y4 = np.array([low_limit, high_limit])
-            plt.plot(x4, y4, marker='*')
+            plt.plot(x4, y4, color='darkblue', marker='o')
         plt.show(block=True)

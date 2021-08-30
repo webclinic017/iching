@@ -1,6 +1,7 @@
 #
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 import unittest
 from apps.fmts.ds.akshare_data_source import AkshareDataSource
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
@@ -64,11 +65,7 @@ class TOhlcvProcessor(unittest.TestCase):
         print('y: {0}; {1};'.format(y.shape, y))
 
     def test_get_market_state002(self):
-        msg = input('please input msg:')
-        print('msg: {0};'.format(msg))
-        i_debug = 1
-        if 1==i_debug:
-            return
+        #msg = input('please input msg:')
         random.seed(1.0)
         y = np.zeros((10,), dtype=np.int64)
         quotation_raw = []
@@ -87,4 +84,10 @@ class TOhlcvProcessor(unittest.TestCase):
         quotation = np.array(quotation_raw)
         OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
         print('y: {0}; {1};'.format(y.shape, y))
+        plt.ion()
+        fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         x = range(cnt)
+        close_prices = []
+        plt.show(block=True)
+        
+        plt.plot(x, data, marker='*')

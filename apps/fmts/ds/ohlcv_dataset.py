@@ -5,6 +5,7 @@
 #       其中第w天为当前日期，向前推w天
 #   y: number 所处市场行情
 #   info：日期时间
+from numpy.core import overrides
 from torch.utils.data import Dataset
 
 class OhlcvDataset(Dataset):
@@ -13,3 +14,11 @@ class OhlcvDataset(Dataset):
         self.X = X
         self.y = y
         self.info = info
+
+    @overrides
+    def __len__(self):
+        return self.X.shape[0]
+
+    @overrides
+    def __item__(self, idx):
+        return self.X[idx], self.y[idx], self.info[idx]

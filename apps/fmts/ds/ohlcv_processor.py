@@ -98,8 +98,9 @@ class OhlcvProcessor(object):
             for row in fd:
                 if seq >= window_size and seq<ldd_size:
                     row = row.strip()
-                    arrs = row.split(' ')
-                    raw_datas.append(arrs[0])
+                    arrs = row.split(',')
+                    item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4], arrs[5]]
+                    raw_datas.append(item)
                 seq += 1
         return X, y, raw_datas
 

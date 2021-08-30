@@ -8,5 +8,8 @@
 from torch.utils.data import Dataset
 
 class OhlcvDataset(Dataset):
-    def __init__(self):
+    def __init__(self, X, y, info):
         self.name = 'apps.fmts.ds.ohlcv_ds.OhlcvDs'
+        self.X = X
+        self.y = y
+        self.info = info

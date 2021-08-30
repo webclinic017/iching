@@ -87,7 +87,10 @@ class TOhlcvProcessor(unittest.TestCase):
         plt.ion()
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
         x = range(cnt)
-        close_prices = []
-        plt.show(block=True)
+        close_prices = [ix[3] for ix in quotation]
         
-        plt.plot(x, data, marker='*')
+        plt.draw()
+        plt.pause(10.1)
+        plt.cla()
+        plt.plot(x, close_prices, marker='*')
+        plt.show(block=True)

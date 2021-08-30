@@ -14,6 +14,7 @@ class TOhlcvDataset(unittest.TestCase):
         print('样本数：{0};'.format(len(ohlcv_ds)))
         dl = DataLoader(ohlcv_ds, batch_size=1, shuffle=True, num_workers=0)
         X, y, info = next(iter(dl))
+        quotation = OhlcvDataset.get_quotation_from_info(info)
         print('X: {0};'.format(X))
         print('y: {0};'.format(y))
-        print('info: {0};'.format(info))
+        print('info: {0}; {1};'.format(quotation['date'], quotation['close']))

@@ -20,3 +20,14 @@ class OhlcvDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx], self.info[idx]
+
+    @staticmethod
+    def get_quotation_from_info(info):
+        return {
+            'date': info[0][0], 
+            'open': info[1][0], 
+            'high': info[2][0], 
+            'low': info[3][0], 
+            'close': info[4][0], 
+            'volume': info[5][0]
+        }

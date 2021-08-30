@@ -65,7 +65,6 @@ class TOhlcvProcessor(unittest.TestCase):
         print('y: {0}; {1};'.format(y.shape, y))
 
     def test_get_market_state002(self):
-        #msg = input('please input msg:')
         random.seed(1.0)
         y = np.zeros((10,), dtype=np.int64)
         quotation_raw = []
@@ -75,7 +74,7 @@ class TOhlcvProcessor(unittest.TestCase):
         low_delta = 0.995
         window_size = 3
         forward_size = 4
-        cnt = cnt_y+window_size+forward_size-1
+        cnt = cnt_y+window_size+forward_size
         for idx in range(cnt):
             close_price = random.uniform(curr_price*low_delta, curr_price*high_delta)
             item = [0.01, 0.02, 0.03, close_price, 0.04]
@@ -101,15 +100,18 @@ class TOhlcvProcessor(unittest.TestCase):
             y1 = np.array([low_limit, high_limit])
             plt.plot(x1, y1, color='darkblue', marker='o')
             # 绘制上限
-            x2 = np.array([idx+window_size, idx+window_size+forward_size-1])
+            x2 = np.array([idx+window_size, idx+window_size+forward_size])
             y2 = np.array([high_limit, high_limit])
             plt.plot(x2, y2, color='darkblue', marker='o')
             # 绘制下限
-            x3 = np.array([idx+window_size, idx+window_size+forward_size-1])
+            x3 = np.array([idx+window_size, idx+window_size+forward_size])
             y3 = np.array([low_limit, low_limit])
             plt.plot(x3, y3, color='darkblue', marker='o')
             # 绘制右侧竖线
-            x4 = np.array([idx+window_size+forward_size-1, idx+window_size+forward_size-1])
+            x4 = np.array([idx+window_size+forward_size, idx+window_size+forward_size])
             y4 = np.array([low_limit, high_limit])
             plt.plot(x4, y4, color='darkblue', marker='o')
+            # 标注市场状态
+            plt.title('市场状态：{0};'.format(y[idx]))
+            msg = input('please input msg:')
         plt.show(block=True)

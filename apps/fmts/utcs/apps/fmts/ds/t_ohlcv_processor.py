@@ -86,11 +86,30 @@ class TOhlcvProcessor(unittest.TestCase):
         print('y: {0}; {1};'.format(y.shape, y))
         plt.ion()
         fig, axes = plt.subplots(1, 1, figsize=(8, 4))
-        x = range(cnt)
-        close_prices = [ix[3] for ix in quotation]
-        
-        plt.draw()
-        plt.pause(10.1)
-        plt.cla()
-        plt.plot(x, close_prices, marker='*')
+        for idx in range(cnt_y):
+            plt.draw()
+            plt.pause(0.1)
+            plt.cla()
+            # 绘制价格变化曲线
+            x = range(cnt)
+            close_prices = [ix[3] for ix in quotation]
+            plt.plot(x, close_prices, marker='*')
+            # 绘制最左侧竖线
+            low_limit = quotation[idx+window_size][3]*low_delta
+            high_limit = quotation[idx+window_size][3]*high_delta
+            x1 = np.array([idx+window_size, idx+window_size])
+            y1 = np.array([low_limit, high_limit])
+            plt.plot(x1, y1, marker='*')
+            # 绘制上限
+            x2 = np.array([idx+window_size, idx+window_size+forward_size-1])
+            y2 = np.array([high_limit, high_limit])
+            plt.plot(x2, y2)
+            # 绘制下限
+            x3 = np.array([idx+window_size, idx+window_size+forward_size-1])
+            y3 = np.array([low_limit, low_limit])
+            plt.plot(x3, y3)
+            # 绘制右侧竖线
+            x4 = np.array([idx+window_size+forward_size-1, idx+window_size+forward_size-1])
+            y4 = np.array([low_limit, high_limit])
+            plt.plot(x4, y4, marker='*')
         plt.show(block=True)

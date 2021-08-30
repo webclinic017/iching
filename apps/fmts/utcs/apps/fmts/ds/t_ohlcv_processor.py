@@ -65,6 +65,7 @@ class TOhlcvProcessor(unittest.TestCase):
         print('y: {0}; {1};'.format(y.shape, y))
 
     def test_get_market_state002(self):
+        # 开始下标：window_size，结束下标：cnt-forward_size-1（包含）
         random.seed(1.0)
         y = np.zeros((10,), dtype=np.int64)
         quotation_raw = []

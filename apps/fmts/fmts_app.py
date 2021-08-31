@@ -12,7 +12,7 @@ class FmtsApp(object):
         self.name = 'apps.fmts.fmts_app.FmtsApp'
 
     def startup(self, args={}):
-        print('金融市场交易系统 v0.0.5')
+        print('金融市场交易系统 v0.0.6')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         cmd_args = self.parse_args()
         stock_symbol = 'sh600260'
@@ -30,7 +30,9 @@ class FmtsApp(object):
                     seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
                     max_pool=cmd_args.max_pool)
         model.to(self.device)
-        print('^_^  v0.0.5  ^_^')
+        opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
+        sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
+        print('^_^  v0.0.6  ^_^')
 
     def load_stock_dataset(self, stock_symbol, batch_size):
         '''
@@ -66,12 +68,6 @@ class FmtsApp(object):
         )
         test_iter = test_loader
         return train_iter, test_iter
-
-    def build_stock_model(self, cmd_args, seq_length, num_classes):
-        # 设置系统参数
-        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
-                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
-                    max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
 
     def parse_args(self):
         '''

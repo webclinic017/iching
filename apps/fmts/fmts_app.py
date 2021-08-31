@@ -2,6 +2,7 @@
 from argparse import ArgumentParser
 from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
+from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
 
 class FmtsApp(object):
     def __init__(self):
@@ -10,9 +11,24 @@ class FmtsApp(object):
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.3')
         cmd_args = self.parse_args()
+        self.load_stock_dataset(cmd_args)
 
     def load_stock_dataset(self, cmd_args):
         stock_symbol = 'sh600260'
+        X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10, forward_size=100)
+        print('X: {0};'.format(X.shape))
+        print('y: {0};'.format(y.shape))
+        print('info: {0}; {1};'.format(len(info), info[0]))
+        train_persent = 0.9
+        train_test_sep = int(X.shape[0] * train_persent)
+        X_train = X[:train_test_sep]
+        y_train = y[:train_test_sep]
+        info_train = info[:train_test_sep]
+        print('train: {0}; {1}; {2}; {3};'.format(X_train.shape, y_train.shape, len(info_train), info_train[0]))
+        X_test = X[train_test_sep:]
+        y_test = y[train_test_sep:]
+        info_test = info[train_test_sep:]
+        print('test: {0}; {1}; {2}; {3};'.format(X_test.shape, y_test.shape, len(info_test), info_test[0]))
         '''
         train_ds = OhlcvDataset(stock_symbol, \
                     ds_mode=OhlcvDataset.DS_MODE_TRAIN, train_rate=0.1, val_rate=0.0, test_rate=0.02)

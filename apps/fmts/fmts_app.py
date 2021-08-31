@@ -10,9 +10,10 @@ from apps.fmts.ann.fmts_transformer import FmtsTransformer
 class FmtsApp(object):
     def __init__(self):
         self.name = 'apps.fmts.fmts_app.FmtsApp'
+        self.ckpt_file = './work/fmts_v1.ckpt'
 
     def startup(self, args={}):
-        print('金融市场交易系统 v0.0.6')
+        print('金融市场交易系统 v0.0.7')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         cmd_args = self.parse_args()
         stock_symbol = 'sh600260'
@@ -32,7 +33,15 @@ class FmtsApp(object):
         model.to(self.device)
         opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
         sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
-        print('^_^  v0.0.6  ^_^')
+        if cmd_args.continue_train:
+            e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+            model.load_state_dict(model_dict)
+            opt.load_state_dict(optimizer_dict)
+        print('^_^  v0.0.7  ^_^')
+
+    def load_ckpt(self, ckpt_file):
+        ckpt_obj = torch.load(ckpt_file)
+        return ckpt_obj['epoch'], ckpt_obj['model_dict'], ckpt_obj['optimizer_dict']
 
     def load_stock_dataset(self, stock_symbol, batch_size):
         '''
@@ -79,6 +88,7 @@ class FmtsApp(object):
                         dest="num_epochs",
                         help="Number of epochs.",
                         default=80, type=int)
+        parser.add_argument('-c', dest='continue_train', default=False, help='continue training process from ckpt', type=bool)
         parser.add_argument("-b", "--batch-size",
                         dest="batch_size",
                         help="The batch size.",

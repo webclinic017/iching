@@ -10,16 +10,24 @@ class FmtsApp(object):
         self.name = 'apps.fmts.fmts_app.FmtsApp'
 
     def startup(self, args={}):
-        print('金融市场交易系统 v0.0.3')
+        print('金融市场交易系统 v0.0.4')
         cmd_args = self.parse_args()
-        self.load_stock_dataset(cmd_args)
-
-    def load_stock_dataset(self, cmd_args):
         stock_symbol = 'sh600260'
+        batch_size = cmd_args.batch_size
+        NUM_CLS = 3
+        cmd_args.embedding_size = 5
+        seq_length = 10
+        cmd_args.num_heads = 4
+        cmd_args.depth = 2
+        mx = cmd_args.embedding_size
+        train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
+        print('^_^  v0.0.4  ^_^')
+
+    def load_stock_dataset(self, stock_symbol, batch_size):
+        '''
+        获取股票数据集
+        '''
         X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10, forward_size=100)
-        print('X: {0};'.format(X.shape))
-        print('y: {0};'.format(y.shape))
-        print('info: {0}; {1};'.format(len(info), info[0]))
         # 生成训练数据集
         train_persent = 0.9
         train_test_sep = int(X.shape[0] * train_persent)
@@ -29,13 +37,12 @@ class FmtsApp(object):
         train_ds = OhlcvDataset(X_train, y_train, info_train)
         train_loader = DataLoader(
             train_ds,
-            batch_size = cmd_args.batch_size,
+            batch_size = batch_size,
             num_workers = 0,
             shuffle = True,
             drop_last = True
         )
         train_iter = train_loader
-        print('train: {0}; {1}; {2}; {3};'.format(X_train.shape, y_train.shape, len(info_train), info_train[0]))
         # 生成测试数据集
         X_test = X[train_test_sep:]
         y_test = y[train_test_sep:]
@@ -43,43 +50,13 @@ class FmtsApp(object):
         test_ds = OhlcvDataset(X_test, y_test, info_test)
         test_loader = DataLoader(
             test_ds,
-            batch_size = cmd_args.batch_size,
+            batch_size = batch_size,
             num_workers = 0,
             shuffle = True,
             drop_last = True
         )
         test_iter = test_loader
-        print('test: {0}; {1}; {2}; {3};'.format(X_test.shape, y_test.shape, len(info_test), info_test[0]))
-        '''
-        train_ds = OhlcvDataset(stock_symbol, \
-                    ds_mode=OhlcvDataset.DS_MODE_TRAIN, train_rate=0.1, val_rate=0.0, test_rate=0.02)
-        train_loader = DataLoader(
-            train_ds,
-            batch_size = cmd_args.batch_size,
-            num_workers = 0,
-            shuffle = True,
-            drop_last = True
-        )
-        train_iter = train_loader
-        test_ds = OhlcvDataset(stock_symbol, \
-                    ds_mode=OhlcvDataset.DS_MODE_TRAIN, train_rate=0.1, val_rate=0.0, test_rate=0.02)
-        test_loader = DataLoader(
-            test_ds,
-            batch_size = cmd_args.batch_size,
-            num_workers = 0,
-            shuffle = True,
-            drop_last = True
-        )
-        test_iter = test_loader
-        NUM_CLS = 3
-        cmd_args.embedding_size = 5
-        seq_length = 10
-        cmd_args.num_heads = 4
-        cmd_args.depth = 2
-        mx = cmd_args.embedding_size
-        return train_iter, test_iter, NUM_CLS, seq_length, mx
-        '''
-        print('^_^  The End  ^_^')
+        return train_iter, test_iter
 
     def parse_args(self):
         '''

@@ -1,5 +1,6 @@
 # 金融市场交易系统（Financial Market Trading System）
 from argparse import ArgumentParser
+from torch.utils.data import DataLoader
 from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
@@ -19,15 +20,35 @@ class FmtsApp(object):
         print('X: {0};'.format(X.shape))
         print('y: {0};'.format(y.shape))
         print('info: {0}; {1};'.format(len(info), info[0]))
+        # 生成训练数据集
         train_persent = 0.9
         train_test_sep = int(X.shape[0] * train_persent)
         X_train = X[:train_test_sep]
         y_train = y[:train_test_sep]
         info_train = info[:train_test_sep]
+        train_ds = OhlcvDataset(X_train, y_train, info_train)
+        train_loader = DataLoader(
+            train_ds,
+            batch_size = cmd_args.batch_size,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        train_iter = train_loader
         print('train: {0}; {1}; {2}; {3};'.format(X_train.shape, y_train.shape, len(info_train), info_train[0]))
+        # 生成测试数据集
         X_test = X[train_test_sep:]
         y_test = y[train_test_sep:]
         info_test = info[train_test_sep:]
+        test_ds = OhlcvDataset(X_test, y_test, info_test)
+        test_loader = DataLoader(
+            test_ds,
+            batch_size = cmd_args.batch_size,
+            num_workers = 0,
+            shuffle = True,
+            drop_last = True
+        )
+        test_iter = test_loader
         print('test: {0}; {1}; {2}; {3};'.format(X_test.shape, y_test.shape, len(info_test), info_test[0]))
         '''
         train_ds = OhlcvDataset(stock_symbol, \
@@ -58,6 +79,7 @@ class FmtsApp(object):
         mx = cmd_args.embedding_size
         return train_iter, test_iter, NUM_CLS, seq_length, mx
         '''
+        print('^_^  The End  ^_^')
 
     def parse_args(self):
         '''

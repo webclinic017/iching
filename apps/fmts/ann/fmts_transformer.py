@@ -14,7 +14,7 @@ class FmtsTransformer(nn.Module):
     Transformer for classifying sequences
     """
 
-    def __init__(self, emb, heads, depth, seq_length, num_tokens, num_classes, max_pool=True, dropout=0.0, wide=False, app_mode=1):
+    def __init__(self, emb, heads, depth, seq_length, num_tokens, num_classes, max_pool=True, dropout=0.0, wide=False):
         """
         :param emb: Embedding dimension
         :param heads: nr. of attention heads
@@ -26,18 +26,13 @@ class FmtsTransformer(nn.Module):
                          average pooling.
         """
         super().__init__()
-        if AppConfig.fmts_transformer['app_mode_imdb'] == app_mode:
-            self.task_mode = AppConfig.fmts_transformer['task_mode_random']
-        else:
-            self.task_mode = AppConfig.fmts_transformer['task_mode_ts']
-        self.app_mode = app_mode
         self.num_tokens, self.max_pool = num_tokens, max_pool
         self.token_embedding = nn.Embedding(embedding_dim=emb, num_embeddings=num_tokens)
         self.pos_embedding = nn.Embedding(embedding_dim=emb, num_embeddings=seq_length)
         tblocks = []
         for i in range(depth):
             tblocks.append(
-                FmtsTransformerBlock(emb=emb, heads=heads, seq_length=seq_length, mask=False, dropout=dropout, task_mode=self.task_mode))
+                FmtsTransformerBlock(emb=emb, heads=heads, seq_length=seq_length, mask=False, dropout=dropout))
         self.tblocks = nn.Sequential(*tblocks)
         self.toprobs = nn.Linear(emb, num_classes)
         self.do = nn.Dropout(dropout)
@@ -47,11 +42,6 @@ class FmtsTransformer(nn.Module):
         :param x: A batch by sequence length integer tensor of token indices.
         :return: predicted log-probability vectors for each token based on the preceding tokens.
         """
-        if AppConfig.fmts_transformer['app_mode_imdb'] == self.app_mode:
-            tokens = self.token_embedding(x)
-            b, t, e = tokens.size()
-            positions = self.pos_embedding(torch.arange(t, device=FmtsAnnUtil.d()))[None, :, :].expand(b, t, e)
-            x = tokens + positions
         x = self.do(x)
         x = self.tblocks(x)
         x = x.max(dim=1)[0] if self.max_pool else x.mean(dim=1) # pool over the time dimension

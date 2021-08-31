@@ -7,7 +7,7 @@ from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ann.fmts_ann_util import FmtsAnnUtil
 
 class FmtsSelfAttention(nn.Module):
-    def __init__(self, emb, heads=2, mask=False, task_mode=1):
+    def __init__(self, emb, heads=2, mask=False):
         '''
         参数：
             emb 输入向量维度
@@ -18,14 +18,12 @@ class FmtsSelfAttention(nn.Module):
         self.emb = emb
         self.heads = heads
         self.mask = mask
-        self.task_mode = task_mode
         self.tokeys = nn.Linear(emb, emb * heads, bias=False)
         self.toqueries = nn.Linear(emb, emb * heads, bias=False)
         self.tovalues = nn.Linear(emb, emb * heads, bias=False)
-        if AppConfig.fmts_transformer['task_mode_ts'] == self.task_mode:
-            self._set_iqtt_weights(self.tokeys) # 限定过去对未来有影响，未来对过去无影响
-            self._set_iqtt_weights(self.toqueries)
-            self._set_iqtt_weights(self.tovalues)
+        self._set_iqtt_weights(self.tokeys) # 限定过去对未来有影响，未来对过去无影响
+        self._set_iqtt_weights(self.toqueries)
+        self._set_iqtt_weights(self.tovalues)
         self.unifyheads = nn.Linear(heads * emb, emb)
 
     def _set_iqtt_weights(self, linear_layer):

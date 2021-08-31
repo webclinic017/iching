@@ -5,11 +5,10 @@ from apps.fmts.ann.fmts_self_attention import FmtsSelfAttention
 
 class FmtsTransformerBlock(nn.Module):
 
-    def __init__(self, emb, heads, mask, seq_length, ff_hidden_mult=4, dropout=0.0, attention_type='default', pos_embedding=None, task_mode=1):
+    def __init__(self, emb, heads, mask, seq_length, ff_hidden_mult=4, dropout=0.0, attention_type='default', pos_embedding=None):
         super().__init__()
-        self.attention = FmtsSelfAttention(emb, heads=heads, mask=mask, task_mode=task_mode)
+        self.attention = FmtsSelfAttention(emb, heads=heads, mask=mask)
         self.mask = mask
-        self.task_mode = task_mode
         self.norm1 = nn.LayerNorm(emb)
         self.norm2 = nn.LayerNorm(emb)
         self.ff = nn.Sequential(

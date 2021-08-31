@@ -1,16 +1,19 @@
 # 金融市场交易系统（Financial Market Trading System）
 from argparse import ArgumentParser
+import torch
 from torch.utils.data import DataLoader
 from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
+from apps.fmts.ann.fmts_transformer import FmtsTransformer
 
 class FmtsApp(object):
     def __init__(self):
         self.name = 'apps.fmts.fmts_app.FmtsApp'
 
     def startup(self, args={}):
-        print('金融市场交易系统 v0.0.4')
+        print('金融市场交易系统 v0.0.5')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         cmd_args = self.parse_args()
         stock_symbol = 'sh600260'
         batch_size = cmd_args.batch_size
@@ -21,7 +24,13 @@ class FmtsApp(object):
         cmd_args.depth = 2
         mx = cmd_args.embedding_size
         train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
-        print('^_^  v0.0.4  ^_^')
+        cmd_args.num_heads = 8
+        cmd_args.depth = 6
+        model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                    max_pool=cmd_args.max_pool)
+        model.to(self.device)
+        print('^_^  v0.0.5  ^_^')
 
     def load_stock_dataset(self, stock_symbol, batch_size):
         '''
@@ -57,6 +66,12 @@ class FmtsApp(object):
         )
         test_iter = test_loader
         return train_iter, test_iter
+
+    def build_stock_model(self, cmd_args, seq_length, num_classes):
+        # 设置系统参数
+        return IqttTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=num_classes, \
+                    max_pool=cmd_args.max_pool, app_mode=IqttConfig.APP_MODE_IQT)
 
     def parse_args(self):
         '''

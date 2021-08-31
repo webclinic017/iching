@@ -1,6 +1,9 @@
 # 金融市场交易系统（Financial Market Trading System）
 from argparse import ArgumentParser
+import tqdm
 import torch
+from torch import nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
@@ -13,17 +16,16 @@ class FmtsApp(object):
         self.ckpt_file = './work/fmts_v1.ckpt'
 
     def startup(self, args={}):
-        print('金融市场交易系统 v0.0.7')
+        print('金融市场交易系统 v0.0.8')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         cmd_args = self.parse_args()
         stock_symbol = 'sh600260'
         batch_size = cmd_args.batch_size
         NUM_CLS = 3
         cmd_args.embedding_size = 5
-        seq_length = 10
+        seq_length = 11
         cmd_args.num_heads = 4
         cmd_args.depth = 2
-        mx = cmd_args.embedding_size
         train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
         cmd_args.num_heads = 8
         cmd_args.depth = 6
@@ -37,7 +39,68 @@ class FmtsApp(object):
             e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
             model.load_state_dict(model_dict)
             opt.load_state_dict(optimizer_dict)
-        print('^_^  v0.0.7  ^_^')
+        # training loop
+        cmd_args.num_epochs = 2
+        seen = 0
+        # early stopping参数
+        best_acc = -1
+        acc_up = 0.0
+        min_acc_up = 0.000001 # 识别为精度提高的最小阈值
+        non_acc_up_epochs = 0 # 目前多少个epoch精度未提高
+        max_no_acc_up_epochs = 50 # 如果精度在这些epoch后还没提高则终止训练过程
+        for epoch in range(cmd_args.num_epochs):
+            print(f'\n epoch {epoch}')
+            model.train(True)
+            for batch in tqdm.tqdm(train_iter):
+                opt.zero_grad()
+                X, y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+                y_hat = model(X)
+                loss = F.nll_loss(y_hat, y)
+                loss.backward()
+                # clip gradients
+                # - If the total gradient vector has a length > 1, we clip it back down to 1.
+                if cmd_args.gradient_clipping > 0.0:
+                    nn.utils.clip_grad_norm_(model.parameters(), cmd_args.gradient_clipping)
+                opt.step()
+                sch.step()
+                seen += X.size(0)
+            with torch.no_grad():
+                model.train(False)
+                tot, cor= 0.0, 0.0 
+                for batch in tqdm.tqdm(test_iter):
+                    X, y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+                    y_hat = model(X).argmax(dim=1)
+                    tot += float(X.size(0))
+                    cor += float((y == y_hat).sum().item())
+                acc = cor / tot
+                # 获取当前最佳测试集精度，并保存对应的模型
+                if best_acc < acc:
+                    acc_up = acc - best_acc
+                    if acc_up > min_acc_up:
+                        best_acc = acc
+                        non_acc_up_epochs = 0
+                        print('保存模型参数')
+                        self.save_ckpt(self.ckpt_file, epoch, model, opt)
+                else:
+                    non_acc_up_epochs += 1
+                    if non_acc_up_epochs > max_no_acc_up_epochs:
+                        print('模型已经处于饱合状态，停止训练过程')
+                        break
+                print(f'-- {"test" if cmd_args.final else "validation"} accuracy {acc:.3}')
+        print('^_^  v0.0.8  ^_^')
+
+    def get_stock_batch_sample(self, batch, batch_size, embedding_size):
+        X = batch[0].view(batch_size, -1, embedding_size).float().to(self.device)
+        y = batch[1].long().to(self.device)
+        return X, y
+
+    def save_ckpt(self, ckpt_file, epoch, model, optimizer):
+        data = {
+            'epoch': epoch+1,
+            'model_dict': model.state_dict(),
+            'optimizer_dict': optimizer.state_dict()
+        }
+        torch.save(data, ckpt_file)
 
     def load_ckpt(self, ckpt_file):
         ckpt_obj = torch.load(ckpt_file)

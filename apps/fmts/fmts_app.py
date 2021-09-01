@@ -28,7 +28,6 @@ class FmtsApp(object):
         cmd_args.depth = 2
         train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
         cmd_args.num_heads = 8
-        cmd_args.depth = 6
         model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
                     seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
                     max_pool=cmd_args.max_pool)
@@ -40,7 +39,7 @@ class FmtsApp(object):
             model.load_state_dict(model_dict)
             opt.load_state_dict(optimizer_dict)
         # training loop
-        cmd_args.num_epochs = 500
+        cmd_args.num_epochs = 100
         seen = 0
         # early stopping参数
         best_acc = -1
@@ -114,9 +113,9 @@ class FmtsApp(object):
         # 生成训练数据集
         train_persent = 0.9
         train_test_sep = int(X.shape[0] * train_persent)
-        X_train = X[:train_test_sep]
-        y_train = y[:train_test_sep]
-        info_train = info[:train_test_sep]
+        X_train = X[:]
+        y_train = y[:]
+        info_train = info[:]
         train_ds = OhlcvDataset(X_train, y_train, info_train)
         train_loader = DataLoader(
             train_ds,

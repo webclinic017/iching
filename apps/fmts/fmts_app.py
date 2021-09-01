@@ -40,7 +40,7 @@ class FmtsApp(object):
             model.load_state_dict(model_dict)
             opt.load_state_dict(optimizer_dict)
         # training loop
-        cmd_args.num_epochs = 2
+        cmd_args.num_epochs = 500
         seen = 0
         # early stopping参数
         best_acc = -1

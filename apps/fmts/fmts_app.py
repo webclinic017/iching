@@ -18,7 +18,34 @@ class FmtsApp(object):
 
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
-        self.train()
+        #self.train()
+        self.predict()
+
+    def predict(self):
+        cmd_args = self.parse_args()
+        batch_size = cmd_args.batch_size
+        NUM_CLS = 3
+        cmd_args.embedding_size = 5
+        seq_length = 11
+        cmd_args.num_heads = 4
+        cmd_args.depth = 6 # 原始值为2
+        cmd_args.num_heads = 8
+        model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                    max_pool=cmd_args.max_pool)
+        model.to(self.device)
+        e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+        model.load_state_dict(model_dict)
+        # 获取测试样本
+        stock_symbol = 'sh600260'
+        train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
+        batch = iter(test_iter).next()
+        batch_X, batch_y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+        X = batch_X[:1, :, :]
+        y = batch_y[:1]
+        print('X: {0}; y: {1};'.format(X.shape, y.shape))
+        y_hat = model(X).argmax(dim=1)
+        print('y_hat: {0}; y: {1};'.format(y_hat.item(), y.item()))
 
     def train(self):
         cmd_args = self.parse_args()

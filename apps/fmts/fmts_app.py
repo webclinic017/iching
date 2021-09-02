@@ -14,10 +14,13 @@ class FmtsApp(object):
     def __init__(self):
         self.name = 'apps.fmts.fmts_app.FmtsApp'
         self.ckpt_file = './work/fmts_v1.ckpt'
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.train()
+
+    def train(self):
         cmd_args = self.parse_args()
         stock_symbol = 'sh600260'
         batch_size = cmd_args.batch_size
@@ -25,7 +28,7 @@ class FmtsApp(object):
         cmd_args.embedding_size = 5
         seq_length = 11
         cmd_args.num_heads = 4
-        cmd_args.depth = 2
+        cmd_args.depth = 6 # 原始值为2
         train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
         cmd_args.num_heads = 8
         model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
@@ -39,7 +42,7 @@ class FmtsApp(object):
             model.load_state_dict(model_dict)
             opt.load_state_dict(optimizer_dict)
         # training loop
-        cmd_args.num_epochs = 100
+        cmd_args.num_epochs = 3
         seen = 0
         # early stopping参数
         best_acc = -1

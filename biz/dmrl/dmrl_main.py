@@ -12,7 +12,7 @@ class DmrlMain(object):
 
     def startup(self, args={}):
         print("元强化学习量化交易系统 v0.0.1")
-        mode = 4 # 1-模型训练；2-模型快速学习；3-模型运行
+        mode = 3 # 1-模型训练；2-模型快速学习；3-模型运行
         app = MamlApp()
         if 1 == mode:
             app.startup(mode=MamlApp.R_M_TRAIN)

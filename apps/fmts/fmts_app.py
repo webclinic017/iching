@@ -9,6 +9,7 @@ from apps.fmts.conf.app_config import AppConfig
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
 from apps.fmts.ann.fmts_transformer import FmtsTransformer
+from apps.fmts.drl.fmts_env import FmtsEnv
 
 class FmtsApp(object):
     def __init__(self):
@@ -19,7 +20,63 @@ class FmtsApp(object):
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
         #self.train()
-        self.predict()
+        #self.predict()
+        self.run()
+
+    def run(self):
+        stock_symbol = 'sh600260'
+        model = self.reset_rl()
+        env = FmtsEnv(stock_symbol)
+        obs = env.reset()        
+        done = False 
+        action = env.action_space.sample() 
+        while not done:
+            X = self.get_model_X(obs)
+            quotation_state = self.get_quotation_state(model, X)
+            if quotation_state == 0:
+                # 买入
+                action[0] = 0.5
+                action[1] = 1.0
+            elif quotation_state == 1:
+                action[0] = 1.5
+                action[1] = 1.0
+            else:
+                action[0] = 2.5
+                action[1] = 0.5
+            obs, reward, done, info = env.step(action)
+            if env.current_step > 200:
+                done = True
+
+    def get_model_X(self, obs):
+        return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
+
+    def get_quotation_state(self, model, X):
+        '''
+        强化学习env类的step方法中，需要调用本函数根据行情选择参数, X为(1, 10, 5)格式
+        '''
+        y_hat = model(X).argmax(dim=1)
+        return y_hat.item()
+
+    def reset_rl(self):
+        '''
+        强化学习环境Reset中需要调用本函数，初始化模型
+        '''
+        cmd_args = self.parse_args()
+        print('command line args: {0};'.format(cmd_args))
+        batch_size = cmd_args.batch_size
+        NUM_CLS = 3
+        cmd_args.embedding_size = 5
+        seq_length = 11
+        cmd_args.num_heads = 4
+        cmd_args.depth = 6 # 原始值为2
+        cmd_args.num_heads = 8
+        model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                    max_pool=cmd_args.max_pool)
+        model.to(self.device)
+        e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+        model.load_state_dict(model_dict)
+        return model
 
     def predict(self):
         cmd_args = self.parse_args()

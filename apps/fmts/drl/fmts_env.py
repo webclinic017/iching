@@ -5,8 +5,8 @@ from gym import spaces
 from torch.utils.data import DataLoader
 from biz.dmrl.app_config import AppConfig
 from biz.dmrl.market import Market
-from biz.dmrl.iqtt.iqtt_text_render import IqttTextRender
-from biz.dmrl.iqtt.iqtt_human_render import IqttHumanRender
+from apps.fmts.gui.fmts_human_render import FmtsHumanRender
+from apps.fmts.gui.fmts_text_render import FmtsTextRender
 
 class FmtsEnv(gym.Env):
     RENDER_MODE_TEXT = 'text'
@@ -18,11 +18,11 @@ class FmtsEnv(gym.Env):
         self.current_step = 0
         self.trade_mode = AppConfig.TRADE_MODE_HOLD
         if FmtsEnv.RENDER_MODE_TEXT == mode:
-            self.renderer = IqttTextRender()
+            self.renderer = FmtsTextRender()
         elif FmtsEnv.RENDER_MODE_HUMAN == mode:
-            self.renderer = IqttHumanRender()
+            self.renderer = FmtsHumanRender()
         else:
-            self.renderer = IqttTextRender()
+            self.renderer = FmtsTextRender()
         self.window_size = 50 # 绘制50个交易日的图像
         self.trades = {}
         # 初始化交易历史信息

@@ -30,6 +30,7 @@ class FmtsApp(object):
         obs = env.reset()        
         done = False 
         action = env.action_space.sample() 
+        idx = 0
         while not done:
             X = self.get_model_X(obs)
             quotation_state = self.get_quotation_state(model, X)

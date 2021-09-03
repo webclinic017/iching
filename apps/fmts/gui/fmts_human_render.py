@@ -7,6 +7,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.pyplot import MultipleLocator
+
+from matplotlib.dates import MinuteLocator, DateFormatter
 # 
 from biz.dmrl.app_config import AppConfig
 
@@ -16,9 +18,12 @@ class FmtsHumanRender(object):
         # 绘制交易历史动态图
         plt.rcParams['font.sans-serif'] = ['SimHei'] # 步骤一（替换sans-serif字体）
         plt.rcParams['axes.unicode_minus'] = False   # 步骤二（解决坐标轴负数的负号显示问题）
+        #fig, ax = plt.subplots()
         fig = plt.figure()
         #fig.canvas.manager.window.showMaximized()
         fig.suptitle(title)
+        loc = MinuteLocator(byminute=range(60), interval=5)
+        formatter = DateFormatter('%Y')
         # Create top subplot for net worth axis
         self.net_value_ax = plt.subplot2grid((6, 1), (0, 0), rowspan=2, colspan=1)
         # Create bottom subplot for shared price/volume axis
@@ -50,23 +55,19 @@ class FmtsHumanRender(object):
     SELL_TEXT_COLOR = '#DC2C27'
     HOLD_TEXT_COLOR = '#0000FF'
     def _render_trades(self, trades):
+        close_prices = np.array(trades['bars']['Close'])
+        text_y = min(close_prices)
         for item in trades['trade_history']:
             idx = item['idx']
             if item['trade_mode'] == AppConfig.TRADE_MODE_BUY:
                 color = FmtsHumanRender.BUY_TEXT_COLOR
-                msg = 'BUY:{0}*{1:.2f}'.format(item['quant'], item['price'])
+                msg = '买入:{0}*{1:.2f}'.format(item['quant'], item['price'])
             else:
                 color = FmtsHumanRender.SELL_TEXT_COLOR
-                msg = 'Sell:{0}*{1:.2f}'.format(item['quant'], item['price'])
-            '''
-            self.price_ax.annotate(msg, (trades['trade_dates'][idx], trades['bars']['Close'][idx]),
-                    xytext=(trades['trade_dates'][idx], trades['bars']['High'][idx]),
-                    color=color,
-                    fontsize=8,
-                    arrowprops=(dict(color=color, shrink=0.05, arrowstyle='->')))
-            '''
+                msg = '卖出:{0}*{1:.2f}'.format(item['quant'], item['price'])
             self.price_ax.text(
-                trades['trade_dates'][idx], trades['bars']['Close'][idx], 
+                trades['trade_dates'][idx], 
+                trades['bars']['Close'][idx], 
                 msg, 
                 color='w',
                 size=8, rotation=45.0,
@@ -77,32 +78,62 @@ class FmtsHumanRender(object):
 
     OHLC_UP = '#ff4500'
     OHLC_DOWN = '#800080'
-    VOLUME_CHART_HEIGHT = 0.33
-    def _render_price(self, trades):
+    VOLUME_CHART_HEIGHT = 0.4
+    def _render_price(self, trades):        
+        # Clear the frame rendered last step
         self.price_ax.clear()
-        upper_limit = trades['window_size']
-        if upper_limit > len(trades['bars']['Open']):
-            upper_limit = len(trades['bars']['Open'])
-        for idx in range(upper_limit):
-            data = {
-                'Open': trades['bars']['Open'][idx],
-                'High': trades['bars']['High'][idx],
-                'Low': trades['bars']['Low'][idx],
-                'Close': trades['bars']['Close'][idx],
-                'Volume': trades['bars']['Volume'][idx]
-            }
-            self.price_ax = self.draw_candlestick(self.price_ax, idx, data, FmtsHumanRender.OHLC_UP, FmtsHumanRender.OHLC_DOWN)  
-        # Print the current price to the price axis
-        self.price_ax.annotate('{0:.2f}'.format(trades['bars']['Close'][-1]),
-            (trades['trade_dates'][-1], trades['bars']['Close'][-1]),
-            xytext=(trades['trade_dates'][-1], trades['bars']['High'][-1]),
+        # Plot net worths
+        #self.net_value_ax.plot_date(trades['trade_dates'], np.array(trades['net_values']), '-', label='Net Worth')
+        close_prices = np.array(trades['bars']['Close'])
+        max_close_prices = np.max(close_prices)
+        min_close_prices = np.min(close_prices)
+        self.price_ax.plot_date(trades['trade_dates'], close_prices, '-', xdate=True, label='收盘价')
+        plt.gcf().autofmt_xdate()
+        #ax为两条坐标轴的实例
+        ax=plt.gca()
+        ax.xaxis.set_major_locator(MultipleLocator(5))
+        #date_format = mpl_dates.DateFormatter('%b, %d %Y')
+        #plt.gca().xaxis.set_major_formatter(date_format)
+        # Show legend, which uses the label we defined for the plot above
+        self.price_ax.legend()
+        legend = self.price_ax.legend(loc=2, ncol=2, prop={'size': 8})
+        legend.get_frame().set_alpha(0.4)
+        last_date = trades['trade_dates'][-1]
+        last_close_price = trades['bars']['Close'][-1]
+        # Annotate the current net worth on the net worth graph
+        self.price_ax.annotate(
+            '{0:.2f}'.format(last_close_price),     
+            (last_date, last_close_price),
+            xytext=(last_date, last_close_price),
             bbox=dict(boxstyle='round', fc='w', ec='k', lw=1),
             color="black",
             fontsize="small"
         )
-        # Shift price axis up to give volume chart space
-        ylim = self.price_ax.get_ylim()
-        self.price_ax.set_ylim(ylim[0] - (ylim[1] - ylim[0]) * FmtsHumanRender.VOLUME_CHART_HEIGHT, ylim[1])
+        # Add space above and below min/max net worth
+        self.price_ax.set_ylim(
+            min_close_prices * 0.8 - 0.1,    
+            max_close_prices * 1.02)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _render_volume(self, trades): #current_step, net_worth, dates, 
                    #step_range):
@@ -150,10 +181,12 @@ class FmtsHumanRender(object):
         # Clear the frame rendered last step
         self.net_value_ax.clear()
         # Plot net worths
-        self.net_value_ax.plot_date(trades['trade_dates'], np.array(trades['net_values']), '-', label='Net Worth')
+        dts = [datetime.strptime(x, '%Y-%m-%d %H:%M:%S') for x in trades['trade_dates']]
+        #self.net_value_ax.plot_date(trades['trade_dates'], np.array(trades['net_values']), '-', label='Net Worth')
+        self.net_value_ax.plot_date(trades['trade_dates'], np.array(trades['net_values']), '-', xdate=True, label='净值')
         plt.gcf().autofmt_xdate()
-        ax=plt.gca()
         #ax为两条坐标轴的实例
+        ax=plt.gca()
         ax.xaxis.set_major_locator(MultipleLocator(5))
         #date_format = mpl_dates.DateFormatter('%b, %d %Y')
         #plt.gca().xaxis.set_major_formatter(date_format)

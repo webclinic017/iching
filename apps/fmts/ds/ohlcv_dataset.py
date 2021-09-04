@@ -5,8 +5,29 @@
 #       其中第w天为当前日期，向前推w天
 #   y: number 所处市场行情
 #   info：日期时间
+from numpy.core import overrides
 from torch.utils.data import Dataset
 
 class OhlcvDataset(Dataset):
-    def __init__(self):
+    def __init__(self, X, y, info):
         self.name = 'apps.fmts.ds.ohlcv_ds.OhlcvDs'
+        self.X = X
+        self.y = y
+        self.info = info
+
+    def __len__(self):
+        return self.X.shape[0]
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx], self.info[idx]
+
+    @staticmethod
+    def get_quotation_from_info(info):
+        return {
+            'date': info[0][0], 
+            'open': info[1][0], 
+            'high': info[2][0], 
+            'low': info[3][0], 
+            'close': info[4][0], 
+            'volume': info[5][0]
+        }

@@ -88,6 +88,7 @@ class OhlcvProcessor(object):
         np.savetxt(ds_X_csv, X, delimiter=',')
         # 获取行情状态
         y = np.zeros((X.shape[0],), dtype=np.int64)
+        OhlcvProcessor.get_market_state(y, quotations, window_size, forward_size)
         # 获取日期和真实行情数值
         raw_datas = []
         raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
@@ -96,10 +97,12 @@ class OhlcvProcessor(object):
             for row in fd:
                 if seq >= window_size and seq<ldd_size:
                     row = row.strip()
-                    arrs = row.split(' ')
-                    raw_datas.append(arrs[0])
+                    arrs = row.split(',')
+                    item = [arrs[0], float(arrs[1]), float(arrs[2]), float(arrs[3]), float(arrs[4]), float(arrs[5])]
+                    raw_datas.append(item)
                 seq += 1
-        return X, y, raw_datas
+        a1 = len(raw_datas)
+        return X[:a1], y[:a1], raw_datas
 
     @staticmethod
     def get_quotations(stock_symbol: str) -> np.ndarray:
@@ -124,7 +127,7 @@ class OhlcvProcessor(object):
             high_limit = curr_price * 1.01
             low_limit = curr_price * 0.995
             market_regime = 2
-            for pos in range(idx+window_size+1, idx+window_size+1+forward_size-1, 1):
+            for pos in range(idx+window_size+1, idx+window_size+1+forward_size, 1):
                 future_price = quotation[pos][3]
                 if future_price >= high_limit:
                     market_regime = 0

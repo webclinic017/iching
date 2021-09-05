@@ -39,9 +39,11 @@ class FmtsApp(object):
                 action[0] = 0.5
                 action[1] = 1.0
             elif quotation_state == 1:
+                # 卖出
                 action[0] = 1.5
                 action[1] = 1.0
             else:
+                # 持有
                 action[0] = 2.5
                 action[1] = 0.5
             obs, reward, done, info = env.step(action)

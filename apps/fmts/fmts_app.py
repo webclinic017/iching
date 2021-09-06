@@ -19,6 +19,7 @@ class FmtsApp(object):
 
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
+        todo = '1. 将market引入本项目；2. 将aks_util相关功能引入本项目；'
         #self.train()
         #self.predict()
         self.run()
@@ -71,7 +72,7 @@ class FmtsApp(object):
         cmd_args.embedding_size = 5
         seq_length = 11
         cmd_args.num_heads = 4
-        cmd_args.depth = 6 # 原始值为2
+        cmd_args.depth = 6
         cmd_args.num_heads = 8
         model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
                     seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \

@@ -76,6 +76,7 @@ class OhlcvProcessor(object):
                 log_1d_datas.append(item)
         # 
         ldd_size = len(log_1d_datas) - forward_size
+        print('ldd_size: {0};'.format(ldd_size))
         X_raw = []
         for pos in range(window_size, ldd_size, 1):
             item = []

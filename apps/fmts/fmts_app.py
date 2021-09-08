@@ -83,6 +83,7 @@ class FmtsApp(object):
         return model
 
     def predict(self):
+        stock_symbol = 'sh600260'
         cmd_args = self.parse_args()
         batch_size = cmd_args.batch_size
         NUM_CLS = 3
@@ -98,7 +99,6 @@ class FmtsApp(object):
         e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
         model.load_state_dict(model_dict)
         # 获取测试样本
-        stock_symbol = 'sh600260'
         train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
         batch = iter(test_iter).next()
         batch_X, batch_y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
@@ -201,6 +201,7 @@ class FmtsApp(object):
         获取股票数据集
         '''
         X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10, forward_size=100)
+        print('X: {0};'.format(X.shape))
         # 生成训练数据集
         train_persent = 0.9
         train_test_sep = int(X.shape[0] * train_persent)

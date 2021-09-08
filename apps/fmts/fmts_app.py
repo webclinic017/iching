@@ -21,8 +21,8 @@ class FmtsApp(object):
         print('金融市场交易系统 v0.0.8')
         todo = '1. 将market引入本项目；2. 将aks_util相关功能引入本项目；'
         #self.train()
-        #self.predict()
-        self.run()
+        self.predict()
+        #self.run()
 
     def run(self):
         stock_symbol = 'sh600260'
@@ -104,7 +104,7 @@ class FmtsApp(object):
         batch_X, batch_y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
         X = batch_X[:1, :, :]
         y = batch_y[:1]
-        print('X: {0}; y: {1};'.format(X.shape, y.shape))
+        print('##### X: {0}; y: {1};'.format(X.shape, y.shape))
         y_hat = model(X).argmax(dim=1)
         print('y_hat: {0}; y: {1};'.format(y_hat.item(), y.item()))
 

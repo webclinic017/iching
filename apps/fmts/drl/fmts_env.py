@@ -7,6 +7,8 @@ from biz.dmrl.app_config import AppConfig
 from biz.dmrl.market import Market
 from apps.fmts.gui.fmts_human_render import FmtsHumanRender
 from apps.fmts.gui.fmts_text_render import FmtsTextRender
+from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
+from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
 
 class FmtsEnv(gym.Env):
     RENDER_MODE_TEXT = 'text'
@@ -46,7 +48,8 @@ class FmtsEnv(gym.Env):
         self.trades['bars']['Close'] = []
         self.trades['bars']['Volume'] = []
         self.trades['trade_history'] = []
-        self.market = Market(stock_symbol)
+        X, y, info = OhlcvProcessor.get_ds_raw_data(stock_symbol, window_size=10, forward_size=100)
+        self.market = OhlcvDataset(X, y, info)
         # self.aks_iter.next() raise StopIteration exception when end
         self.batch_size = 1
         self.action_space = spaces.Box(

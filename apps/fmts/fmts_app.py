@@ -21,8 +21,8 @@ class FmtsApp(object):
         print('金融市场交易系统 v0.0.8')
         todo = '1. 将market引入本项目；2. 将aks_util相关功能引入本项目；'
         #self.train()
-        self.predict()
-        #self.run()
+        #self.predict()
+        self.run()
 
     def run(self):
         stock_symbol = 'sh600260'
@@ -52,7 +52,7 @@ class FmtsApp(object):
                 done = True
 
     def get_model_X(self, obs):
-        return torch.from_numpy(obs[0][:50].reshape(-1, 10, 5)).float().to(self.device)
+        return torch.from_numpy(obs[0][:55].reshape(-1, 11, 5)).float().to(self.device)
 
     def get_quotation_state(self, model, X):
         '''

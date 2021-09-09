@@ -34,6 +34,9 @@ class OhlcvProcessor(object):
         '''
         从原始行情数据，求出一阶对数收益率log(day2)-log(day1)，然后求出每列均值和标准差，利用
         (x-mu)/std进行标准化，分别保存原始信息和归整后信息
+        参数：
+            stock_symbol 股票编号
+            items 由AkshareDataSource.get_minute_bars方法获取到
         '''
         datas = np.array([x[1:] for x in items])
         log_ds = np.log(datas)

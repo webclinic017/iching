@@ -103,7 +103,53 @@
 如\ref{f000001}所示，图中每天收盘到第二天开盘间没有行情数据，所以图形不太好看出规律，而图\ref{f000002}则可以较好的反映价格的变化规律，因此
 我们在通常情况下，选择图\ref{f000002}的形式。
 \subsubsection{对数差分序列}
-我们都知道，原始的行情数据，不具备平稳性，即无法通过历史数据来预测未来，而对数差分序列则具有平稳性，可以用来进行预测。
+我们都知道，原始的行情数据，不具备平稳性，即无法通过历史数据来预测未来，而对数差分序列则具有平稳性，可以用来进行预测。如下所示：
+\lstset{language=PYTHON, caption={收盘价折线图}, label={c001-close-price-curve-001}, basicstyle = \ttfamily}
+\begin{lstlisting}
+    @staticmethod
+    def gen_1d_log_diff_norm(stock_symbol, items):
+        '''
+        从原始行情数据，求出一阶对数收益率log(day2)-log(day1)，然后求出每列均值和标准差，利用
+        (x-mu)/std进行标准化，分别保存原始信息和归整后信息
+        参数：
+            stock_symbol 股票编号
+            items 由AkshareDataSource.get_minute_bars方法获取到
+        '''
+        datas = np.array([x[1:] for x in items])
+        log_ds = np.log(datas)
+        log_diff = np.diff(log_ds, n=1, axis=0)
+        log_diff_mu = np.mean(log_diff, axis=0)
+        log_diff_std = np.std(log_diff, axis=0)
+        ld_ds = (log_diff - log_diff_mu) / log_diff_std
+        # 保存原始信息
+        raw_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
+        with open(raw_file, 'w', encoding='utf-8') as fd:
+            for item in items[1:]:
+                fd.write('{0},{1},{2},{3},{4},{5}\n'.format(item[0], item[1], 
+                            item[2], item[3], item[4], item[5]))
+        # 保存规整化后数据
+        ld_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
+        np.savetxt(ld_file, ld_ds)
+
+# 测试程序
+    def test_gen_1d_log_diff_norm_001(self):
+        stock_symbol = 'sh600260'
+        items = AkshareDataSource.get_minute_bars(stock_symbol=stock_symbol)
+        OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第2行：items由AkshareDataSource.get\_minute\_bars方法获取到，格式为[..., ['2021-08-19 15:00:00', 1.1, 1.5, 1.0, 1.2, 1000], ...]；
+    \item 第10行：把items中的条目，去除掉日期列后，生成ndarray；
+    \item 第11行：对所有元素取对数，以自然数e为底，np.log2是以2底，np.log10是以10为底；
+    \item 第12行：取一阶差分，其中n=1代表是一阶差分，即后面一个元素减前面一个元素，out[i] = x[i+1]-x[i]，因为axis=0，所以i代表行；
+    \item 第13行：求出行方向的均值；
+    \item 第14行：求出行方向的标准差；
+    \item 第15行：进行归一化：$\hat{x}=\frac{x-\mu}{\sigma}$；
+    \item 第18~21行：保存原始的行情信息，因为取了一阶差分，所以去掉了第1行；
+    \item 第23、24行：保存一阶差分规整化后的数据；
+\end{itemize}
+\subsection{数据集支撑数据}
 
 
 

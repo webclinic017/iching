@@ -155,7 +155,64 @@
 连续读取指定个时刻，缺省值为100，如果未来价格首先高于上涨趋势的最低价格，则将当前时刻判断为上涨状态，如果我们有资金，就应该进行买入操作；如果未来价格首先低于下跌趋
 势的最高价格，则将当前时刻判断为下跌状态，此时如果我们有持仓，则应卖出持有的股票，如果既没高于上涨趋势的最低价格，也没低于下跌趋势的最高价格，则将当前时刻判断为震荡
 状态，此时不进行任何操作。我们先来看数据的生成：
-
+\lstset{language=PYTHON, caption={获取数据集后面原始数据}, label={c001-get-row-dataset-data}, basicstyle = \ttfamily}
+\begin{lstlisting}
+    @staticmethod
+    def get_ds_raw_data(stock_symbol: str, window_size: int=10, forward_size: int=100) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+        '''
+        获取数据集所需数据
+        stock_symbol 股票代码
+        window_size 从当前时间点向前看多少个时间点
+        forward_size 向后看多少个时间点确定市场行情是上涨、下跌和震荡
+        返回值 
+            X 连续11个时间点的OHLCV的数据，形状为n*55，一阶Log差分形式
+            y 某个时间点及其前10个时间点行情数据组成的shapelet对应的行情（按Box方式确定）：0-震荡；1-上升；2-下跌；
+            info 当前时间刻行情的真实值
+        '''
+        print('获取数据集数据')
+        # 获取行情数据
+        quotations = OhlcvProcessor.get_quotations(stock_symbol)
+        # 获取归整化行情数据
+        log_1d_datas = []
+        log_1d_file = './apps/fmts/data/{0}_1m_ld.csv'.format(stock_symbol)
+        with open(log_1d_file, 'r', encoding='utf-8') as fd:
+            for row in fd:
+                row = row.strip()
+                arrs = row.split(' ')
+                item = [arrs[0], arrs[1], arrs[2], arrs[3], arrs[4]]
+                log_1d_datas.append(item)
+        # 
+        ldd_size = len(log_1d_datas) - forward_size
+        print('ldd_size: {0};'.format(ldd_size))
+        X_raw = []
+        for pos in range(window_size, ldd_size, 1):
+            item = []
+            for idx in range(pos-window_size, pos):
+                item += log_1d_datas[idx]
+            item += log_1d_datas[pos]
+            X_raw.append(item)
+        X = np.array(X_raw, dtype=np.float32)
+        ds_X_csv = './apps/fmts/data/{0}_1m_X.csv'.format(stock_symbol)
+        np.savetxt(ds_X_csv, X, delimiter=',')
+        # 获取行情状态
+        y = np.zeros((X.shape[0],), dtype=np.int64)
+        OhlcvProcessor.get_market_state(y, quotations, window_size, forward_size)
+        # 获取日期和真实行情数值
+        raw_datas = []
+        raw_data_file = './apps/fmts/data/{0}_1m_raw.txt'.format(stock_symbol)
+        seq = 0
+        with open(raw_data_file, 'r', encoding='utf-8') as fd:
+            for row in fd:
+                if seq >= window_size and seq<ldd_size:
+                    row = row.strip()
+                    arrs = row.split(',')
+                    item = [arrs[0], float(arrs[1]), float(arrs[2]), float(arrs[3]), float(arrs[4]), float(arrs[5])]
+                    raw_datas.append(item)
+                seq += 1
+        a1 = len(raw_datas)
+        return X[:a1], y[:a1], raw_datas
+\end{lstlisting}
+代码解读如下所示：
 
 
 \section{最后}

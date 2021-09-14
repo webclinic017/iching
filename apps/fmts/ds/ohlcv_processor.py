@@ -99,7 +99,7 @@ class OhlcvProcessor(object):
         seq = 0
         with open(raw_data_file, 'r', encoding='utf-8') as fd:
             for row in fd:
-                if seq >= window_size and seq<ldd_size:
+                if seq > window_size and seq<=ldd_size:
                     row = row.strip()
                     arrs = row.split(',')
                     item = [arrs[0], float(arrs[1]), float(arrs[2]), float(arrs[3]), float(arrs[4]), float(arrs[5])]

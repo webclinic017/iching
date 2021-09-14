@@ -203,7 +203,7 @@
         seq = 0
         with open(raw_data_file, 'r', encoding='utf-8') as fd:
             for row in fd:
-                if seq >= window_size and seq<ldd_size:
+                if seq > window_size and seq<=ldd_size:
                     row = row.strip()
                     arrs = row.split(',')
                     item = [arrs[0], float(arrs[1]), float(arrs[2]), float(arrs[3]), float(arrs[4]), float(arrs[5])]
@@ -216,22 +216,37 @@
 \begin{itemize}
     \item 第15行：获取行情数据，格式为：[..., [open, high, low, close, volume], ...]，类型为numpy.ndarray；
     \item 第17$\sim$24行：从文件中读出一阶对数差分形式的数据集，包括规整化后的开盘、最高、最低、收盘、交易量信息；
-    \item 第26行：我们需要在当前时间点向后看forward\_size个时间点，因此最后一个时间点索引值为ldd\_size-forward\_size-1；
+    \item 第26行：我们需要在当前时间点向后看forward\_size个时间点，因此最后一个时间点索引值为ldd\_size=length-forward\_size，不包括该值；
     \begin{figure}[H]
         \caption{读取行情数据原理示意图}
         \label{f000003}
         \centering
         \includegraphics[width=10cm]{images/f000003}
-    \end{figure}    
-    \item 第28$\sim$34行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
+    \end{figure}
+    \item 第28$\sim$34行：起点为window\_size，如上图行3橙色单元格，终点为ldd\_size=length-forward\_size=12-5=7，不包括该值，每步循环时，当前时刻向右移一格，
+    将前面window\_size=3个时间点数据加入到item中，最后将当前时间点pos加入到item中，最后将item作为一个样本，加入到原如数据集中；
+    \item 第35$\sim$37行：将其转变为np.ndarray，并保存到如sh600260\_1m\_X.csv中；
+    \item 第39、40行：生成与X同长度的y，每个时间点是一个0、1、2中三个数中的一个数，分别代表上涨、下跌和震荡，具体实现在下面的进行详细介绍；
+    \begin{figure}[H]
+        \caption{读取原始行情数据原理示意图}
+        \label{f000004}
+        \centering
+        \includegraphics[width=10cm]{images/f000004}
+    \end{figure}
+    \item 第42$\sim$52行：由于我们在上步读取数据集时，针对的是一阶对数差分序列，所以其比原始数据（上图上部）少一列数据。
+    \begin{itemize}
+        \item 初始时seq=0，不满足if条件，不处理第0时刻数据，seq=1；
+        \item seq=1不满足if条件，不处理第1时刻数据，seq=2；
+        \item seq=2不满足if条件，不处理第2时刻数据，seq=3；
+        \item seq=3不满足if条件，不处理第3时刻数据，seq=4；
+        \item seq=4满足if条件，将第4时刻数据加入到行情数据中，seq=5；
+        \item seq=5满足if条件，将第5时刻数据加入到行情数据中，seq=6；
+        \item seq=6满足if条件，将第5时刻数据加入到行情数据中，seq=7；
+        \item seq=7满足if条件，将第5时刻数据加入到行情数据中，seq=8；
+        \item seq=8满足if条件，将第5时刻数据加入到行情数据中，seq=9；
+        \item ......；
+    \end{itemize}
+    \item 第54行：返回X、y和原始行情数据raw\_datas；
 \end{itemize}
 
-\section{最后}
+\section{总结}

@@ -248,5 +248,87 @@
     \end{itemize}
     \item 第54行：返回X、y和原始行情数据raw\_datas；
 \end{itemize}
+\subsection{确定市场行情}
+下面我们来看怎样根据前10个时刻及当前时刻的行情数据，确定在未来是上涨、下跌或震荡行情，从而根据仓位选择合理的操作。
+\lstset{language=PYTHON, caption={确定当前时刻市场状态}, label={c001-determine-market-state}, basicstyle = \ttfamily}
+\begin{lstlisting}
+# apps/fmts/ds/ohlcv_processfor.py
+    @staticmethod
+    def get_market_state(y: np.ndarray, quotation: np.ndarray, window_size: int, forward_size: int) -> None:
+        '''
+        针对收盘价，从window_size处开始，向后看forward_size条记录，上限为当前收盘价*1.01，下限为当前收盘价*0.95，当
+        在forward_size窗口内收盘价高于上限时返回0表示上升行情需要买入，低于下限时返回1表示下跌行情需要卖出，
+        否则返回2表示震荡行情，将该值写入y中
+        '''
+        cnt = y.shape[0]
+        q_cnt = quotation.shape[0]
+        for idx in range(0, cnt, 1):
+            curr_price = quotation[idx+window_size][3]
+            high_limit = curr_price * 1.01
+            low_limit = curr_price * 0.995
+            market_regime = 2
+            for pos in range(idx+window_size+1, idx+window_size+1+forward_size, 1):
+                future_price = quotation[pos][3]
+                if future_price >= high_limit:
+                    market_regime = 0
+                elif future_price <= low_limit:
+                    market_regime = 1
+            y[idx] = market_regime
+
+            
+# 测试程序：utcs/apps/fmts/ds/t_ohlcv_processor.py
+    def test_get_market_state002(self):
+        # 开始下标：window_size，结束下标：cnt-forward_size-1（包含）
+        random.seed(1.0)
+        y = np.zeros((10,), dtype=np.int64)
+        quotation_raw = []
+        cnt_y = 10
+        curr_price = 5.36
+        high_delta = 1.01
+        low_delta = 0.995
+        window_size = 3
+        forward_size = 4
+        cnt = cnt_y+window_size+forward_size
+        for idx in range(cnt):
+            close_price = random.uniform(curr_price*low_delta, curr_price*high_delta)
+            item = [0.01, 0.02, 0.03, close_price, 0.04]
+            quotation_raw.append(item)
+        print('quotation_raw: {0}: {1};'.format(len(quotation_raw), quotation_raw))
+        quotation = np.array(quotation_raw)
+        OhlcvProcessor.get_market_state(y, quotation, window_size, forward_size)
+        print('y: {0}; {1};'.format(y.shape, y))
+        plt.ion()
+        fig, axes = plt.subplots(1, 1, figsize=(8, 4))
+        for idx in range(cnt_y):
+            plt.draw()
+            plt.pause(0.1)
+            plt.cla()
+            # 绘制价格变化曲线
+            x = range(cnt)
+            close_prices = [ix[3] for ix in quotation]
+            plt.plot(x, close_prices, color='goldenrod', marker='*')
+            # 绘制最左侧竖线
+            low_limit = quotation[idx+window_size][3]*low_delta
+            high_limit = quotation[idx+window_size][3]*high_delta
+            x1 = np.array([idx+window_size, idx+window_size])
+            y1 = np.array([low_limit, high_limit])
+            plt.plot(x1, y1, color='darkblue', marker='o')
+            # 绘制上限
+            x2 = np.array([idx+window_size, idx+window_size+forward_size])
+            y2 = np.array([high_limit, high_limit])
+            plt.plot(x2, y2, color='darkblue', marker='o')
+            # 绘制下限
+            x3 = np.array([idx+window_size, idx+window_size+forward_size])
+            y3 = np.array([low_limit, low_limit])
+            plt.plot(x3, y3, color='darkblue', marker='o')
+            # 绘制右侧竖线
+            x4 = np.array([idx+window_size+forward_size, idx+window_size+forward_size])
+            y4 = np.array([low_limit, high_limit])
+            plt.plot(x4, y4, color='darkblue', marker='o')
+            # 标注市场状态
+            plt.title('市场状态：{0};'.format(y[idx]))
+            msg = input('please input msg:')
+        plt.show(block=True)
+\end{lstlisting}
 
 \section{总结}

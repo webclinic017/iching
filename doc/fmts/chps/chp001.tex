@@ -213,5 +213,25 @@
         return X[:a1], y[:a1], raw_datas
 \end{lstlisting}
 代码解读如下所示：
+\begin{itemize}
+    \item 第15行：获取行情数据，格式为：[..., [open, high, low, close, volume], ...]，类型为numpy.ndarray；
+    \item 第17$\sim$24行：从文件中读出一阶对数差分形式的数据集，包括规整化后的开盘、最高、最低、收盘、交易量信息；
+    \item 第26行：我们需要在当前时间点向后看forward\_size个时间点，因此最后一个时间点索引值为ldd\_size-forward\_size-1；
+    \begin{figure}[H]
+        \caption{读取行情数据原理示意图}
+        \label{f000003}
+        \centering
+        \includegraphics[width=10cm]{images/f000003}
+    \end{figure}    
+    \item 第28$\sim$34行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+\end{itemize}
 
 \section{最后}

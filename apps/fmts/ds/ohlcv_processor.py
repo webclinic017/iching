@@ -135,8 +135,10 @@ class OhlcvProcessor(object):
                 future_price = quotation[pos][3]
                 if future_price >= high_limit:
                     market_regime = 0
+                    break
                 elif future_price <= low_limit:
                     market_regime = 1
+                    break
             y[idx] = market_regime
                 
 

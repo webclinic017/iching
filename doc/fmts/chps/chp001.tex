@@ -339,9 +339,20 @@
 \end{figure}
 代码解读如下所示：
 \begin{itemize}
-    \item 第行：；
-    \item 第行：；
-    \item 第行：；
+    \item 第3行：y保存每个时刻的市场状态，quotation为本类中get\_quotations方法获取的数据，格式为：[..., [open, high, low, close, volume], ...]，
+    window\_size为向前看的时刻，forward\_size为向后看多少个时刻作为行情判断窗口；
+    \item 第11行：循环处理y中的每个时刻；
+    \item 第12行：取出当前时刻的实际收盘价，我们需要向前看window\_size个时刻，因此当前时刻是idx+window\_size，因为quotation的格式为：[open, high, low, close, volume]，
+    因此序号3为收盘价；
+    \item 第13行：判断为上涨行情时的最低价格，在当前时刻后forward\_size个时间点内的收盘价，只要高于该值，就判断为上涨行情；
+    \item 第14行：判断为下跌行情时的最高价格，在当前时刻后forward\_size个时间点内的收盘价，只要低于该值，就判断为下跌行情，因为股市上一旦亏钱，再赚回来就比较难，因此下
+    跌行情的标准为更严格一些；
+    \item 第15行：缺省为震荡行情；
+    \item 第16行：循环处理未来forward\_size个时刻；
+    \item 第17行：求出未来某个时刻的收盘价；
+    \item 第18$\sim$20行：当未来时刻收盘价高于上涨行情判断的最低价格时，判断为上涨行情，并退出对未来时刻判断的内循环；
+    \item 第21$\sim$23行：当未来时刻收盘价低于下跌行情判断的最高价格时，判断为下跌行情，并奶出对未来时刻判断的内循环；
+    \item 第24行：确定当前时刻市场状态；
 \end{itemize}
 
 \section{总结}

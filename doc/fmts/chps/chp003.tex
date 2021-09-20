@@ -1,0 +1,101 @@
+\newpage
+\maketitle
+\begin{center}
+\Large \textbf{第3章 模型训练} \quad 
+\end{center}
+\begin{abstract}
+在本章中我们将详细讲解用于金融交易的Transformer网络的模型训练和预测过程。
+\end{abstract}
+\section{模型训练与预测概述概述}
+\subsection{训练过程}
+下面我们来看模型的训练过程，训练入口程序如下所示：
+\lstset{language=PYTHON, caption={模型训练入口}, label={c003-train-entry-point}, basicstyle = \ttfamily}
+\begin{lstlisting}
+    def train(self):
+        cmd_args = self.parse_args()
+        stock_symbol = 'sh600260'
+        batch_size = cmd_args.batch_size
+        NUM_CLS = 3
+        cmd_args.embedding_size = 5
+        seq_length = 11
+        cmd_args.num_heads = 4
+        cmd_args.depth = 6 # 原始值为2
+        train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
+        cmd_args.num_heads = 8
+        model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                    seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                    max_pool=cmd_args.max_pool)
+        model.to(self.device)
+        opt = torch.optim.Adam(lr=cmd_args.lr, params=model.parameters())
+        sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (cmd_args.lr_warmup / cmd_args.batch_size), 1.0))
+        if cmd_args.continue_train:
+            e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+            model.load_state_dict(model_dict)
+            opt.load_state_dict(optimizer_dict)
+        # training loop
+        cmd_args.num_epochs = 3
+        seen = 0
+        # early stopping参数
+        best_acc = -1
+        acc_up = 0.0
+        min_acc_up = 0.000001 # 识别为精度提高的最小阈值
+        non_acc_up_epochs = 0 # 目前多少个epoch精度未提高
+        max_no_acc_up_epochs = 50 # 如果精度在这些epoch后还没提高则终止训练过程
+        for epoch in range(cmd_args.num_epochs):
+            print(f'\n epoch {epoch}')
+            model.train(True)
+            for batch in tqdm.tqdm(train_iter):
+                opt.zero_grad()
+                X, y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+                y_hat = model(X)
+                loss = F.nll_loss(y_hat, y)
+                loss.backward()
+                # clip gradients
+                # - If the total gradient vector has a length > 1, we clip it back down to 1.
+                if cmd_args.gradient_clipping > 0.0:
+                    nn.utils.clip_grad_norm_(model.parameters(), cmd_args.gradient_clipping)
+                opt.step()
+                sch.step()
+                seen += X.size(0)
+            with torch.no_grad():
+                model.train(False)
+                tot, cor= 0.0, 0.0 
+                for batch in tqdm.tqdm(test_iter):
+                    X, y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+                    y_hat = model(X).argmax(dim=1)
+                    tot += float(X.size(0))
+                    cor += float((y == y_hat).sum().item())
+                acc = cor / tot
+                # 获取当前最佳测试集精度，并保存对应的模型
+                if best_acc < acc:
+                    acc_up = acc - best_acc
+                    if acc_up > min_acc_up:
+                        best_acc = acc
+                        non_acc_up_epochs = 0
+                        print('保存模型参数')
+                        self.save_ckpt(self.ckpt_file, epoch, model, opt)
+                else:
+                    non_acc_up_epochs += 1
+                    if non_acc_up_epochs > max_no_acc_up_epochs:
+                        print('模型已经处于饱合状态，停止训练过程')
+                        break
+                print(f'-- {"test" if cmd_args.final else "validation"} accuracy {acc:.3}')
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第5行：Transformer网络输出三种市场状态：上涨、下跌、震荡；
+    \item 第6行：我们将每个时刻等价为一个单词，每个时刻可以用开盘、最高、最低、收盘、交易量来表示，因此相当于每个单词是5维向量；
+    \item 第7行：我们通常考虑当前时刻，同时向前看10个时刻，因此每个样本包括11个时刻，相当于每个句子有11个单词，所以序列长度为11；
+    \item 第8行：共有6层结构；
+    \item 第10行：共有8个自注意头；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+    \item 第行：；
+\end{itemize}
+
+\subsection{预测过程}
+
+\section{总结}

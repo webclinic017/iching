@@ -126,5 +126,51 @@
 \end{itemize}
 
 \subsection{预测过程}
+下面来看预测过程，代码如下所示：
+\lstset{language=PYTHON, caption={模型预测入口}, label={c003-predict-entry-point}, basicstyle = \ttfamily}
+\begin{lstlisting}
+def predict(self):
+    stock_symbol = 'sh600260'
+    cmd_args = self.parse_args()
+    batch_size = cmd_args.batch_size
+    NUM_CLS = 3
+    cmd_args.embedding_size = 5
+    seq_length = 11
+    cmd_args.depth = 6 # 原始值为2
+    cmd_args.num_heads = 8
+    model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                max_pool=cmd_args.max_pool)
+    model.to(self.device)
+    e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+    model.load_state_dict(model_dict)
+    # 获取测试样本
+    train_iter, test_iter = self.load_stock_dataset(stock_symbol, batch_size)
+    batch = iter(test_iter).next()
+    batch_X, batch_y = self.get_stock_batch_sample(batch, batch_size, cmd_args.embedding_size)
+    X = batch_X[:1, :, :]
+    y = batch_y[:1]
+    print('##### X: {0}; y: {1};'.format(X.shape, y.shape))
+    y_hat = model(X).argmax(dim=1)
+    print('y_hat: {0}; y: {1};'.format(y_hat.item(), y.item()))
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第4行：批次大小batch\_size的缺省值为4；
+    \item 第5行：输出层大小，代表市场状态：上涨、下跌、震荡；
+    \item 第6行：每个时刻行情数据：开盘、最高、最低、收盘、交易量，可以视为NLP中的单词，设定其维度为5维；
+    \item 第7行：包括当前时刻，再向前取10个时刻，共11个时刻，相当于NLP中规定每个句子的长度为11；
+    \item 第8行：共有6层Encoder层；
+    \item 第9行：共有8个自注意力头；
+    \item 第10$\sim12$行：初始化模型，其中vocab\_size=50000为缺省值，max\_pool代表使用最大池化；
+    \item 第13行：将其放入GPU中；
+    \item 第14、15行：载入预训练好的模型；
+    \item 第17行：载入数据集；
+    \item 第18行：取出第一个批次；
+    \item 第19行：取出这个批次中的样本集和标签集；
+    \item 第20行：取出样本集中第1个样本；
+    \item 第21行：取出标签集中对应的标签；
+    \item 第23行：调用FmtsTransformer模型求出输出信号$\hat{y} \in R^{3}$，通过argmax求出最大值元素的索引号作为输出值；
+\end{itemize}
 
 \section{总结}

@@ -7,6 +7,76 @@
 在本章中我们将详细讲解基于强化学习环境的回测平台。
 \end{abstract}
 \section{回测平台概述}
-\subsection{启动流程}
+在本章中，我们基于强化学习环境，创建一个策略的回测平台。
+\subsection{启动入口}
+下面我们来看启动的入口函数：
+\lstset{language=PYTHON, caption={回测平台入口}, label={c004-rl-backtest-entry-point}, basicstyle = \ttfamily}
+\begin{lstlisting}
+def run(self):
+    stock_symbol = 'sh600260'
+    model = self.build_model()
+    env = FmtsEnv(stock_symbol)
+    obs = env.reset()        
+    done = False 
+    action = env.action_space.sample() 
+    idx = 0
+    while not done:
+        X = self.get_model_X(obs)
+        quotation_state = self.get_quotation_state(model, X)
+        if quotation_state == 0:
+            # 买入
+            action[0] = 0.5
+            action[1] = 1.0
+        elif quotation_state == 1:
+            # 卖出
+            action[0] = 1.5
+            action[1] = 1.0
+        else:
+            # 持有
+            action[0] = 2.5
+            action[1] = 0.5
+        obs, reward, done, info = env.step(action)
+        if env.current_step > 200:
+            done = True
+
+def build_model(self):
+    '''
+    强化学习环境Reset中需要调用本函数，初始化模型
+    '''
+    cmd_args = self.parse_args()
+    print('command line args: {0};'.format(cmd_args))
+    batch_size = cmd_args.batch_size
+    NUM_CLS = 3
+    cmd_args.embedding_size = 5
+    seq_length = 11
+    cmd_args.depth = 6
+    cmd_args.num_heads = 8
+    model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \
+                seq_length=seq_length, num_tokens=cmd_args.vocab_size, num_classes=NUM_CLS, \
+                max_pool=cmd_args.max_pool)
+    model.to(self.device)
+    e, model_dict, optimizer_dict = self.load_ckpt(self.ckpt_file)
+    model.load_state_dict(model_dict)
+    return model
+\end{lstlisting}
+代码解读如下所示：
+\begin{itemize}
+    \item 第3行：创建模型，具体代码见第28行；
+    \item 第4行：创建强化学习环境，具体见下一节；
+    \item 第5行：重置强化学习环境，并获得系统初始观察值；
+    \item 第6行：将是否结束回测置为否；
+    \item 第7行：从行动空间中随机抽样出一个行动，行动是一个二维数组，第1个元素代表操作，在[0,1]之间为买入，在(1,2]之间为卖出，(2,+$\infty$)时为持有，第二个
+    元素为操作的百分比；
+    \item 第9行：如果结束回测标志不为真则一直循环；
+    \item 第10行：根据环境的观察求出用于模型的输入信号；
+    \item 第11行：通过运行模型，确定当前时刻的市场行情状态：0-上涨、1-下跌、2-震荡；
+    \item 第12$\sim$15行：当处于上涨行情时，如果还有现金，则执行买入操作，action[0]取小于1的数，action[1]指定使用当前现金的百分比；
+    \item 第16$\sim$19行：当处于下跌行情时，如果持有股票，则执行卖出操作，action[0]取1至2之间的数，action[1]指定使用当前持股数的百分比；
+    \item 第20$\sim$23行：当处于震荡行情时，action[0]取大于2的数，action[1]的值被忽略；
+    \item 第24行：将行动传给环境执行，环境会返回：obs-当前的状态（执行完行动后）、reward-该行动获得的奖励、done-是否结束回测标志、info-其他附加信息；
+\end{itemize}
+
+\subsection{强化学习环境}
+
 
 \section{总结}

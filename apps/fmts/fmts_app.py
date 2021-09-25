@@ -26,7 +26,7 @@ class FmtsApp(object):
 
     def run(self):
         stock_symbol = 'sh600260'
-        model = self.reset_rl()
+        model = self.build_model()
         env = FmtsEnv(stock_symbol)
         obs = env.reset()        
         done = False 
@@ -61,7 +61,7 @@ class FmtsApp(object):
         y_hat = model(X).argmax(dim=1)
         return y_hat.item()
 
-    def reset_rl(self):
+    def build_model(self):
         '''
         强化学习环境Reset中需要调用本函数，初始化模型
         '''
@@ -71,7 +71,6 @@ class FmtsApp(object):
         NUM_CLS = 3
         cmd_args.embedding_size = 5
         seq_length = 11
-        cmd_args.num_heads = 4
         cmd_args.depth = 6
         cmd_args.num_heads = 8
         model = FmtsTransformer(emb=cmd_args.embedding_size, heads=cmd_args.num_heads, depth=cmd_args.depth, \

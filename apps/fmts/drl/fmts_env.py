@@ -16,6 +16,7 @@ class FmtsEnv(gym.Env):
 
     def __init__(self, stock_symbol, mode='human'):
         super(FmtsEnv, self).__init__()
+        print('v1')
         self.stock_symbol = stock_symbol
         self.current_step = 0
         self.trade_mode = AppConfig.TRADE_MODE_HOLD

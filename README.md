@@ -1,5 +1,5 @@
 Notes: chinese version at the bottom. The chinese version ebook of this project can be found at doc/iching folder. ^_^
-# iching v0.1.2 005
+# iching v0.1.2 006
 Iching is a deep meta reinforcement learning quantitative trading platform.
 ## Why iching
 Iching project is inspired by I ching or The Change of Book - an ancient chinese book to predict the future. It is the first book to use binary sysntem in the world about 5000 years ago. It propose that Tai Chi generate Yin-Yang. Yin-Yang generate Eight Diagrams. Two Eight Diagrams have 64 states. There has a Change Diagrams which has 6 states. In all there has 384 state. Ancient chinese people use this 384 states to predict everything faithfully.

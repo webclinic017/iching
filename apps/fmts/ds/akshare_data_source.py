@@ -30,7 +30,15 @@ class AkshareDataSource(object):
         return AkshareDataSource.get_quotation_from_csv(data_file)
 
     @staticmethod
-    def get_quotation_from_csv(csv_file): #csv_file = './data/aks_1ms/{0}_1m.csv'.format(stock_symbol)
+    def get_quotation_from_csv(csv_file):
+        '''
+        从csv文件中读出行情数据，返回值为2维列表，格式为：
+        [
+            ......
+            [日期, 开盘，最高，最低，收盘，交易量],
+            ......
+        ]
+        '''
         items = []
         with open(csv_file, 'r', encoding='utf-8') as fd:
             is_first_row = True
@@ -40,7 +48,9 @@ class AkshareDataSource(object):
                     continue
                 row = row.strip()
                 arrs0 = row.split(',')
-                if len(row)<=0 or arrs0[1]=='' or arrs0[2]=='' or arrs0[3]=='' or arrs0[4]=='' or arrs0[5]=='':
+                if len(row)<=0 or arrs0[1]=='' or arrs0[2]=='' \
+                            or arrs0[3]=='' or arrs0[4]=='' \
+                            or arrs0[5]=='':
                     break
                 item = []
                 item.append(str(arrs0[1]))

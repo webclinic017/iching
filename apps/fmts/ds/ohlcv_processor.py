@@ -160,7 +160,10 @@ class OhlcvProcessor(object):
         figmanager = plt.get_current_fig_manager()
         figmanager.window.state('zoomed')    #最大化
         # 绘制收盘价格折线图
-        axes.plot_date(x, np.array(y), '-', label='Net Worth')
+        plt.title('收盘价折线图')
+        axes.set_xlabel('时间')
+        axes.set_ylabel('收盘价')
+        axes.plot_date(x, np.array(y), '-', label='净值')
         # 设置横轴时间显示格式
         axes.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
         plt.gcf().autofmt_xdate()
@@ -182,5 +185,5 @@ class OhlcvProcessor(object):
         plt.title('收盘价折线图')
         axes.set_xlabel('时间刻度')
         axes.set_ylabel('收盘价')
-        axes.plot(x, np.array(y), '-', label='Net Worth')
+        axes.plot(x, np.array(y), '-', label='净值')
         plt.show()

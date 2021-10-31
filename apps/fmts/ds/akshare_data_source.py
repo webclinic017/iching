@@ -4,11 +4,14 @@ from typing import List
 import akshare as ak
 import numpy as np
 
-# 北陆药业 sh300016
+# 北陆药业 sz300016
 # 锦州港 sh600190
 
 class AkshareDataSource(object):
+    SS_BLYY = 'sz300016' # 北陆药业
+    SS_JZG = 'sh600190' # 锦州港
     DATA_FOLDER = 'apps/fmts/data/'
+
     def __init__(self):
         self.name = 'apps.fmts.ds.akshare_data_source.AkshareDataSource'
 

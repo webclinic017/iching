@@ -8,7 +8,7 @@ class TAkshareDataSource(unittest.TestCase):
         测试正常情况，运行方式：
         python -m unittest apps.fmts.utcs.apps.fmts.ds.t_akshare_data_source.TAkshareDataSource.test_get_minute_bars_001 -v
         '''
-        stock_symbol = AkshareDataSource.SS_BLYY
+        stock_symbol = AkshareDataSource.SS_JZG
         data = AkshareDataSource.get_minute_bars(stock_symbol)
         for item in data:
             print(item)

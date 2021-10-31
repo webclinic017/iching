@@ -4,6 +4,9 @@ from typing import List
 import akshare as ak
 import numpy as np
 
+# 北陆药业 sh300016
+# 锦州港 sh600190
+
 class AkshareDataSource(object):
     DATA_FOLDER = 'apps/fmts/data/'
     def __init__(self):

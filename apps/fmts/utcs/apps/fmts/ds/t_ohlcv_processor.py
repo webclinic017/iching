@@ -8,14 +8,26 @@ from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
 
 class TOhlcvProcessor(unittest.TestCase):
     def test_draw_close_price_curve_001(self):
+        '''
+        测试绘制以时间刻度为横轴的收盘价曲线，运行方式：
+        python -m unittest apps.fmts.utcs.apps.fmts.ds.t_ohlcv_processor.TOhlcvProcessor.test_draw_close_price_curve_001 -v
+        '''
         stock_symbol = 'sh600260'
         OhlcvProcessor.draw_close_price_curve(stock_symbol, mode=OhlcvProcessor.PCM_TICK)
         
     def test_draw_close_price_curve_002(self):
+        '''
+        测试绘制以时间为横轴的收盘价曲线，运行方式：
+        python -m unittest apps.fmts.utcs.apps.fmts.ds.t_ohlcv_processor.TOhlcvProcessor.test_draw_close_price_curve_002 -v
+        '''
         stock_symbol = 'sh600260'
         OhlcvProcessor.draw_close_price_curve(stock_symbol, mode=OhlcvProcessor.PCM_DATETIME)
 
     def test_gen_1d_log_diff_norm_001(self):
+        '''
+        测试求规整后的一阶差分行情数据，运行方式：
+        python -m unittest apps.fmts.utcs.apps.fmts.ds.t_ohlcv_processor.TOhlcvProcessor.test_gen_1d_log_diff_norm_001 -v
+        '''
         stock_symbol = 'sh600260'
         items = AkshareDataSource.get_minute_bars(stock_symbol=stock_symbol)
         OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)

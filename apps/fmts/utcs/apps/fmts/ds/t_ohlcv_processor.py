@@ -33,7 +33,11 @@ class TOhlcvProcessor(unittest.TestCase):
         OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)
 
     def test_get_ds_raw_data(self):
-        stock_symbol = 'sh600260'
+        '''
+        获取用于模型训练的数据集
+        python -m unittest apps.fmts.utcs.apps.fmts.ds.t_ohlcv_processor.TOhlcvProcessor.test_get_ds_raw_data -v
+        '''
+        stock_symbol = AkshareDataSource.SS_BLYY
         # 准备全量数据集
         items = AkshareDataSource.get_minute_bars(stock_symbol=stock_symbol)
         OhlcvProcessor.gen_1d_log_diff_norm(stock_symbol, items)

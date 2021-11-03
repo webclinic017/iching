@@ -21,12 +21,12 @@ class FmtsApp(object):
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
         todo = '1. 将market引入本项目；2. 将aks_util相关功能引入本项目；'
-        self.train()
+        #self.train()
         #self.predict()
-        #self.run()
+        self.run()
 
     def run(self):
-        stock_symbol = 'sh600260'
+        stock_symbol = AkshareDataSource.SS_BLYY
         model = self.build_model()
         env = FmtsEnv(stock_symbol)
         obs = env.reset()        
@@ -83,7 +83,7 @@ class FmtsApp(object):
         return model
 
     def predict(self):
-        stock_symbol = 'sh600260'
+        stock_symbol = AkshareDataSource.SS_BLYY
         cmd_args = self.parse_args()
         batch_size = cmd_args.batch_size
         NUM_CLS = 3

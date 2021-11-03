@@ -6,6 +6,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from apps.fmts.conf.app_config import AppConfig
+from apps.fmts.ds.akshare_data_source import AkshareDataSource
 from apps.fmts.ds.ohlcv_dataset import OhlcvDataset
 from apps.fmts.ds.ohlcv_processor import OhlcvProcessor
 from apps.fmts.ann.fmts_transformer import FmtsTransformer
@@ -109,7 +110,7 @@ class FmtsApp(object):
 
     def train(self):
         cmd_args = self.parse_args()
-        stock_symbol = 'sh600260'
+        stock_symbol = AkshareDataSource.SS_BLYY
         batch_size = cmd_args.batch_size
         NUM_CLS = 3
         cmd_args.embedding_size = 5

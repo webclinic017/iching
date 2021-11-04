@@ -21,9 +21,9 @@ class FmtsApp(object):
     def startup(self, args={}):
         print('金融市场交易系统 v0.0.8')
         todo = '1. 将market引入本项目；2. 将aks_util相关功能引入本项目；'
-        #self.train()
+        self.train()
         #self.predict()
-        self.run()
+        #self.run()
 
     def run(self):
         stock_symbol = AkshareDataSource.SS_BLYY
